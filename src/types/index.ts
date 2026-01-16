@@ -1,0 +1,26 @@
+export interface User {
+  id: number
+  email: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Topic {
+  id: number
+  user_id: number
+  title: string
+  description: string
+  created_at: string
+  updated_at: string
+  questions?: Question[]
+}
+
+export interface Question {
+  id: number
+  topic_id: number
+  question: string
+  answer: string
+  created_at: string
+  updated_at: string
+}
