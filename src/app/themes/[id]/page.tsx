@@ -23,6 +23,12 @@ type TreeNode = {
   children?: TreeNode[]
 }
 
+type DragItem = {
+  kind: 'topic' | 'question'
+  id: number
+  topicId?: number
+}
+
 export default function ThemeDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -45,6 +51,8 @@ export default function ThemeDetailPage() {
   })
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [selectedTask, setSelectedTask] = useState<TreeNode | null>(null)
+  const [dragItem, setDragItem] = useState<DragItem | null>(null)
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null)
   const [createContext, setCreateContext] = useState({
     parentTopicId: null as number | null,
     parentQuestionId: null as number | null,
@@ -62,6 +70,73 @@ export default function ThemeDetailPage() {
     try {
       const response = await api.get(`/themes/${params.id}`)
       setTheme(response.data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const getTopicById = (topicId: number) => theme?.topics.find((topic) => topic.id === topicId)
+  const getQuestionById = (questionId: number) =>
+    theme?.questions.find((question) => question.id === questionId)
+
+  const parseDragItem = (event: React.DragEvent) => {
+    if (dragItem) return dragItem
+    const raw = event.dataTransfer.getData('text/plain')
+    if (!raw) return null
+    try {
+      return JSON.parse(raw) as DragItem
+    } catch {
+      return null
+    }
+  }
+
+  const handleDragStart = (item: DragItem) => (event: React.DragEvent) => {
+    setDragItem(item)
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', JSON.stringify(item))
+  }
+
+  const handleDragEnd = () => {
+    setDragItem(null)
+    setDragOverKey(null)
+  }
+
+  const moveTopic = async (topicId: number, parentId: number | null) => {
+    const topic = getTopicById(topicId)
+    if (!topic) return
+    try {
+      await api.put(`/themes/${params.id}/topics/${topicId}`, {
+        title: topic.title,
+        description: topic.description,
+        parent_id: parentId,
+      })
+      await fetchTheme()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const moveQuestion = async (options: {
+    questionId: number
+    sourceTopicId: number
+    targetTopicId: number
+    parentQuestionId: number | null
+  }) => {
+    const question = getQuestionById(options.questionId)
+    if (!question) return
+    try {
+      await api.put(
+        `/themes/${params.id}/topics/${options.sourceTopicId}/questions/${options.questionId}`,
+        {
+          question: question.question,
+          answer: question.answer,
+          linked_topic_id: question.linked_topic_id,
+          linked_question_id: question.linked_question_id,
+          parent_id: options.parentQuestionId,
+          topic_id: options.targetTopicId,
+        }
+      )
+      await fetchTheme()
     } catch (err) {
       console.error(err)
     }
@@ -278,10 +353,59 @@ export default function ThemeDetailPage() {
     const nodeKey = `${node.type}-${node.id}`
     const hasChildren = (node.children && node.children.length > 0) ?? false
     const isExpanded = expandedNodes.has(nodeKey)
+    const isDragOver = dragOverKey === nodeKey
     return (
       <div key={`${node.type}-${node.id}`} style={{ paddingLeft: padding }}>
         <div
-          className="flex items-start justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer"
+          className={`flex items-start justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer ${
+            isDragOver ? 'ring-2 ring-blue-400' : ''
+          }`}
+          draggable
+          onDragStart={handleDragStart(
+            node.type === 'folder'
+              ? { kind: 'topic', id: node.id }
+              : { kind: 'question', id: node.id, topicId: node.topicId }
+          )}
+          onDragEnd={handleDragEnd}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragOverKey(nodeKey)
+          }}
+          onDragLeave={() => setDragOverKey(null)}
+          onDrop={async (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            setDragOverKey(null)
+            const item = parseDragItem(event)
+            if (!item) return
+            if (node.type === 'folder') {
+              if (item.kind === 'topic') {
+                if (item.id === node.id) return
+                await moveTopic(item.id, node.id)
+                return
+              }
+              if (item.kind === 'question' && item.topicId !== undefined) {
+                await moveQuestion({
+                  questionId: item.id,
+                  sourceTopicId: item.topicId,
+                  targetTopicId: node.id,
+                  parentQuestionId: null,
+                })
+              }
+              return
+            }
+            if (node.type === 'file' && item.kind === 'question') {
+              if (item.id === node.id) return
+              const targetTopicId = node.topicId ?? item.topicId
+              if (targetTopicId === undefined || item.topicId === undefined) return
+              await moveQuestion({
+                questionId: item.id,
+                sourceTopicId: item.topicId,
+                targetTopicId,
+                parentQuestionId: node.id,
+              })
+            }
+          }}
           onClick={() => {
             if (hasChildren) {
               toggleNode(nodeKey)
@@ -394,6 +518,40 @@ export default function ThemeDetailPage() {
     )
   }
 
+  const renderRootDropZone = () => (
+    <div
+      className={`mb-4 rounded-md border border-dashed border-gray-300 dark:border-gray-700 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 ${
+        dragOverKey === 'root' ? 'ring-2 ring-blue-400' : ''
+      }`}
+      onDragOver={(event) => {
+        event.preventDefault()
+        setDragOverKey('root')
+      }}
+      onDragLeave={() => setDragOverKey(null)}
+      onDrop={async (event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        setDragOverKey(null)
+        const item = parseDragItem(event)
+        if (!item) return
+        if (item.kind === 'topic') {
+          await moveTopic(item.id, null)
+          return
+        }
+        if (item.kind === 'question' && item.topicId !== undefined) {
+          await moveQuestion({
+            questionId: item.id,
+            sourceTopicId: item.topicId,
+            targetTopicId: item.topicId,
+            parentQuestionId: null,
+          })
+        }
+      }}
+    >
+      ここにドロップしてルートへ移動
+    </div>
+  )
+
   if (!theme) {
     return <div className="p-4 text-gray-600 dark:text-gray-400">読み込み中...</div>
   }
@@ -452,6 +610,7 @@ export default function ThemeDetailPage() {
         {selectedTask ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
+              {renderRootDropZone()}
               {tree.length > 0 ? (
                 <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
               ) : (
@@ -499,7 +658,10 @@ export default function ThemeDetailPage() {
         ) : (
           <>
             {tree.length > 0 ? (
-              <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
+              <>
+                {renderRootDropZone()}
+                <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
+              </>
             ) : (
               <div className="text-center text-gray-500 dark:text-gray-400 mt-12">
                 フォルダがありません。まずはルートフォルダを作成してください。
