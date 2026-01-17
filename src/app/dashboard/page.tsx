@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Topic } from '@/types'
+import { Theme } from '@/types'
 
 export default function Dashboard() {
   const router = useRouter()
-  const [topics, setTopics] = useState<Topic[]>([])
+  const [themes, setThemes] = useState<Theme[]>([])
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ title: '', description: '' })
 
@@ -17,13 +17,13 @@ export default function Dashboard() {
       router.push('/login')
       return
     }
-    fetchTopics()
+    fetchThemes()
   }, [router])
 
-  const fetchTopics = async () => {
+  const fetchThemes = async () => {
     try {
-      const response = await api.get('/topics')
-      setTopics(response.data)
+      const response = await api.get('/themes')
+      setThemes(response.data)
     } catch (err) {
       console.error(err)
     }
@@ -32,10 +32,10 @@ export default function Dashboard() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.post('/topics', formData)
+      await api.post('/themes', formData)
       setFormData({ title: '', description: '' })
       setShowModal(false)
-      fetchTopics()
+      fetchThemes()
     } catch (err) {
       console.error(err)
     }
@@ -57,7 +57,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">トピック一覧</h2>
+          <h2 className="text-2xl font-bold">テーマ一覧</h2>
           <button
             onClick={() => setShowModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -67,24 +67,21 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topics.map((topic) => (
+          {themes.map((theme) => (
             <div
-              key={topic.id}
-              onClick={() => router.push(`/topics/${topic.id}`)}
+              key={theme.id}
+              onClick={() => router.push(`/themes/${theme.id}`)}
               className="bg-white p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition"
             >
-              <h3 className="text-lg font-semibold mb-2">{topic.title}</h3>
-              <p className="text-gray-600 text-sm mb-4">{topic.description}</p>
-              <div className="text-sm text-gray-500">
-                質問数: {topic.questions?.length || 0}
-              </div>
+              <h3 className="text-lg font-semibold mb-2">{theme.title}</h3>
+              <p className="text-gray-600 text-sm mb-4">{theme.description}</p>
             </div>
           ))}
         </div>
 
-        {topics.length === 0 && (
+        {themes.length === 0 && (
           <div className="text-center text-gray-500 mt-12">
-            トピックがありません。新規作成してください。
+            テーマがありません。新規作成してください。
           </div>
         )}
       </div>
@@ -92,7 +89,7 @@ export default function Dashboard() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">新しいトピック</h3>
+            <h3 className="text-xl font-bold mb-4">新しいテーマ</h3>
             <form onSubmit={handleCreate}>
               <input
                 type="text"
