@@ -281,7 +281,7 @@ export default function ThemeDetailPage() {
     return (
       <div key={`${node.type}-${node.id}`} style={{ paddingLeft: padding }}>
         <div
-          className="flex items-start justify-between bg-white border rounded-md px-4 py-3 cursor-pointer"
+          className="flex items-start justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer"
           onClick={() => {
             if (hasChildren) {
               toggleNode(nodeKey)
@@ -297,7 +297,7 @@ export default function ThemeDetailPage() {
                     event.stopPropagation()
                     toggleNode(nodeKey)
                   }}
-                  className="text-xs text-gray-600"
+                  className="text-xs text-gray-600 dark:text-gray-400"
                 >
                   {isExpanded ? '▼' : '▶'}
                 </button>
@@ -305,17 +305,17 @@ export default function ThemeDetailPage() {
               <span>{node.type === 'folder' ? 'フォルダ' : '質問'}: {node.title}</span>
             </div>
             {node.type === 'file' && (
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 回答: {node.answer || '（未回答）'}
               </div>
             )}
             {node.type === 'file' && node.linkedTopicTitle && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 紐付け: {node.linkedTopicTitle}
               </div>
             )}
             {node.type === 'file' && node.linkedQuestionTitle && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 紐付け(質問): {node.linkedQuestionTitle}
               </div>
             )}
@@ -332,7 +332,7 @@ export default function ThemeDetailPage() {
                     allowQuestion: true,
                   })
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 text-blue-700 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-lg"
                 title="作成"
                 aria-label="作成"
               >
@@ -347,7 +347,7 @@ export default function ThemeDetailPage() {
                   event.stopPropagation()
                   openEditQuestionModal(node)
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 text-blue-700 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-lg"
                 title="編集"
                 aria-label="編集"
               >
@@ -358,7 +358,7 @@ export default function ThemeDetailPage() {
                   event.stopPropagation()
                   setSelectedTask(node)
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-purple-50 text-purple-700 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-200 text-lg"
                 title="拡大"
                 aria-label="拡大"
               >
@@ -376,7 +376,7 @@ export default function ThemeDetailPage() {
                     })
                   }
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-green-50 text-green-700 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 text-lg"
                 title="作成"
                 aria-label="作成"
               >
@@ -395,23 +395,28 @@ export default function ThemeDetailPage() {
   }
 
   if (!theme) {
-    return <div className="p-4">読み込み中...</div>
+    return <div className="p-4 text-gray-600 dark:text-gray-400">読み込み中...</div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <nav className="bg-white dark:bg-gray-900 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => router.back()} className="text-blue-600 text-lg">← 戻る</button>
+          <button
+            onClick={() => router.back()}
+            className="text-blue-600 dark:text-blue-400 text-lg"
+          >
+            ← 戻る
+          </button>
         </div>
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold mb-2">{theme.title}</h1>
-              <p className="text-gray-600">{theme.description}</p>
+              <p className="text-gray-600 dark:text-gray-400">{theme.description}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -434,7 +439,7 @@ export default function ThemeDetailPage() {
                   setThemeForm({ title: theme.title, description: theme.description })
                   setShowThemeModal(true)
                 }}
-                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-50 text-blue-600 text-lg"
+                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200 text-lg"
                 title="編集"
                 aria-label="編集"
               >
@@ -450,38 +455,42 @@ export default function ThemeDetailPage() {
               {tree.length > 0 ? (
                 <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
               ) : (
-                <div className="text-center text-gray-500 mt-12">
+                <div className="text-center text-gray-500 dark:text-gray-400 mt-12">
                   フォルダがありません。まずはルートフォルダを作成してください。
                 </div>
               )}
             </div>
-            <div className="bg-white rounded-lg shadow p-6 h-fit lg:sticky lg:top-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 h-fit lg:sticky lg:top-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-bold">タスク概要</h2>
                 <button
                   onClick={() => setSelectedTask(null)}
-                  className="text-sm text-gray-500"
+                  className="text-sm text-gray-500 dark:text-gray-400"
                 >
                   閉じる
                 </button>
               </div>
               <div className="space-y-3">
-                <div className="text-sm text-gray-500">質問</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">質問</div>
                 <div className="font-semibold">{selectedTask.title}</div>
-                <div className="text-sm text-gray-500">回答</div>
-                <div className="text-gray-700 whitespace-pre-wrap">
+                <div className="text-sm text-gray-500 dark:text-gray-400">回答</div>
+                <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
                   {selectedTask.answer || '（未回答）'}
                 </div>
                 {selectedTask.linkedTopicTitle && (
                   <>
-                    <div className="text-sm text-gray-500">紐付け</div>
-                    <div className="text-gray-700">{selectedTask.linkedTopicTitle}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">紐付け</div>
+                    <div className="text-gray-700 dark:text-gray-200">
+                      {selectedTask.linkedTopicTitle}
+                    </div>
                   </>
                 )}
                 {selectedTask.linkedQuestionTitle && (
                   <>
-                    <div className="text-sm text-gray-500">紐付け(質問)</div>
-                    <div className="text-gray-700">{selectedTask.linkedQuestionTitle}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">紐付け(質問)</div>
+                    <div className="text-gray-700 dark:text-gray-200">
+                      {selectedTask.linkedQuestionTitle}
+                    </div>
                   </>
                 )}
               </div>
@@ -492,7 +501,7 @@ export default function ThemeDetailPage() {
             {tree.length > 0 ? (
               <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
             ) : (
-              <div className="text-center text-gray-500 mt-12">
+              <div className="text-center text-gray-500 dark:text-gray-400 mt-12">
                 フォルダがありません。まずはルートフォルダを作成してください。
               </div>
             )}
@@ -502,8 +511,8 @@ export default function ThemeDetailPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               {modalType === 'folder'
                 ? 'フォルダを追加'
                 : editingQuestionId !== null
@@ -517,13 +526,13 @@ export default function ThemeDetailPage() {
                     type="text"
                     required
                     placeholder="フォルダ名"
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={folderForm.title}
                     onChange={(e) => setFolderForm({ ...folderForm, title: e.target.value })}
                   />
                   <textarea
                     placeholder="説明（任意）"
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     rows={3}
                     value={folderForm.description}
                     onChange={(e) => setFolderForm({ ...folderForm, description: e.target.value })}
@@ -535,19 +544,19 @@ export default function ThemeDetailPage() {
                     type="text"
                     required
                     placeholder="質問"
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={questionForm.question}
                     onChange={(e) => setQuestionForm({ ...questionForm, question: e.target.value })}
                   />
                   <textarea
                     placeholder="回答（任意）"
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     rows={4}
                     value={questionForm.answer}
                     onChange={(e) => setQuestionForm({ ...questionForm, answer: e.target.value })}
                   />
                   <select
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={questionForm.linkedTopicId ?? ''}
                     onChange={(e) =>
                       setQuestionForm({
@@ -564,7 +573,7 @@ export default function ThemeDetailPage() {
                     ))}
                   </select>
                   <select
-                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={questionForm.linkedQuestionId ?? ''}
                     onChange={(e) =>
                       setQuestionForm({
@@ -603,7 +612,7 @@ export default function ThemeDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 py-2 rounded-md hover:bg-gray-300"
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
                   キャンセル
                 </button>
@@ -615,8 +624,8 @@ export default function ThemeDetailPage() {
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">作成</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">作成</h3>
             <div className="flex gap-2">
               {createContext.allowFolder && (
                 <button
@@ -644,7 +653,7 @@ export default function ThemeDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="flex-1 bg-gray-200 py-3 rounded-md hover:bg-gray-300 text-lg"
+                className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-3 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 text-lg"
               >
                 キャンセル
               </button>
@@ -655,20 +664,20 @@ export default function ThemeDetailPage() {
 
       {showThemeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">テーマを編集</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">テーマを編集</h3>
             <form onSubmit={handleThemeSubmit}>
               <input
                 type="text"
                 required
                 placeholder="テーマ名"
-                className="w-full px-3 py-2 border rounded-md mb-4"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 value={themeForm.title}
                 onChange={(e) => setThemeForm({ ...themeForm, title: e.target.value })}
               />
               <textarea
                 placeholder="説明（任意）"
-                className="w-full px-3 py-2 border rounded-md mb-4"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 rows={3}
                 value={themeForm.description}
                 onChange={(e) => setThemeForm({ ...themeForm, description: e.target.value })}
@@ -683,7 +692,7 @@ export default function ThemeDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowThemeModal(false)}
-                  className="flex-1 bg-gray-200 py-2 rounded-md hover:bg-gray-300"
+                  className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
                   キャンセル
                 </button>
