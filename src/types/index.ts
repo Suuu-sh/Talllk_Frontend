@@ -30,6 +30,8 @@ export interface Question {
   id: number
   topic_id: number
   parent_id: number | null
+  linked_topic_id: number | null
+  linked_question_id: number | null
   question: string
   answer: string
   created_at: string

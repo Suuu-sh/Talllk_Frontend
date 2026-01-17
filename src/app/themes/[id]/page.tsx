@@ -16,6 +16,10 @@ type TreeNode = {
   title: string
   answer?: string
   topicId?: number
+  linkedTopicId?: number | null
+  linkedTopicTitle?: string
+  linkedQuestionId?: number | null
+  linkedQuestionTitle?: string
   children?: TreeNode[]
 }
 
@@ -25,6 +29,7 @@ export default function ThemeDetailPage() {
   const [theme, setTheme] = useState<ThemeDetail | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showThemeModal, setShowThemeModal] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [modalType, setModalType] = useState<'folder' | 'file'>('folder')
   const [parentTopicId, setParentTopicId] = useState<number | null>(null)
   const [parentQuestionId, setParentQuestionId] = useState<number | null>(null)
@@ -32,9 +37,20 @@ export default function ThemeDetailPage() {
   const [editingQuestionHasChildren, setEditingQuestionHasChildren] = useState(false)
   const [themeForm, setThemeForm] = useState({ title: '', description: '' })
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
-  const [questionForm, setQuestionForm] = useState({ question: '', answer: '' })
+  const [questionForm, setQuestionForm] = useState({
+    question: '',
+    answer: '',
+    linkedTopicId: null as number | null,
+    linkedQuestionId: null as number | null,
+  })
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [selectedTask, setSelectedTask] = useState<TreeNode | null>(null)
+  const [createContext, setCreateContext] = useState({
+    parentTopicId: null as number | null,
+    parentQuestionId: null as number | null,
+    allowFolder: true,
+    allowQuestion: true,
+  })
 
   useEffect(() => {
     if (params.id) {
@@ -56,8 +72,11 @@ export default function ThemeDetailPage() {
     const nodes = new Map<number, TreeNode>()
     const questionNodes = new Map<number, TreeNode>()
     const roots: TreeNode[] = []
+    const topicTitles = new Map<number, string>()
+    const questionTitles = new Map<number, string>()
 
     theme.topics.forEach((topic) => {
+      topicTitles.set(topic.id, topic.title)
       nodes.set(topic.id, {
         id: topic.id,
         type: 'folder',
@@ -80,12 +99,21 @@ export default function ThemeDetailPage() {
     })
 
     theme.questions.forEach((question) => {
+      questionTitles.set(question.id, question.question)
       questionNodes.set(question.id, {
         id: question.id,
         type: 'file',
         title: question.question,
         answer: question.answer,
         topicId: question.topic_id,
+        linkedTopicId: question.linked_topic_id,
+        linkedTopicTitle: question.linked_topic_id
+          ? topicTitles.get(question.linked_topic_id)
+          : undefined,
+        linkedQuestionId: question.linked_question_id,
+        linkedQuestionTitle: question.linked_question_id
+          ? questionTitles.get(question.linked_question_id)
+          : undefined,
         children: [],
       })
     })
@@ -117,6 +145,7 @@ export default function ThemeDetailPage() {
     setEditingQuestionId(null)
     setEditingQuestionHasChildren(false)
     setFolderForm({ title: '', description: '' })
+    setShowCreateModal(false)
     setShowModal(true)
   }
 
@@ -126,7 +155,13 @@ export default function ThemeDetailPage() {
     setParentQuestionId(questionId)
     setEditingQuestionId(null)
     setEditingQuestionHasChildren(false)
-    setQuestionForm({ question: '', answer: '' })
+    setQuestionForm({
+      question: '',
+      answer: '',
+      linkedTopicId: null,
+      linkedQuestionId: null,
+    })
+    setShowCreateModal(false)
     setShowModal(true)
   }
 
@@ -137,8 +172,24 @@ export default function ThemeDetailPage() {
     setParentQuestionId(null)
     setEditingQuestionId(node.id)
     setEditingQuestionHasChildren((node.children?.length ?? 0) > 0)
-    setQuestionForm({ question: node.title, answer: node.answer ?? '' })
+    setQuestionForm({
+      question: node.title,
+      answer: node.answer ?? '',
+      linkedTopicId: node.linkedTopicId ?? null,
+      linkedQuestionId: node.linkedQuestionId ?? null,
+    })
+    setShowCreateModal(false)
     setShowModal(true)
+  }
+
+  const openCreateModal = (context: {
+    parentTopicId: number | null
+    parentQuestionId: number | null
+    allowFolder: boolean
+    allowQuestion: boolean
+  }) => {
+    setCreateContext(context)
+    setShowCreateModal(true)
   }
 
   const handleDeleteQuestion = async () => {
@@ -176,6 +227,8 @@ export default function ThemeDetailPage() {
             {
               question: questionForm.question,
               answer: questionForm.answer,
+              linked_topic_id: questionForm.linkedTopicId,
+              linked_question_id: questionForm.linkedQuestionId,
             }
           )
         } else {
@@ -183,6 +236,8 @@ export default function ThemeDetailPage() {
             question: questionForm.question,
             answer: questionForm.answer,
             parent_id: parentQuestionId,
+            linked_topic_id: questionForm.linkedTopicId,
+            linked_question_id: questionForm.linkedQuestionId,
           })
         }
       }
@@ -254,26 +309,34 @@ export default function ThemeDetailPage() {
                 回答: {node.answer || '（未回答）'}
               </div>
             )}
+            {node.type === 'file' && node.linkedTopicTitle && (
+              <div className="text-xs text-gray-500 mt-1">
+                紐付け: {node.linkedTopicTitle}
+              </div>
+            )}
+            {node.type === 'file' && node.linkedQuestionTitle && (
+              <div className="text-xs text-gray-500 mt-1">
+                紐付け(質問): {node.linkedQuestionTitle}
+              </div>
+            )}
           </div>
           {node.type === 'folder' && (
             <div className="flex gap-2">
               <button
                 onClick={(event) => {
                   event.stopPropagation()
-                  openFolderModal(node.id)
+                  openCreateModal({
+                    parentTopicId: node.id,
+                    parentQuestionId: null,
+                    allowFolder: true,
+                    allowQuestion: true,
+                  })
                 }}
-                className="text-sm text-blue-600"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 text-blue-700 text-lg"
+                title="作成"
+                aria-label="作成"
               >
-                + フォルダ
-              </button>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openFileModal(node.id, null)
-                }}
-                className="text-sm text-green-600"
-              >
-                + 質問
+                ＋
               </button>
             </div>
           )}
@@ -284,29 +347,40 @@ export default function ThemeDetailPage() {
                   event.stopPropagation()
                   openEditQuestionModal(node)
                 }}
-                className="text-sm text-blue-600"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 text-blue-700 text-lg"
+                title="編集"
+                aria-label="編集"
               >
-                編集
+                ✎
               </button>
               <button
                 onClick={(event) => {
                   event.stopPropagation()
                   setSelectedTask(node)
                 }}
-                className="text-sm text-purple-600"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-purple-50 text-purple-700 text-lg"
+                title="拡大"
+                aria-label="拡大"
               >
-                拡大
+                ⤢
               </button>
               <button
                 onClick={(event) => {
                   event.stopPropagation()
                   if (node.topicId !== undefined) {
-                    openFileModal(node.topicId, node.id)
+                    openCreateModal({
+                      parentTopicId: node.topicId,
+                      parentQuestionId: node.id,
+                      allowFolder: false,
+                      allowQuestion: true,
+                    })
                   }
                 }}
-                className="text-sm text-green-600"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-green-50 text-green-700 text-lg"
+                title="作成"
+                aria-label="作成"
               >
-                + 深掘り
+                ＋
               </button>
             </div>
           )}
@@ -328,13 +402,7 @@ export default function ThemeDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => router.back()} className="text-blue-600">← 戻る</button>
-          <button
-            onClick={() => openFolderModal(null)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-          >
-            + ルートフォルダ作成
-          </button>
+          <button onClick={() => router.back()} className="text-blue-600 text-lg">← 戻る</button>
         </div>
       </nav>
 
@@ -345,15 +413,34 @@ export default function ThemeDetailPage() {
               <h1 className="text-2xl font-bold mb-2">{theme.title}</h1>
               <p className="text-gray-600">{theme.description}</p>
             </div>
-            <button
-              onClick={() => {
-                setThemeForm({ title: theme.title, description: theme.description })
-                setShowThemeModal(true)
-              }}
-              className="text-sm text-blue-600"
-            >
-              テーマ編集
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  openCreateModal({
+                    parentTopicId: null,
+                    parentQuestionId: null,
+                    allowFolder: true,
+                    allowQuestion: false,
+                  })
+                }
+                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 text-white text-2xl hover:bg-blue-700"
+                title="作成"
+                aria-label="作成"
+              >
+                ＋
+              </button>
+              <button
+                onClick={() => {
+                  setThemeForm({ title: theme.title, description: theme.description })
+                  setShowThemeModal(true)
+                }}
+                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-50 text-blue-600 text-lg"
+                title="編集"
+                aria-label="編集"
+              >
+                ✎
+              </button>
+            </div>
           </div>
         </div>
 
@@ -385,6 +472,18 @@ export default function ThemeDetailPage() {
                 <div className="text-gray-700 whitespace-pre-wrap">
                   {selectedTask.answer || '（未回答）'}
                 </div>
+                {selectedTask.linkedTopicTitle && (
+                  <>
+                    <div className="text-sm text-gray-500">紐付け</div>
+                    <div className="text-gray-700">{selectedTask.linkedTopicTitle}</div>
+                  </>
+                )}
+                {selectedTask.linkedQuestionTitle && (
+                  <>
+                    <div className="text-sm text-gray-500">紐付け(質問)</div>
+                    <div className="text-gray-700">{selectedTask.linkedQuestionTitle}</div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -447,6 +546,42 @@ export default function ThemeDetailPage() {
                     value={questionForm.answer}
                     onChange={(e) => setQuestionForm({ ...questionForm, answer: e.target.value })}
                   />
+                  <select
+                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    value={questionForm.linkedTopicId ?? ''}
+                    onChange={(e) =>
+                      setQuestionForm({
+                        ...questionForm,
+                        linkedTopicId: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  >
+                    <option value="">紐付けなし</option>
+                    {theme.topics.map((topic) => (
+                      <option key={topic.id} value={topic.id}>
+                        紐付け: {topic.title}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md mb-4"
+                    value={questionForm.linkedQuestionId ?? ''}
+                    onChange={(e) =>
+                      setQuestionForm({
+                        ...questionForm,
+                        linkedQuestionId: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  >
+                    <option value="">紐付け(質問)なし</option>
+                    {theme.questions
+                      .filter((q) => q.id !== editingQuestionId)
+                      .map((q) => (
+                        <option key={q.id} value={q.id}>
+                          紐付け(質問): {q.question}
+                        </option>
+                      ))}
+                  </select>
                 </>
               )}
               <div className="flex gap-2">
@@ -474,6 +609,46 @@ export default function ThemeDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">作成</h3>
+            <div className="flex gap-2">
+              {createContext.allowFolder && (
+                <button
+                  type="button"
+                  onClick={() => openFolderModal(createContext.parentTopicId)}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 text-lg"
+                >
+                  [F] フォルダ
+                </button>
+              )}
+              {createContext.allowQuestion && createContext.parentTopicId !== null && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openFileModal(
+                      createContext.parentTopicId!,
+                      createContext.parentQuestionId
+                    )
+                  }
+                  className="flex-1 bg-green-600 text-white py-3 rounded-md hover:bg-green-700 text-lg"
+                >
+                  [Q] 質問
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 bg-gray-200 py-3 rounded-md hover:bg-gray-300 text-lg"
+              >
+                キャンセル
+              </button>
+            </div>
           </div>
         </div>
       )}
