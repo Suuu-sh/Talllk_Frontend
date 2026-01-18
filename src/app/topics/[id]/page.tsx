@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { Topic, Question } from "@/types";
 
 export default function TopicDetail() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const situationId = searchParams.get("situationId");
   const [topic, setTopic] = useState<Topic | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
@@ -16,14 +18,17 @@ export default function TopicDetail() {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
+    if (params.id && situationId) {
       fetchTopic();
     }
-  }, [params.id]);
+  }, [params.id, situationId]);
 
   const fetchTopic = async () => {
+    if (!situationId) return;
     try {
-      const response = await api.get(`/topics/${params.id}`);
+      const response = await api.get(
+        `/situations/${situationId}/topics/${params.id}`
+      );
       setTopic(response.data);
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 100);
@@ -38,14 +43,18 @@ export default function TopicDetail() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!situationId) return;
     try {
       if (editingQuestion) {
         await api.put(
-          `/topics/${params.id}/questions/${editingQuestion.id}`,
+          `/situations/${situationId}/topics/${params.id}/questions/${editingQuestion.id}`,
           formData
         );
       } else {
-        await api.post(`/topics/${params.id}/questions`, formData);
+        await api.post(
+          `/situations/${situationId}/topics/${params.id}/questions`,
+          formData
+        );
       }
       setFormData({ question: "", answer: "" });
       setShowModal(false);
@@ -58,8 +67,11 @@ export default function TopicDetail() {
 
   const handleDelete = async (questionId: number) => {
     if (!confirm("削除しますか？")) return;
+    if (!situationId) return;
     try {
-      await api.delete(`/topics/${params.id}/questions/${questionId}`);
+      await api.delete(
+        `/situations/${situationId}/topics/${params.id}/questions/${questionId}`
+      );
       fetchTopic();
     } catch (err) {
       console.error(err);
@@ -71,6 +83,24 @@ export default function TopicDetail() {
     setFormData({ question: question.question, answer: question.answer });
     setShowModal(true);
   };
+
+  if (!situationId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-orange-50">
+        <div className="text-center">
+          <p className="text-gray-600 mb-6">
+            シチュエーションが指定されていません。
+          </p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="btn-primary"
+          >
+            ダッシュボードへ戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!topic) {
     return (
