@@ -19,14 +19,9 @@ export default function Header() {
       <nav className="bg-white dark:bg-gray-900 backdrop-blur-lg shadow-sm sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="px-3 py-1.5 border-2 border-orange-500 text-orange-600 font-bold text-lg tracking-wide rounded">
               Talllk
-            </h1>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
@@ -97,7 +92,7 @@ export default function Header() {
                 <button
                   onClick={toggleTheme}
                   className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                    theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
+                    theme === 'dark' ? 'bg-orange-500' : 'bg-gray-300'
                   }`}
                 >
                   <span

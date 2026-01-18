@@ -42,23 +42,8 @@ export default function Dashboard() {
     }
   }
 
-  const categoryIcons: { [key: string]: string } = {
-    '面接': '💼',
-    'デート': '💕',
-    '会議': '📊',
-    '商談': '🤝',
-    'プレゼン': '🎤',
-  }
-
-  const getIcon = (title: string) => {
-    for (const [key, icon] of Object.entries(categoryIcons)) {
-      if (title.includes(key)) return icon
-    }
-    return '💬'
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -80,8 +65,8 @@ export default function Dashboard() {
 
         {themes.length === 0 ? (
           <div className="text-center py-16">
-            <div className="inline-block p-6 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full mb-6">
-              <svg className="w-16 h-16 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-block p-6 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 rounded-full mb-6">
+              <svg className="w-16 h-16 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
@@ -103,16 +88,13 @@ export default function Dashboard() {
               <div
                 key={theme.id}
                 onClick={() => router.push(`/themes/${theme.id}`)}
-                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md cursor-pointer card-hover border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-500 transition-colors duration-200"
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md cursor-pointer card-hover border-2 border-transparent hover:border-orange-200 dark:hover:border-orange-500 transition-colors duration-200"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="text-4xl">{getIcon(theme.title)}</div>
-                </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{theme.title}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4">
                   {theme.description || '説明なし'}
                 </p>
-                <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                <div className="flex items-center text-orange-600 dark:text-orange-400 text-sm font-medium">
                   詳細を見る
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

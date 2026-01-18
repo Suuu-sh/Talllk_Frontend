@@ -39,13 +39,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-100 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-block p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
+          <div className="inline-block px-5 py-2 border-2 border-orange-500 text-orange-600 font-bold text-2xl tracking-wide rounded mb-4">
+            Talllk
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Talllk</h1>
           <p className="text-gray-600">会話の準備をサポート</p>
@@ -57,7 +55,7 @@ export default function Login() {
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
                 isLogin
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-orange-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -67,7 +65,7 @@ export default function Login() {
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
                 !isLogin
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-orange-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
