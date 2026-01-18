@@ -358,7 +358,7 @@ export default function ThemeDetailPage() {
       <div key={`${node.type}-${node.id}`} style={{ paddingLeft: padding }}>
         <div
           className={`flex items-start justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer ${
-            isDragOver ? 'ring-2 ring-blue-400' : ''
+            isDragOver ? 'ring-2 ring-orange-400' : ''
           }`}
           draggable
           onDragStart={handleDragStart(
@@ -456,7 +456,7 @@ export default function ThemeDetailPage() {
                     allowQuestion: true,
                   })
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-700 dark:text-orange-200 text-lg"
                 title="作成"
                 aria-label="作成"
               >
@@ -471,7 +471,7 @@ export default function ThemeDetailPage() {
                   event.stopPropagation()
                   openEditQuestionModal(node)
                 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-lg"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-700 dark:text-orange-200 text-lg"
                 title="編集"
                 aria-label="編集"
               >
@@ -521,7 +521,7 @@ export default function ThemeDetailPage() {
   const renderRootDropZone = () => (
     <div
       className={`mb-4 rounded-md border border-dashed border-gray-300 dark:border-gray-700 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 ${
-        dragOverKey === 'root' ? 'ring-2 ring-blue-400' : ''
+        dragOverKey === 'root' ? 'ring-2 ring-orange-400' : ''
       }`}
       onDragOver={(event) => {
         event.preventDefault()
@@ -562,7 +562,7 @@ export default function ThemeDetailPage() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="text-blue-600 dark:text-blue-400 text-lg"
+            className="text-orange-600 dark:text-orange-400 text-lg"
           >
             ← 戻る
           </button>
@@ -586,7 +586,7 @@ export default function ThemeDetailPage() {
                     allowQuestion: false,
                   })
                 }
-                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-600 text-white text-2xl hover:bg-blue-700"
+                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-600 text-white text-2xl hover:bg-orange-700"
                 title="作成"
                 aria-label="作成"
               >
@@ -597,7 +597,7 @@ export default function ThemeDetailPage() {
                   setThemeForm({ title: theme.title, description: theme.description })
                   setShowThemeModal(true)
                 }}
-                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-200 text-lg"
+                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-200 text-lg"
                 title="編集"
                 aria-label="編集"
               >
@@ -758,7 +758,7 @@ export default function ThemeDetailPage() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  className="flex-1 bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700"
                 >
                   {editingQuestionId !== null ? '更新' : '作成'}
                 </button>
@@ -793,7 +793,7 @@ export default function ThemeDetailPage() {
                 <button
                   type="button"
                   onClick={() => openFolderModal(createContext.parentTopicId)}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 text-lg"
+                  className="flex-1 bg-orange-600 text-white py-3 rounded-md hover:bg-orange-700 text-lg"
                 >
                   [F] フォルダ
                 </button>
@@ -847,7 +847,7 @@ export default function ThemeDetailPage() {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  className="flex-1 bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700"
                 >
                   更新
                 </button>

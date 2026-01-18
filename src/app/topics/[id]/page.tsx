@@ -74,9 +74,9 @@ export default function TopicDetail() {
 
   if (!topic) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-orange-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p className="text-gray-600">読み込み中...</p>
         </div>
       </div>
@@ -84,12 +84,12 @@ export default function TopicDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
       <nav className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 font-medium transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-orange-600 font-medium transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -118,9 +118,9 @@ export default function TopicDetail() {
               </h1>
               <p className="text-gray-600">{topic.description || "説明なし"}</p>
             </div>
-            <div className="ml-4 px-4 py-2 bg-blue-50 rounded-xl">
+            <div className="ml-4 px-4 py-2 bg-orange-50 rounded-xl">
               <div className="text-sm text-gray-600">質問数</div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-orange-600">
                 {topic.questions?.length || 0}
               </div>
             </div>
@@ -156,9 +156,9 @@ export default function TopicDetail() {
 
         {!topic.questions || topic.questions.length === 0 ? (
           <div className="text-center py-16">
-            <div className="inline-block p-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full mb-6">
+            <div className="inline-block p-6 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full mb-6">
               <svg
-                className="w-16 h-16 text-blue-600"
+                className="w-16 h-16 text-orange-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -210,8 +210,8 @@ export default function TopicDetail() {
                   key={q.id}
                   className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 ${
                     isExpanded
-                      ? "border-blue-400 shadow-2xl scale-[1.02]"
-                      : "border-transparent hover:border-blue-200"
+                      ? "border-orange-400 shadow-2xl scale-[1.02]"
+                      : "border-transparent hover:border-orange-200"
                   } ${isAnimating ? "animate-fadeIn" : ""}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
@@ -221,7 +221,7 @@ export default function TopicDetail() {
                   >
                     <div className="flex items-start gap-4">
                       <div
-                        className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold transition-transform duration-300 ${
+                        className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold transition-transform duration-300 ${
                           isExpanded ? "scale-110 rotate-12" : ""
                         }`}
                       >
@@ -230,7 +230,7 @@ export default function TopicDetail() {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1">
-                            <span className="text-blue-600 flex-shrink-0">
+                            <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
                             <span className="break-words">{q.question}</span>
@@ -241,7 +241,7 @@ export default function TopicDetail() {
                                 e.stopPropagation();
                                 openEditModal(q);
                               }}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all hover:scale-110"
+                              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all hover:scale-110"
                               title="編集"
                             >
                               <svg
@@ -291,7 +291,7 @@ export default function TopicDetail() {
                           }`}
                         >
                           <div
-                            className={`bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 transition-all duration-300 ${
+                            className={`bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 transition-all duration-300 ${
                               isExpanded ? "shadow-inner" : ""
                             }`}
                           >
@@ -307,7 +307,7 @@ export default function TopicDetail() {
                         </div>
 
                         {!isExpanded && q.answer && q.answer.length > 100 && (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-blue-600 font-medium">
+                          <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 font-medium">
                             <span>クリックして全文を表示</span>
                             <svg
                               className="w-4 h-4 animate-bounce"
