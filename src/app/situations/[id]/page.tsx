@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Theme, Topic, Question } from '@/types'
+import { Situation, Topic, Question } from '@/types'
 
-type ThemeDetail = Theme & {
+type SituationDetail = Situation & {
   topics: Topic[]
   questions: Question[]
 }
@@ -29,19 +29,19 @@ type DragItem = {
   topicId?: number
 }
 
-export default function ThemeDetailPage() {
+export default function SituationDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const [theme, setTheme] = useState<ThemeDetail | null>(null)
+  const [situation, setSituation] = useState<SituationDetail | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const [showThemeModal, setShowThemeModal] = useState(false)
+  const [showSituationModal, setShowSituationModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [modalType, setModalType] = useState<'folder' | 'file'>('folder')
   const [parentTopicId, setParentTopicId] = useState<number | null>(null)
   const [parentQuestionId, setParentQuestionId] = useState<number | null>(null)
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null)
   const [editingQuestionHasChildren, setEditingQuestionHasChildren] = useState(false)
-  const [themeForm, setThemeForm] = useState({ title: '', description: '' })
+  const [situationForm, setSituationForm] = useState({ title: '', description: '' })
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
   const [questionForm, setQuestionForm] = useState({
     question: '',
@@ -62,22 +62,22 @@ export default function ThemeDetailPage() {
 
   useEffect(() => {
     if (params.id) {
-      fetchTheme()
+      fetchSituation()
     }
   }, [params.id])
 
-  const fetchTheme = async () => {
+  const fetchSituation = async () => {
     try {
-      const response = await api.get(`/themes/${params.id}`)
-      setTheme(response.data)
+      const response = await api.get(`/situations/${params.id}`)
+      setSituation(response.data)
     } catch (err) {
       console.error(err)
     }
   }
 
-  const getTopicById = (topicId: number) => theme?.topics.find((topic) => topic.id === topicId)
+  const getTopicById = (topicId: number) => situation?.topics.find((topic) => topic.id === topicId)
   const getQuestionById = (questionId: number) =>
-    theme?.questions.find((question) => question.id === questionId)
+    situation?.questions.find((question) => question.id === questionId)
 
   const parseDragItem = (event: React.DragEvent) => {
     if (dragItem) return dragItem
@@ -105,12 +105,12 @@ export default function ThemeDetailPage() {
     const topic = getTopicById(topicId)
     if (!topic) return
     try {
-      await api.put(`/themes/${params.id}/topics/${topicId}`, {
+      await api.put(`/situations/${params.id}/topics/${topicId}`, {
         title: topic.title,
         description: topic.description,
         parent_id: parentId,
       })
-      await fetchTheme()
+      await fetchSituation()
     } catch (err) {
       console.error(err)
     }
@@ -126,7 +126,7 @@ export default function ThemeDetailPage() {
     if (!question) return
     try {
       await api.put(
-        `/themes/${params.id}/topics/${options.sourceTopicId}/questions/${options.questionId}`,
+        `/situations/${params.id}/topics/${options.sourceTopicId}/questions/${options.questionId}`,
         {
           question: question.question,
           answer: question.answer,
@@ -136,21 +136,21 @@ export default function ThemeDetailPage() {
           topic_id: options.targetTopicId,
         }
       )
-      await fetchTheme()
+      await fetchSituation()
     } catch (err) {
       console.error(err)
     }
   }
 
   const tree = useMemo(() => {
-    if (!theme) return []
+    if (!situation) return []
     const nodes = new Map<number, TreeNode>()
     const questionNodes = new Map<number, TreeNode>()
     const roots: TreeNode[] = []
     const topicTitles = new Map<number, string>()
     const questionTitles = new Map<number, string>()
 
-    theme.topics.forEach((topic) => {
+    situation.topics.forEach((topic) => {
       topicTitles.set(topic.id, topic.title)
       nodes.set(topic.id, {
         id: topic.id,
@@ -160,7 +160,7 @@ export default function ThemeDetailPage() {
       })
     })
 
-    theme.topics.forEach((topic) => {
+    situation.topics.forEach((topic) => {
       const node = nodes.get(topic.id)
       if (!node) return
       if (topic.parent_id !== null) {
@@ -173,7 +173,7 @@ export default function ThemeDetailPage() {
       }
     })
 
-    theme.questions.forEach((question) => {
+    situation.questions.forEach((question) => {
       questionTitles.set(question.id, question.question)
       questionNodes.set(question.id, {
         id: question.id,
@@ -193,7 +193,7 @@ export default function ThemeDetailPage() {
       })
     })
 
-    theme.questions.forEach((question) => {
+    situation.questions.forEach((question) => {
       const node = questionNodes.get(question.id)
       if (!node) return
       if (question.parent_id !== null) {
@@ -211,7 +211,7 @@ export default function ThemeDetailPage() {
     })
 
     return roots
-  }, [theme])
+  }, [situation])
 
   const openFolderModal = (parentId: number | null) => {
     setModalType('folder')
@@ -275,12 +275,12 @@ export default function ThemeDetailPage() {
     if (!confirm(message)) return
     try {
       await api.delete(
-        `/themes/${params.id}/topics/${parentTopicId}/questions/${editingQuestionId}`
+        `/situations/${params.id}/topics/${parentTopicId}/questions/${editingQuestionId}`
       )
       setShowModal(false)
       setEditingQuestionId(null)
       setEditingQuestionHasChildren(false)
-      await fetchTheme()
+      await fetchSituation()
     } catch (err) {
       console.error(err)
     }
@@ -290,7 +290,7 @@ export default function ThemeDetailPage() {
     e.preventDefault()
     try {
       if (modalType === 'folder') {
-        await api.post(`/themes/${params.id}/topics`, {
+        await api.post(`/situations/${params.id}/topics`, {
           title: folderForm.title,
           description: folderForm.description,
           parent_id: parentTopicId,
@@ -298,7 +298,7 @@ export default function ThemeDetailPage() {
       } else if (modalType === 'file' && parentTopicId !== null) {
         if (editingQuestionId !== null) {
           await api.put(
-            `/themes/${params.id}/topics/${parentTopicId}/questions/${editingQuestionId}`,
+            `/situations/${params.id}/topics/${parentTopicId}/questions/${editingQuestionId}`,
             {
               question: questionForm.question,
               answer: questionForm.answer,
@@ -307,7 +307,7 @@ export default function ThemeDetailPage() {
             }
           )
         } else {
-          await api.post(`/themes/${params.id}/topics/${parentTopicId}/questions`, {
+          await api.post(`/situations/${params.id}/topics/${parentTopicId}/questions`, {
             question: questionForm.question,
             answer: questionForm.answer,
             parent_id: parentQuestionId,
@@ -319,18 +319,18 @@ export default function ThemeDetailPage() {
 
       setShowModal(false)
       setEditingQuestionId(null)
-      await fetchTheme()
+      await fetchSituation()
     } catch (err) {
       console.error(err)
     }
   }
 
-  const handleThemeSubmit = async (e: React.FormEvent) => {
+  const handleSituationSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.put(`/themes/${params.id}`, themeForm)
-      setShowThemeModal(false)
-      await fetchTheme()
+      await api.put(`/situations/${params.id}`, situationForm)
+      setShowSituationModal(false)
+      await fetchSituation()
     } catch (err) {
       console.error(err)
     }
@@ -552,7 +552,7 @@ export default function ThemeDetailPage() {
     </div>
   )
 
-  if (!theme) {
+  if (!situation) {
     return <div className="p-4 text-gray-600 dark:text-gray-400">読み込み中...</div>
   }
 
@@ -573,8 +573,8 @@ export default function ThemeDetailPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-2">{theme.title}</h1>
-              <p className="text-gray-600 dark:text-gray-400">{theme.description}</p>
+              <h1 className="text-2xl font-bold mb-2">{situation.title}</h1>
+              <p className="text-gray-600 dark:text-gray-400">{situation.description}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -594,8 +594,8 @@ export default function ThemeDetailPage() {
               </button>
               <button
                 onClick={() => {
-                  setThemeForm({ title: theme.title, description: theme.description })
-                  setShowThemeModal(true)
+                  setSituationForm({ title: situation.title, description: situation.description })
+                  setShowSituationModal(true)
                 }}
                 className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-200 text-lg"
                 title="編集"
@@ -728,7 +728,7 @@ export default function ThemeDetailPage() {
                     }
                   >
                     <option value="">紐付けなし</option>
-                    {theme.topics.map((topic) => (
+                    {situation.topics.map((topic) => (
                       <option key={topic.id} value={topic.id}>
                         紐付け: {topic.title}
                       </option>
@@ -745,7 +745,7 @@ export default function ThemeDetailPage() {
                     }
                   >
                     <option value="">紐付け(質問)なし</option>
-                    {theme.questions
+                    {situation.questions
                       .filter((q) => q.id !== editingQuestionId)
                       .map((q) => (
                         <option key={q.id} value={q.id}>
@@ -824,25 +824,25 @@ export default function ThemeDetailPage() {
         </div>
       )}
 
-      {showThemeModal && (
+      {showSituationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">テーマを編集</h3>
-            <form onSubmit={handleThemeSubmit}>
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">シチュエーションを編集</h3>
+            <form onSubmit={handleSituationSubmit}>
               <input
                 type="text"
                 required
-                placeholder="テーマ名"
+                placeholder="シチュエーション名"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                value={themeForm.title}
-                onChange={(e) => setThemeForm({ ...themeForm, title: e.target.value })}
+                value={situationForm.title}
+                onChange={(e) => setSituationForm({ ...situationForm, title: e.target.value })}
               />
               <textarea
                 placeholder="説明（任意）"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 rows={3}
-                value={themeForm.description}
-                onChange={(e) => setThemeForm({ ...themeForm, description: e.target.value })}
+                value={situationForm.description}
+                onChange={(e) => setSituationForm({ ...situationForm, description: e.target.value })}
               />
               <div className="flex gap-2">
                 <button
@@ -853,7 +853,7 @@ export default function ThemeDetailPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowThemeModal(false)}
+                  onClick={() => setShowSituationModal(false)}
                   className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
                   キャンセル

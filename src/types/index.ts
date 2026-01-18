@@ -6,7 +6,7 @@ export interface User {
   updated_at: string
 }
 
-export interface Theme {
+export interface Situation {
   id: number
   user_id: number
   title: string
@@ -17,7 +17,7 @@ export interface Theme {
 
 export interface Topic {
   id: number
-  theme_id: number
+  situation_id: number
   parent_id: number | null
   title: string
   description: string

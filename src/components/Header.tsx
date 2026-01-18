@@ -83,7 +83,7 @@ export default function Header() {
                     </svg>
                   )}
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">テーマ</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">外観</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       {theme === 'dark' ? 'ダークモード' : 'ライトモード'}
                     </div>
