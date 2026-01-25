@@ -1,4 +1,4 @@
-/* Hooks test comment - 2026-01-25 v2 */
+/* Hooks test comment - 2026-01-25 v3 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,7 +33,7 @@ body {
   }
 
   .glass-card-solid {
-    @apply bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow;
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md;
   }
 }
 
