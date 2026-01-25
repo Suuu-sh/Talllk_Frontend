@@ -38,20 +38,12 @@ export default function Home() {
                   ダッシュボード
                 </button>
               ) : (
-                <>
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="btn-ghost text-sm"
-                  >
-                    ログイン
-                  </button>
-                  <button
-                    onClick={() => router.push('/login')}
-                    className="btn-primary text-sm py-2"
-                  >
-                    無料で始める
-                  </button>
-                </>
+                <button
+                  onClick={() => router.push('/login')}
+                  className="btn-primary text-sm py-2"
+                >
+                  ログイン
+                </button>
               )}
             </div>
           </div>
@@ -83,7 +75,7 @@ export default function Home() {
               onClick={handleGetStarted}
               className="btn-primary text-lg px-8 py-4"
             >
-              {isLoggedIn ? 'ダッシュボードへ' : '無料で始める'}
+              {isLoggedIn ? 'ダッシュボードへ' : 'サインアップ'}
             </button>
             <a
               href="#features"
@@ -244,7 +236,7 @@ export default function Home() {
                 onClick={handleGetStarted}
                 className="bg-white text-brand-600 font-semibold px-8 py-4 rounded-2xl text-lg hover:bg-brand-50 transition-colors shadow-lg"
               >
-                {isLoggedIn ? 'ダッシュボードへ' : '無料で始める'}
+                {isLoggedIn ? 'ダッシュボードへ' : 'サインアップ'}
               </button>
             </div>
           </div>
