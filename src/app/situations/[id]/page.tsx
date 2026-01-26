@@ -41,6 +41,8 @@ export default function SituationDetailPage() {
   const [parentQuestionId, setParentQuestionId] = useState<number | null>(null)
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null)
   const [editingQuestionHasChildren, setEditingQuestionHasChildren] = useState(false)
+  const [editingTopicId, setEditingTopicId] = useState<number | null>(null)
+  const [editingTopicHasChildren, setEditingTopicHasChildren] = useState(false)
   const [situationForm, setSituationForm] = useState({ title: '', description: '' })
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
   const [questionForm, setQuestionForm] = useState({
@@ -219,7 +221,25 @@ export default function SituationDetailPage() {
     setParentQuestionId(null)
     setEditingQuestionId(null)
     setEditingQuestionHasChildren(false)
+    setEditingTopicId(null)
+    setEditingTopicHasChildren(false)
     setFolderForm({ title: '', description: '' })
+    setShowCreateModal(false)
+    setShowModal(true)
+  }
+
+  const openEditFolderModal = (node: TreeNode) => {
+    if (node.type !== 'folder') return
+    const topic = getTopicById(node.id)
+    if (!topic) return
+    setModalType('folder')
+    setParentTopicId(topic.parent_id ?? null)
+    setParentQuestionId(null)
+    setEditingQuestionId(null)
+    setEditingQuestionHasChildren(false)
+    setEditingTopicId(node.id)
+    setEditingTopicHasChildren((node.children?.length ?? 0) > 0)
+    setFolderForm({ title: topic.title, description: topic.description || '' })
     setShowCreateModal(false)
     setShowModal(true)
   }
@@ -286,15 +306,40 @@ export default function SituationDetailPage() {
     }
   }
 
+  const handleDeleteTopic = async () => {
+    if (editingTopicId === null) return
+    const message = editingTopicHasChildren
+      ? '子フォルダ・質問も削除されます。削除しますか？'
+      : '削除しますか？'
+    if (!confirm(message)) return
+    try {
+      await api.delete(`/situations/${params.id}/topics/${editingTopicId}`)
+      setShowModal(false)
+      setEditingTopicId(null)
+      setEditingTopicHasChildren(false)
+      await fetchSituation()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (modalType === 'folder') {
-        await api.post(`/situations/${params.id}/topics`, {
-          title: folderForm.title,
-          description: folderForm.description,
-          parent_id: parentTopicId,
-        })
+        if (editingTopicId !== null) {
+          await api.put(`/situations/${params.id}/topics/${editingTopicId}`, {
+            title: folderForm.title,
+            description: folderForm.description,
+            parent_id: parentTopicId,
+          })
+        } else {
+          await api.post(`/situations/${params.id}/topics`, {
+            title: folderForm.title,
+            description: folderForm.description,
+            parent_id: parentTopicId,
+          })
+        }
       } else if (modalType === 'file' && parentTopicId !== null) {
         if (editingQuestionId !== null) {
           await api.put(
@@ -319,6 +364,8 @@ export default function SituationDetailPage() {
 
       setShowModal(false)
       setEditingQuestionId(null)
+      setEditingTopicId(null)
+      setEditingTopicHasChildren(false)
       await fetchSituation()
     } catch (err) {
       console.error(err)
@@ -349,17 +396,22 @@ export default function SituationDetailPage() {
   }
 
   const renderNode = (node: TreeNode, depth = 0) => {
-    const padding = 12 + depth * 16
     const nodeKey = `${node.type}-${node.id}`
     const hasChildren = (node.children && node.children.length > 0) ?? false
     const isExpanded = expandedNodes.has(nodeKey)
     const isDragOver = dragOverKey === nodeKey
+    const isFolder = node.type === 'folder'
+
     return (
-      <div key={`${node.type}-${node.id}`} style={{ paddingLeft: padding }}>
+      <div key={nodeKey} className="animate-fadeUp" style={{ animationDelay: `${depth * 30}ms` }}>
         <div
-          className={`flex items-start justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-3 cursor-pointer ${
-            isDragOver ? 'ring-2 ring-orange-400' : ''
-          }`}
+          className={`group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer
+            ${isFolder
+              ? 'bg-brand-50/50 dark:bg-brand-900/20 hover:bg-brand-100/70 dark:hover:bg-brand-900/30'
+              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700'
+            }
+            ${isDragOver ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-900' : ''}
+          `}
           draggable
           onDragStart={handleDragStart(
             node.type === 'folder'
@@ -412,8 +464,26 @@ export default function SituationDetailPage() {
             }
           }}
         >
-          <div>
-            <div className="flex items-center gap-2 font-semibold">
+          {/* Icon */}
+          <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
+            isFolder
+              ? 'bg-brand-100 dark:bg-brand-800/50 text-brand-600 dark:text-brand-400'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+          }`}>
+            {isFolder ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
               {hasChildren && (
                 <button
                   type="button"
@@ -421,97 +491,134 @@ export default function SituationDetailPage() {
                     event.stopPropagation()
                     toggleNode(nodeKey)
                   }}
-                  className="text-xs text-gray-600 dark:text-gray-400"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
-                  {isExpanded ? '▼' : '▶'}
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               )}
-              <span>{node.type === 'folder' ? 'フォルダ' : '質問'}: {node.title}</span>
+              <span className={`font-semibold truncate ${
+                isFolder ? 'text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'
+              }`}>
+                {node.title}
+              </span>
             </div>
-            {node.type === 'file' && (
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                回答: {node.answer || '（未回答）'}
-              </div>
+            {!isFolder && node.answer && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                {node.answer}
+              </p>
             )}
-            {node.type === 'file' && node.linkedTopicTitle && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                紐付け: {node.linkedTopicTitle}
-              </div>
-            )}
-            {node.type === 'file' && node.linkedQuestionTitle && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                紐付け(質問): {node.linkedQuestionTitle}
+            {!isFolder && (node.linkedTopicTitle || node.linkedQuestionTitle) && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {node.linkedTopicTitle && (
+                  <span className="badge-brand text-xs">
+                    {node.linkedTopicTitle}
+                  </span>
+                )}
+                {node.linkedQuestionTitle && (
+                  <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs">
+                    {node.linkedQuestionTitle}
+                  </span>
+                )}
               </div>
             )}
           </div>
-          {node.type === 'folder' && (
-            <div className="flex gap-2">
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openCreateModal({
-                    parentTopicId: node.id,
-                    parentQuestionId: null,
-                    allowFolder: true,
-                    allowQuestion: true,
-                  })
-                }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-700 dark:text-orange-200 text-lg"
-                title="作成"
-                aria-label="作成"
-              >
-                ＋
-              </button>
-            </div>
-          )}
-          {node.type === 'file' && (
-            <div className="flex gap-2">
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openEditQuestionModal(node)
-                }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-700 dark:text-orange-200 text-lg"
-                title="編集"
-                aria-label="編集"
-              >
-                ✎
-              </button>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setSelectedTask(node)
-                }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-200 text-lg"
-                title="拡大"
-                aria-label="拡大"
-              >
-                ⤢
-              </button>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  if (node.topicId !== undefined) {
+
+          {/* Actions */}
+          <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {isFolder ? (
+              <>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openEditFolderModal(node)
+                  }}
+                  className="btn-icon-sm"
+                  title="編集"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
                     openCreateModal({
-                      parentTopicId: node.topicId,
-                      parentQuestionId: node.id,
-                      allowFolder: false,
+                      parentTopicId: node.id,
+                      parentQuestionId: null,
+                      allowFolder: true,
                       allowQuestion: true,
                     })
-                  }
-                }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 text-lg"
-                title="作成"
-                aria-label="作成"
-              >
-                ＋
-              </button>
-            </div>
-          )}
+                  }}
+                  className="btn-icon-sm bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-800"
+                  title="追加"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openEditQuestionModal(node)
+                  }}
+                  className="btn-icon-sm"
+                  title="編集"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setSelectedTask(node)
+                  }}
+                  className="btn-icon-sm"
+                  title="詳細"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    if (node.topicId !== undefined) {
+                      openCreateModal({
+                        parentTopicId: node.topicId,
+                        parentQuestionId: node.id,
+                        allowFolder: false,
+                        allowQuestion: true,
+                      })
+                    }
+                  }}
+                  className="btn-icon-sm bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800"
+                  title="子質問を追加"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        {node.children && node.children.length > 0 && isExpanded && (
-          <div className="mt-2 space-y-2">
-            {node.children.map((child) => renderNode(child, depth + 1))}
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="ml-6 mt-2 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-2">
+            {node.children!.map((child) => renderNode(child, depth + 1))}
           </div>
         )}
       </div>
@@ -520,8 +627,10 @@ export default function SituationDetailPage() {
 
   const renderRootDropZone = () => (
     <div
-      className={`mb-4 rounded-md border border-dashed border-gray-300 dark:border-gray-700 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 ${
-        dragOverKey === 'root' ? 'ring-2 ring-orange-400' : ''
+      className={`mb-4 rounded-2xl border-2 border-dashed transition-all duration-200 ${
+        dragOverKey === 'root'
+          ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
+          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       onDragOver={(event) => {
         event.preventDefault()
@@ -548,33 +657,59 @@ export default function SituationDetailPage() {
         }
       }}
     >
-      ここにドロップしてルートへ移動
+      <div className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
+        ここにドロップしてルートへ移動
+      </div>
     </div>
   )
 
   if (!situation) {
-    return <div className="p-4 text-gray-600 dark:text-gray-400">読み込み中...</div>
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+          <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          読み込み中...
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <nav className="bg-white dark:bg-gray-900 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="text-orange-600 dark:text-orange-400 text-lg"
-          >
-            ← 戻る
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
+      {/* Navigation */}
+      <nav className="glass-card-solid sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <button
+              onClick={() => router.back()}
+              className="btn-ghost flex items-center gap-2 text-brand-600 dark:text-brand-400"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">戻る</span>
+            </button>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{situation.title}</h1>
-              <p className="text-gray-600 dark:text-gray-400">{situation.description}</p>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Card */}
+        <div className="glass-card-solid rounded-3xl p-6 mb-8 animate-fadeUp">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -586,187 +721,271 @@ export default function SituationDetailPage() {
                     allowQuestion: false,
                   })
                 }
-                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-600 text-white text-2xl hover:bg-orange-700"
-                title="作成"
-                aria-label="作成"
+                className="btn-primary flex items-center gap-2"
               >
-                ＋
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span className="hidden sm:inline">追加</span>
               </button>
               <button
                 onClick={() => {
                   setSituationForm({ title: situation.title, description: situation.description })
                   setShowSituationModal(true)
                 }}
-                className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-200 text-lg"
+                className="btn-icon"
                 title="編集"
-                aria-label="編集"
               >
-                ✎
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
               </button>
             </div>
           </div>
         </div>
 
-        {selectedTask ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              {renderRootDropZone()}
-              {tree.length > 0 ? (
-                <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
-              ) : (
-                <div className="text-center text-gray-500 dark:text-gray-400 mt-12">
-                  フォルダがありません。まずはルートフォルダを作成してください。
-                </div>
-              )}
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 h-fit lg:sticky lg:top-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold">タスク概要</h2>
-                <button
-                  onClick={() => setSelectedTask(null)}
-                  className="text-sm text-gray-500 dark:text-gray-400"
-                >
-                  閉じる
-                </button>
-              </div>
-              <div className="space-y-3">
-                <div className="text-sm text-gray-500 dark:text-gray-400">質問</div>
-                <div className="font-semibold">{selectedTask.title}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">回答</div>
-                <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
-                  {selectedTask.answer || '（未回答）'}
-                </div>
-                {selectedTask.linkedTopicTitle && (
-                  <>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">紐付け</div>
-                    <div className="text-gray-700 dark:text-gray-200">
-                      {selectedTask.linkedTopicTitle}
-                    </div>
-                  </>
-                )}
-                {selectedTask.linkedQuestionTitle && (
-                  <>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">紐付け(質問)</div>
-                    <div className="text-gray-700 dark:text-gray-200">
-                      {selectedTask.linkedQuestionTitle}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
+        {/* Content */}
+        <div className={`grid gap-6 ${selectedTask ? 'lg:grid-cols-5' : ''}`}>
+          {/* Tree View */}
+          <div className={selectedTask ? 'lg:col-span-3' : ''}>
             {tree.length > 0 ? (
               <>
                 {renderRootDropZone()}
-                <div className="space-y-4">{tree.map((node) => renderNode(node))}</div>
+                <div className="space-y-3">{tree.map((node) => renderNode(node))}</div>
               </>
             ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400 mt-12">
-                フォルダがありません。まずはルートフォルダを作成してください。
+              <div className="text-center py-16 animate-fadeUp">
+                <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  フォルダがありません
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  最初のフォルダを作成して質問を追加しましょう
+                </p>
+                <button
+                  onClick={() =>
+                    openCreateModal({
+                      parentTopicId: null,
+                      parentQuestionId: null,
+                      allowFolder: true,
+                      allowQuestion: false,
+                    })
+                  }
+                  className="btn-primary inline-flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  フォルダを作成
+                </button>
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
 
+          {/* Detail Panel */}
+          {selectedTask && (
+            <div className="lg:col-span-2">
+              <div className="glass-card-solid rounded-3xl p-6 sticky top-24 animate-scaleIn">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">詳細</h2>
+                  <button
+                    onClick={() => setSelectedTask(null)}
+                    className="btn-icon-sm"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">質問</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</div>
+                  </div>
+                  <div className="divider" />
+                  <div>
+                    <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">回答</div>
+                    <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                      {selectedTask.answer || '（未回答）'}
+                    </div>
+                  </div>
+                  {(selectedTask.linkedTopicTitle || selectedTask.linkedQuestionTitle) && (
+                    <>
+                      <div className="divider" />
+                      <div>
+                        <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">紐付け</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTask.linkedTopicTitle && (
+                            <span className="badge-brand">{selectedTask.linkedTopicTitle}</span>
+                          )}
+                          {selectedTask.linkedQuestionTitle && (
+                            <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                              {selectedTask.linkedQuestionTitle}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-              {modalType === 'folder'
-                ? 'フォルダを追加'
-                : editingQuestionId !== null
-                ? '質問を編集'
-                : '質問を追加'}
-            </h3>
-            <form onSubmit={handleSubmit}>
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="glass-card-solid rounded-3xl p-6 max-w-md w-full shadow-glass-lg animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {modalType === 'folder'
+                  ? editingTopicId !== null
+                    ? 'フォルダを編集'
+                    : 'フォルダを追加'
+                  : editingQuestionId !== null
+                  ? '質問を編集'
+                  : '質問を追加'}
+              </h3>
+              <button onClick={() => setShowModal(false)} className="btn-icon-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
               {modalType === 'folder' ? (
                 <>
-                  <input
-                    type="text"
-                    required
-                    placeholder="フォルダ名"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    value={folderForm.title}
-                    onChange={(e) => setFolderForm({ ...folderForm, title: e.target.value })}
-                  />
-                  <textarea
-                    placeholder="説明（任意）"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    rows={3}
-                    value={folderForm.description}
-                    onChange={(e) => setFolderForm({ ...folderForm, description: e.target.value })}
-                  />
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      フォルダ名 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="例：自己紹介"
+                      className="input-field"
+                      value={folderForm.title}
+                      onChange={(e) => setFolderForm({ ...folderForm, title: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      説明（任意）
+                    </label>
+                    <textarea
+                      placeholder="このフォルダについて"
+                      className="input-field resize-none"
+                      rows={3}
+                      value={folderForm.description}
+                      onChange={(e) => setFolderForm({ ...folderForm, description: e.target.value })}
+                    />
+                  </div>
                 </>
               ) : (
                 <>
-                  <input
-                    type="text"
-                    required
-                    placeholder="質問"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    value={questionForm.question}
-                    onChange={(e) => setQuestionForm({ ...questionForm, question: e.target.value })}
-                  />
-                  <textarea
-                    placeholder="回答（任意）"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    rows={4}
-                    value={questionForm.answer}
-                    onChange={(e) => setQuestionForm({ ...questionForm, answer: e.target.value })}
-                  />
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    value={questionForm.linkedTopicId ?? ''}
-                    onChange={(e) =>
-                      setQuestionForm({
-                        ...questionForm,
-                        linkedTopicId: e.target.value ? Number(e.target.value) : null,
-                      })
-                    }
-                  >
-                    <option value="">紐付けなし</option>
-                    {situation.topics.map((topic) => (
-                      <option key={topic.id} value={topic.id}>
-                        紐付け: {topic.title}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                    value={questionForm.linkedQuestionId ?? ''}
-                    onChange={(e) =>
-                      setQuestionForm({
-                        ...questionForm,
-                        linkedQuestionId: e.target.value ? Number(e.target.value) : null,
-                      })
-                    }
-                  >
-                    <option value="">紐付け(質問)なし</option>
-                    {situation.questions
-                      .filter((q) => q.id !== editingQuestionId)
-                      .map((q) => (
-                        <option key={q.id} value={q.id}>
-                          紐付け(質問): {q.question}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      質問 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="例：自己紹介をお願いします"
+                      className="input-field"
+                      value={questionForm.question}
+                      onChange={(e) => setQuestionForm({ ...questionForm, question: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      回答（任意）
+                    </label>
+                    <textarea
+                      placeholder="準備した回答を入力"
+                      className="input-field resize-none"
+                      rows={4}
+                      value={questionForm.answer}
+                      onChange={(e) => setQuestionForm({ ...questionForm, answer: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      フォルダへの紐付け
+                    </label>
+                    <select
+                      className="input-field"
+                      value={questionForm.linkedTopicId ?? ''}
+                      onChange={(e) =>
+                        setQuestionForm({
+                          ...questionForm,
+                          linkedTopicId: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                    >
+                      <option value="">なし</option>
+                      {situation.topics.map((topic) => (
+                        <option key={topic.id} value={topic.id}>
+                          {topic.title}
                         </option>
                       ))}
-                  </select>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      質問への紐付け
+                    </label>
+                    <select
+                      className="input-field"
+                      value={questionForm.linkedQuestionId ?? ''}
+                      onChange={(e) =>
+                        setQuestionForm({
+                          ...questionForm,
+                          linkedQuestionId: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                    >
+                      <option value="">なし</option>
+                      {situation.questions
+                        .filter((q) => q.id !== editingQuestionId)
+                        .map((q) => (
+                          <option key={q.id} value={q.id}>
+                            {q.question}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 </>
               )}
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700"
-                >
-                  {editingQuestionId !== null ? '更新' : '作成'}
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary flex-1">
+                  {(modalType === 'folder' && editingTopicId !== null) || (modalType === 'file' && editingQuestionId !== null) ? '更新する' : '作成する'}
                 </button>
                 {modalType === 'file' && editingQuestionId !== null && (
                   <button
                     type="button"
                     onClick={handleDeleteQuestion}
-                    className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700"
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-2xl transition-colors"
+                  >
+                    削除
+                  </button>
+                )}
+                {modalType === 'folder' && editingTopicId !== null && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteTopic}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-2xl transition-colors"
                   >
                     削除
                   </button>
@@ -774,7 +993,7 @@ export default function SituationDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                  className="btn-secondary flex-1"
                 >
                   キャンセル
                 </button>
@@ -784,38 +1003,60 @@ export default function SituationDetailPage() {
         </div>
       )}
 
+      {/* Create Type Selection Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">作成</h3>
-            <div className="flex gap-2">
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="glass-card-solid rounded-3xl p-6 max-w-sm w-full shadow-glass-lg animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+              何を作成しますか？
+            </h3>
+            <div className="space-y-3">
               {createContext.allowFolder && (
                 <button
                   type="button"
                   onClick={() => openFolderModal(createContext.parentTopicId)}
-                  className="flex-1 bg-orange-600 text-white py-3 rounded-md hover:bg-orange-700 text-lg"
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-brand-50 dark:bg-brand-900/30 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors text-left"
                 >
-                  [F] フォルダ
+                  <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">フォルダ</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">質問をグループ化</div>
+                  </div>
                 </button>
               )}
               {createContext.allowQuestion && createContext.parentTopicId !== null && (
                 <button
                   type="button"
                   onClick={() =>
-                    openFileModal(
-                      createContext.parentTopicId!,
-                      createContext.parentQuestionId
-                    )
+                    openFileModal(createContext.parentTopicId!, createContext.parentQuestionId)
                   }
-                  className="flex-1 bg-green-600 text-white py-3 rounded-md hover:bg-green-700 text-lg"
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors text-left"
                 >
-                  [Q] 質問
+                  <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-800/50 flex items-center justify-center text-green-600 dark:text-green-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">質問</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Q&Aを追加</div>
+                  </div>
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-3 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 text-lg"
+                className="w-full btn-secondary"
               >
                 キャンセル
               </button>
@@ -824,37 +1065,58 @@ export default function SituationDetailPage() {
         </div>
       )}
 
+      {/* Situation Edit Modal */}
       {showSituationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">シチュエーションを編集</h3>
-            <form onSubmit={handleSituationSubmit}>
-              <input
-                type="text"
-                required
-                placeholder="シチュエーション名"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                value={situationForm.title}
-                onChange={(e) => setSituationForm({ ...situationForm, title: e.target.value })}
-              />
-              <textarea
-                placeholder="説明（任意）"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md mb-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                rows={3}
-                value={situationForm.description}
-                onChange={(e) => setSituationForm({ ...situationForm, description: e.target.value })}
-              />
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-orange-600 text-white py-2 rounded-md hover:bg-orange-700"
-                >
-                  更新
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setShowSituationModal(false)}
+        >
+          <div
+            className="glass-card-solid rounded-3xl p-6 max-w-md w-full shadow-glass-lg animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">シチュエーションを編集</h3>
+              <button onClick={() => setShowSituationModal(false)} className="btn-icon-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleSituationSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  タイトル <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="シチュエーション名"
+                  className="input-field"
+                  value={situationForm.title}
+                  onChange={(e) => setSituationForm({ ...situationForm, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  説明（任意）
+                </label>
+                <textarea
+                  placeholder="このシチュエーションについて"
+                  className="input-field resize-none"
+                  rows={3}
+                  value={situationForm.description}
+                  onChange={(e) => setSituationForm({ ...situationForm, description: e.target.value })}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary flex-1">
+                  更新する
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowSituationModal(false)}
-                  className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                  className="btn-secondary flex-1"
                 >
                   キャンセル
                 </button>
