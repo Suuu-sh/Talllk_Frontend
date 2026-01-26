@@ -1,3 +1,4 @@
+/* Hooks test comment - 2026-01-25 v2 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,45 +9,174 @@
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.02em;
+}
+
+/* Selection style */
+::selection {
+  background-color: rgba(249, 115, 22, 0.2);
+  color: inherit;
+}
+
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/50;
+  }
+
+  .glass-card-solid {
+    @apply bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow;
+  }
 }
 
 @layer utilities {
+  /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
+    @apply transition-all duration-300 ease-out;
   }
 
+  .card-hover:hover {
+    @apply shadow-glass-lg -translate-y-1;
+  }
+
+  /* Primary button with gradient */
   .btn-primary {
-    @apply bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95;
+    @apply relative overflow-hidden bg-gradient-to-r from-brand-500 to-brand-600
+           hover:from-brand-600 hover:to-brand-700
+           text-white font-semibold px-6 py-3 rounded-2xl
+           shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30
+           transition-all duration-300 ease-out
+           hover:scale-[1.02] active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
   }
 
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0
+           -translate-x-full transition-transform duration-500;
+  }
+
+  .btn-primary:hover::before {
+    @apply translate-x-full;
+  }
+
+  /* Secondary button */
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:scale-105 active:scale-95;
+    @apply bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600
+           text-gray-700 dark:text-gray-200 font-semibold px-6 py-3 rounded-2xl
+           border border-gray-200 dark:border-gray-600
+           transition-all duration-300 ease-out
+           hover:scale-[1.02] active:scale-[0.98];
   }
 
+  /* Ghost button */
+  .btn-ghost {
+    @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white
+           hover:bg-gray-100 dark:hover:bg-gray-700/50
+           font-medium px-4 py-2 rounded-xl
+           transition-all duration-200;
+  }
+
+  /* Input field */
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all duration-200;
+    @apply w-full px-4 py-3.5
+           bg-gray-50 dark:bg-gray-900/50
+           border-2 border-gray-200 dark:border-gray-700
+           rounded-2xl
+           text-gray-900 dark:text-gray-100
+           placeholder:text-gray-400 dark:placeholder:text-gray-500
+           focus:border-brand-500 dark:focus:border-brand-500
+           focus:ring-4 focus:ring-brand-500/10 dark:focus:ring-brand-500/20
+           outline-none transition-all duration-200;
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent;
+  }
+
+  /* Subtle border glow on focus */
+  .focus-glow:focus {
+    @apply ring-4 ring-brand-500/20;
+  }
+
+  /* Icon button */
+  .btn-icon {
+    @apply inline-flex items-center justify-center
+           w-10 h-10 rounded-xl
+           text-gray-500 dark:text-gray-400
+           hover:text-gray-700 dark:hover:text-gray-200
+           hover:bg-gray-100 dark:hover:bg-gray-700/50
+           transition-all duration-200
+           active:scale-95;
+  }
+
+  .btn-icon-sm {
+    @apply btn-icon w-8 h-8 rounded-lg;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-brand {
+    @apply badge bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent;
+  }
+
+  /* Scroll styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
   }
 }
 
+/* Animations */
 @keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -66,7 +196,11 @@ body {
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.5s ease-out forwards;
 }
 
 .animate-scaleIn {
@@ -77,3 +211,11 @@ body {
   animation: slideUp 0.4s ease-out;
   animation-fill-mode: both;
 }
+
+/* Stagger animation delay utilities */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
