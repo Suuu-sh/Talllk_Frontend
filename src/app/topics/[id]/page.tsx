@@ -263,7 +263,7 @@ export default function TopicDetail() {
                             <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
-                            <span className="break-all whitespace-pre-wrap">{q.question}</span>
+                            <span className={`break-all whitespace-pre-wrap ${!isExpanded ? "line-clamp-3" : ""}`}>{q.question}</span>
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -316,8 +316,8 @@ export default function TopicDetail() {
                         <div
                           className={`overflow-hidden transition-all duration-500 ${
                             isExpanded
-                              ? "max-h-[1000px] opacity-100"
-                              : "max-h-32 opacity-90"
+                              ? "max-h-[2000px] opacity-100"
+                              : "max-h-24 opacity-90"
                           }`}
                         >
                           <div
@@ -329,7 +329,7 @@ export default function TopicDetail() {
                               <span className="text-green-600 font-bold flex-shrink-0">
                                 A:
                               </span>
-                              <span className="break-all">
+                              <span className={`break-all ${!isExpanded ? "line-clamp-2" : ""}`}>
                                 {q.answer || "（未回答）"}
                               </span>
                             </p>
