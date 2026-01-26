@@ -1,12 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import api from '@/lib/api'
 
 export default function Login() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLogin, setIsLogin] = useState(true)
+
+  useEffect(() => {
+    const mode = searchParams.get('mode')
+    if (mode === 'signup') {
+      setIsLogin(false)
+    }
+  }, [searchParams])
   const [formData, setFormData] = useState({
     email: '',
     password: '',
