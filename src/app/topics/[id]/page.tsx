@@ -238,7 +238,7 @@ export default function TopicDetail() {
               return (
                 <div
                   key={q.id}
-                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 ${
+                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 overflow-hidden ${
                     isExpanded
                       ? "border-orange-400 shadow-2xl scale-[1.02]"
                       : "border-transparent hover:border-orange-200"
@@ -257,13 +257,13 @@ export default function TopicDetail() {
                       >
                         {index + 1}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1">
                             <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
-                            <span className="break-words">{q.question}</span>
+                            <span className="break-all whitespace-pre-wrap">{q.question}</span>
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -329,7 +329,7 @@ export default function TopicDetail() {
                               <span className="text-green-600 font-bold flex-shrink-0">
                                 A:
                               </span>
-                              <span className="break-words">
+                              <span className="break-all">
                                 {q.answer || "（未回答）"}
                               </span>
                             </p>
