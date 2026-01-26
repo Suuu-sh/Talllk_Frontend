@@ -7,14 +7,14 @@ import api from '@/lib/api'
 export default function Login() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isLogin, setIsLogin] = useState(true)
+  const mode = searchParams.get('mode')
+  const [isLogin, setIsLogin] = useState(mode !== 'signup')
 
   useEffect(() => {
-    const mode = searchParams.get('mode')
     if (mode === 'signup') {
       setIsLogin(false)
     }
-  }, [searchParams])
+  }, [mode])
   const [formData, setFormData] = useState({
     email: '',
     password: '',
