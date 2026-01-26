@@ -41,6 +41,8 @@ export default function SituationDetailPage() {
   const [parentQuestionId, setParentQuestionId] = useState<number | null>(null)
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null)
   const [editingQuestionHasChildren, setEditingQuestionHasChildren] = useState(false)
+  const [editingTopicId, setEditingTopicId] = useState<number | null>(null)
+  const [editingTopicHasChildren, setEditingTopicHasChildren] = useState(false)
   const [situationForm, setSituationForm] = useState({ title: '', description: '' })
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
   const [questionForm, setQuestionForm] = useState({
@@ -219,7 +221,25 @@ export default function SituationDetailPage() {
     setParentQuestionId(null)
     setEditingQuestionId(null)
     setEditingQuestionHasChildren(false)
+    setEditingTopicId(null)
+    setEditingTopicHasChildren(false)
     setFolderForm({ title: '', description: '' })
+    setShowCreateModal(false)
+    setShowModal(true)
+  }
+
+  const openEditFolderModal = (node: TreeNode) => {
+    if (node.type !== 'folder') return
+    const topic = getTopicById(node.id)
+    if (!topic) return
+    setModalType('folder')
+    setParentTopicId(topic.parent_id ?? null)
+    setParentQuestionId(null)
+    setEditingQuestionId(null)
+    setEditingQuestionHasChildren(false)
+    setEditingTopicId(node.id)
+    setEditingTopicHasChildren((node.children?.length ?? 0) > 0)
+    setFolderForm({ title: topic.title, description: topic.description || '' })
     setShowCreateModal(false)
     setShowModal(true)
   }
@@ -286,15 +306,40 @@ export default function SituationDetailPage() {
     }
   }
 
+  const handleDeleteTopic = async () => {
+    if (editingTopicId === null) return
+    const message = editingTopicHasChildren
+      ? '子フォルダ・質問も削除されます。削除しますか？'
+      : '削除しますか？'
+    if (!confirm(message)) return
+    try {
+      await api.delete(`/situations/${params.id}/topics/${editingTopicId}`)
+      setShowModal(false)
+      setEditingTopicId(null)
+      setEditingTopicHasChildren(false)
+      await fetchSituation()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (modalType === 'folder') {
-        await api.post(`/situations/${params.id}/topics`, {
-          title: folderForm.title,
-          description: folderForm.description,
-          parent_id: parentTopicId,
-        })
+        if (editingTopicId !== null) {
+          await api.put(`/situations/${params.id}/topics/${editingTopicId}`, {
+            title: folderForm.title,
+            description: folderForm.description,
+            parent_id: parentTopicId,
+          })
+        } else {
+          await api.post(`/situations/${params.id}/topics`, {
+            title: folderForm.title,
+            description: folderForm.description,
+            parent_id: parentTopicId,
+          })
+        }
       } else if (modalType === 'file' && parentTopicId !== null) {
         if (editingQuestionId !== null) {
           await api.put(
@@ -319,6 +364,8 @@ export default function SituationDetailPage() {
 
       setShowModal(false)
       setEditingQuestionId(null)
+      setEditingTopicId(null)
+      setEditingTopicHasChildren(false)
       await fetchSituation()
     } catch (err) {
       console.error(err)
@@ -486,23 +533,37 @@ export default function SituationDetailPage() {
           {/* Actions */}
           <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {isFolder ? (
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openCreateModal({
-                    parentTopicId: node.id,
-                    parentQuestionId: null,
-                    allowFolder: true,
-                    allowQuestion: true,
-                  })
-                }}
-                className="btn-icon-sm bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-800"
-                title="追加"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
+              <>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openEditFolderModal(node)
+                  }}
+                  className="btn-icon-sm"
+                  title="編集"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openCreateModal({
+                      parentTopicId: node.id,
+                      parentQuestionId: null,
+                      allowFolder: true,
+                      allowQuestion: true,
+                    })
+                  }}
+                  className="btn-icon-sm bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-800"
+                  title="追加"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -790,7 +851,9 @@ export default function SituationDetailPage() {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {modalType === 'folder'
-                  ? 'フォルダを追加'
+                  ? editingTopicId !== null
+                    ? 'フォルダを編集'
+                    : 'フォルダを追加'
                   : editingQuestionId !== null
                   ? '質問を編集'
                   : '質問を追加'}
@@ -907,12 +970,21 @@ export default function SituationDetailPage() {
               )}
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">
-                  {editingQuestionId !== null ? '更新する' : '作成する'}
+                  {(modalType === 'folder' && editingTopicId !== null) || (modalType === 'file' && editingQuestionId !== null) ? '更新する' : '作成する'}
                 </button>
                 {modalType === 'file' && editingQuestionId !== null && (
                   <button
                     type="button"
                     onClick={handleDeleteQuestion}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-2xl transition-colors"
+                  >
+                    削除
+                  </button>
+                )}
+                {modalType === 'folder' && editingTopicId !== null && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteTopic}
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-2xl transition-colors"
                   >
                     削除
