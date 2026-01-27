@@ -114,7 +114,7 @@ export default function TopicDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 overflow-x-hidden">
       <nav className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
@@ -258,12 +258,12 @@ export default function TopicDetail() {
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1">
+                        <div className="flex justify-between items-start mb-3 min-w-0">
+                          <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1 min-w-0">
                             <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
-                            <span className={`break-all whitespace-pre-wrap ${!isExpanded ? "line-clamp-3" : ""}`}>{q.question}</span>
+                            <span className={`break-all whitespace-pre-wrap min-w-0 ${!isExpanded ? "line-clamp-3" : ""}`}>{q.question}</span>
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -325,11 +325,11 @@ export default function TopicDetail() {
                               isExpanded ? "shadow-inner" : ""
                             }`}
                           >
-                            <p className="text-gray-900 whitespace-pre-wrap flex items-start gap-2">
+                            <p className="text-gray-900 whitespace-pre-wrap flex items-start gap-2 min-w-0">
                               <span className="text-green-600 font-bold flex-shrink-0">
                                 A:
                               </span>
-                              <span className={`break-all ${!isExpanded ? "line-clamp-2" : ""}`}>
+                              <span className={`break-all min-w-0 ${!isExpanded ? "line-clamp-2" : ""}`}>
                                 {q.answer || "（未回答）"}
                               </span>
                             </p>
