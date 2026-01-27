@@ -240,13 +240,13 @@ export default function TopicDetail() {
                   key={q.id}
                   className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 overflow-hidden ${
                     isExpanded
-                      ? "border-orange-400 shadow-2xl scale-[1.02]"
+                      ? "border-orange-400 shadow-2xl"
                       : "border-transparent hover:border-orange-200"
                   } ${isAnimating ? "animate-fadeIn" : ""}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div
-                    className="p-6 cursor-pointer"
+                    className={`p-6 cursor-pointer ${isExpanded ? "md:max-h-[70vh] md:overflow-y-auto md:custom-scrollbar md:pr-2" : ""}`}
                     onClick={() => toggleExpand(q.id)}
                   >
                     <div className="flex items-start gap-4">
@@ -263,7 +263,7 @@ export default function TopicDetail() {
                             <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
-                            <span className={`break-all whitespace-pre-wrap min-w-0 ${!isExpanded ? "line-clamp-3" : ""}`}>{q.question}</span>
+                            <span className="break-all whitespace-pre-wrap min-w-0 line-clamp-3">{q.question}</span>
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -314,15 +314,15 @@ export default function TopicDetail() {
                         </div>
 
                         <div
-                          className={`overflow-hidden transition-all duration-500 ${
+                          className={`transition-all duration-300 ${
                             isExpanded
-                              ? "max-h-[2000px] opacity-100"
-                              : "max-h-24 opacity-90"
-                          }`}
+                              ? "max-h-40 opacity-100"
+                              : "max-h-20 opacity-90"
+                          } overflow-hidden`}
                         >
                           <div
-                            className={`bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 transition-all duration-300 ${
-                              isExpanded ? "shadow-inner" : ""
+                            className={`bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 h-full ${
+                              isExpanded ? "shadow-inner overflow-y-auto max-h-40" : ""
                             }`}
                           >
                             <p className="text-gray-900 whitespace-pre-wrap flex items-start gap-2 min-w-0">
