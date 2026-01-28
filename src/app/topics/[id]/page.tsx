@@ -247,10 +247,10 @@ export default function TopicDetail() {
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex justify-between items-start mb-3 min-w-0">
+                        <div className="flex justify-between items-start mb-3 min-w-0 overflow-hidden">
                           <h3
-                            className="font-bold text-lg text-gray-900 flex-1 min-w-0 overflow-hidden"
-                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                            className="font-bold text-lg text-gray-900 overflow-hidden"
+                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', flex: '1 1 0', width: 0 }}
                           >
                             <span className="text-orange-600">Q: </span>
                             {q.question}
@@ -303,10 +303,10 @@ export default function TopicDetail() {
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4">
+                        <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 overflow-hidden">
                           <p
-                            className="text-gray-900 min-w-0 overflow-hidden"
-                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                            className="text-gray-900"
+                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}
                           >
                             <span className="text-green-600 font-bold">A: </span>
                             {q.answer || "（未回答）"}
