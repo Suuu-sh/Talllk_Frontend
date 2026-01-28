@@ -248,11 +248,9 @@ export default function TopicDetail() {
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex justify-between items-start mb-3 min-w-0">
-                          <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1 min-w-0">
-                            <span className="text-orange-600 flex-shrink-0">
-                              Q:
-                            </span>
-                            <span className="break-words min-w-0 line-clamp-3">{q.question}</span>
+                          <h3 className="font-bold text-lg text-gray-900 flex-1 min-w-0 line-clamp-2 break-words">
+                            <span className="text-orange-600">Q: </span>
+                            {q.question}
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -303,13 +301,9 @@ export default function TopicDetail() {
                         </div>
 
                         <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4">
-                          <p className="text-gray-900 flex items-start gap-2 min-w-0">
-                            <span className="text-green-600 font-bold flex-shrink-0">
-                              A:
-                            </span>
-                            <span className="break-words min-w-0 line-clamp-4">
-                              {q.answer || "（未回答）"}
-                            </span>
+                          <p className="text-gray-900 min-w-0 line-clamp-2 break-words">
+                            <span className="text-green-600 font-bold">A: </span>
+                            {q.answer || "（未回答）"}
                           </p>
                         </div>
                       </div>
