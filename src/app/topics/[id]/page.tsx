@@ -248,7 +248,7 @@ export default function TopicDetail() {
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex justify-between items-start mb-3 min-w-0">
-                          <h3 className="font-bold text-lg text-gray-900 flex-1 min-w-0 line-clamp-2 break-words">
+                          <h3 className="font-bold text-lg text-gray-900 flex-1 min-w-0 break-all">
                             <span className="text-orange-600">Q: </span>
                             {q.question}
                           </h3>
@@ -301,7 +301,7 @@ export default function TopicDetail() {
                         </div>
 
                         <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4">
-                          <p className="text-gray-900 min-w-0 line-clamp-2 break-words">
+                          <p className="text-gray-900 min-w-0 break-all">
                             <span className="text-green-600 font-bold">A: </span>
                             {q.answer || "（未回答）"}
                           </p>
