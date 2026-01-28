@@ -238,23 +238,12 @@ export default function TopicDetail() {
               return (
                 <div
                   key={q.id}
-                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 overflow-hidden ${
-                    isExpanded
-                      ? "border-orange-400 shadow-2xl"
-                      : "border-transparent hover:border-orange-200"
-                  } ${isAnimating ? "animate-fadeIn" : ""}`}
+                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 overflow-hidden border-transparent hover:border-orange-200 ${isAnimating ? "animate-fadeIn" : ""}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div
-                    className={`p-6 cursor-pointer ${isExpanded ? "md:max-h-[70vh] md:overflow-y-auto md:custom-scrollbar md:pr-2" : ""}`}
-                    onClick={() => toggleExpand(q.id)}
-                  >
+                  <div className="p-6">
                     <div className="flex items-start gap-4">
-                      <div
-                        className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold transition-transform duration-300 ${
-                          isExpanded ? "scale-110 rotate-12" : ""
-                        }`}
-                      >
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
@@ -263,7 +252,7 @@ export default function TopicDetail() {
                             <span className="text-orange-600 flex-shrink-0">
                               Q:
                             </span>
-                            <span className="break-all whitespace-pre-wrap min-w-0 line-clamp-3">{q.question}</span>
+                            <span className="break-words min-w-0 line-clamp-3">{q.question}</span>
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -313,66 +302,16 @@ export default function TopicDetail() {
                           </div>
                         </div>
 
-                        <div
-                          className={`transition-all duration-300 ${
-                            isExpanded
-                              ? "max-h-40 opacity-100"
-                              : "max-h-20 opacity-90"
-                          } overflow-hidden`}
-                        >
-                          <div
-                            className={`bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 h-full ${
-                              isExpanded ? "shadow-inner overflow-y-auto max-h-40" : ""
-                            }`}
-                          >
-                            <p className="text-gray-900 whitespace-pre-wrap flex items-start gap-2 min-w-0">
-                              <span className="text-green-600 font-bold flex-shrink-0">
-                                A:
-                              </span>
-                              <span className={`break-all min-w-0 ${!isExpanded ? "line-clamp-2" : ""}`}>
-                                {q.answer || "（未回答）"}
-                              </span>
-                            </p>
-                          </div>
+                        <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4">
+                          <p className="text-gray-900 flex items-start gap-2 min-w-0">
+                            <span className="text-green-600 font-bold flex-shrink-0">
+                              A:
+                            </span>
+                            <span className="break-words min-w-0 line-clamp-4">
+                              {q.answer || "（未回答）"}
+                            </span>
+                          </p>
                         </div>
-
-                        {!isExpanded && q.answer && q.answer.length > 100 && (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 font-medium">
-                            <span>クリックして全文を表示</span>
-                            <svg
-                              className="w-4 h-4 animate-bounce"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </div>
-                        )}
-
-                        {isExpanded && (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 font-medium">
-                            <span>クリックして閉じる</span>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 15l7-7 7 7"
-                              />
-                            </svg>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
