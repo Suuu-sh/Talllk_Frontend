@@ -114,7 +114,7 @@ export default function TopicDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 overflow-x-hidden">
       <nav className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
@@ -238,32 +238,22 @@ export default function TopicDetail() {
               return (
                 <div
                   key={q.id}
-                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 ${
-                    isExpanded
-                      ? "border-orange-400 shadow-2xl scale-[1.02]"
-                      : "border-transparent hover:border-orange-200"
-                  } ${isAnimating ? "animate-fadeIn" : ""}`}
+                  className={`bg-white rounded-2xl shadow-md card-hover border-2 transition-all duration-300 overflow-hidden border-transparent hover:border-orange-200 ${isAnimating ? "animate-fadeIn" : ""}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div
-                    className="p-6 cursor-pointer"
-                    onClick={() => toggleExpand(q.id)}
-                  >
+                  <div className="p-6">
                     <div className="flex items-start gap-4">
-                      <div
-                        className={`flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold transition-transform duration-300 ${
-                          isExpanded ? "scale-110 rotate-12" : ""
-                        }`}
-                      >
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold">
                         {index + 1}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-bold text-lg text-gray-900 flex items-start gap-2 flex-1">
-                            <span className="text-orange-600 flex-shrink-0">
-                              Q:
-                            </span>
-                            <span className="break-words">{q.question}</span>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="flex justify-between items-start mb-3 min-w-0 overflow-hidden">
+                          <h3
+                            className="font-bold text-lg text-gray-900 overflow-hidden"
+                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', flex: '1 1 0', width: 0 }}
+                          >
+                            <span className="text-orange-600">Q: </span>
+                            {q.question}
                           </h3>
                           <div className="flex gap-2 ml-4 flex-shrink-0">
                             <button
@@ -313,66 +303,15 @@ export default function TopicDetail() {
                           </div>
                         </div>
 
-                        <div
-                          className={`overflow-hidden transition-all duration-500 ${
-                            isExpanded
-                              ? "max-h-[1000px] opacity-100"
-                              : "max-h-32 opacity-90"
-                          }`}
-                        >
-                          <div
-                            className={`bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 transition-all duration-300 ${
-                              isExpanded ? "shadow-inner" : ""
-                            }`}
+                        <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 overflow-hidden">
+                          <p
+                            className="text-gray-900"
+                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}
                           >
-                            <p className="text-gray-900 whitespace-pre-wrap flex items-start gap-2">
-                              <span className="text-green-600 font-bold flex-shrink-0">
-                                A:
-                              </span>
-                              <span className="break-words">
-                                {q.answer || "（未回答）"}
-                              </span>
-                            </p>
-                          </div>
+                            <span className="text-green-600 font-bold">A: </span>
+                            {q.answer || "（未回答）"}
+                          </p>
                         </div>
-
-                        {!isExpanded && q.answer && q.answer.length > 100 && (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 font-medium">
-                            <span>クリックして全文を表示</span>
-                            <svg
-                              className="w-4 h-4 animate-bounce"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </div>
-                        )}
-
-                        {isExpanded && (
-                          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 font-medium">
-                            <span>クリックして閉じる</span>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 15l7-7 7 7"
-                              />
-                            </svg>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
