@@ -61,6 +61,10 @@ export default function SituationDetailPage() {
     allowFolder: true,
     allowQuestion: true,
   })
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'question' | 'topic' | 'situation'
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -287,12 +291,16 @@ export default function SituationDetailPage() {
     setShowCreateModal(true)
   }
 
-  const handleDeleteQuestion = async () => {
+  const handleDeleteQuestion = () => {
     if (editingQuestionId === null || parentTopicId === null) return
     const message = editingQuestionHasChildren
       ? '子タスクも削除されます。削除しますか？'
       : '削除しますか？'
-    if (!confirm(message)) return
+    setDeleteConfirm({ type: 'question', message })
+  }
+
+  const confirmDeleteQuestion = async () => {
+    if (editingQuestionId === null || parentTopicId === null) return
     try {
       await api.delete(
         `/situations/${params.id}/topics/${parentTopicId}/questions/${editingQuestionId}`
@@ -303,15 +311,21 @@ export default function SituationDetailPage() {
       await fetchSituation()
     } catch (err) {
       console.error(err)
+    } finally {
+      setDeleteConfirm(null)
     }
   }
 
-  const handleDeleteTopic = async () => {
+  const handleDeleteTopic = () => {
     if (editingTopicId === null) return
     const message = editingTopicHasChildren
       ? '子フォルダ・質問も削除されます。削除しますか？'
       : '削除しますか？'
-    if (!confirm(message)) return
+    setDeleteConfirm({ type: 'topic', message })
+  }
+
+  const confirmDeleteTopic = async () => {
+    if (editingTopicId === null) return
     try {
       await api.delete(`/situations/${params.id}/topics/${editingTopicId}`)
       setShowModal(false)
@@ -320,6 +334,27 @@ export default function SituationDetailPage() {
       await fetchSituation()
     } catch (err) {
       console.error(err)
+    } finally {
+      setDeleteConfirm(null)
+    }
+  }
+
+  const handleDeleteSituation = () => {
+    const hasChildren = (situation?.topics?.length ?? 0) > 0 || (situation?.questions?.length ?? 0) > 0
+    const message = hasChildren
+      ? 'すべてのフォルダ・質問も削除されます。削除しますか？'
+      : 'このシチュエーションを削除しますか？'
+    setDeleteConfirm({ type: 'situation', message })
+  }
+
+  const confirmDeleteSituation = async () => {
+    try {
+      await api.delete(`/situations/${params.id}`)
+      router.push('/situations')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setDeleteConfirm(null)
     }
   }
 
@@ -1115,6 +1150,16 @@ export default function SituationDetailPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    setShowSituationModal(false)
+                    handleDeleteSituation()
+                  }}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-2xl transition-colors"
+                >
+                  削除
+                </button>
+                <button
+                  type="button"
                   onClick={() => setShowSituationModal(false)}
                   className="btn-secondary flex-1"
                 >
@@ -1122,6 +1167,49 @@ export default function SituationDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteConfirm !== null && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setDeleteConfirm(null)}
+        >
+          <div
+            className="glass-card-solid rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">削除の確認</h3>
+              <p className="text-gray-600 dark:text-gray-400">{deleteConfirm.message}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={
+                  deleteConfirm.type === 'question'
+                    ? confirmDeleteQuestion
+                    : deleteConfirm.type === 'topic'
+                    ? confirmDeleteTopic
+                    : confirmDeleteSituation
+                }
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
+              >
+                削除
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
           </div>
         </div>
       )}

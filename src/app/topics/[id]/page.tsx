@@ -16,6 +16,7 @@ export default function TopicDetail() {
   const [formData, setFormData] = useState({ question: "", answer: "" });
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   useEffect(() => {
     if (params.id && situationId) {
@@ -65,16 +66,21 @@ export default function TopicDetail() {
     }
   };
 
-  const handleDelete = async (questionId: number) => {
-    if (!confirm("削除しますか？")) return;
-    if (!situationId) return;
+  const handleDelete = (questionId: number) => {
+    setDeleteConfirmId(questionId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmId || !situationId) return;
     try {
       await api.delete(
-        `/situations/${situationId}/topics/${params.id}/questions/${questionId}`
+        `/situations/${situationId}/topics/${params.id}/questions/${deleteConfirmId}`
       );
       fetchTopic();
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteConfirmId(null);
     }
   };
 
@@ -413,6 +419,42 @@ export default function TopicDetail() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">削除の確認</h3>
+              <p className="text-gray-600">この質問を削除しますか？</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
+              >
+                削除
+              </button>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
           </div>
         </div>
       )}

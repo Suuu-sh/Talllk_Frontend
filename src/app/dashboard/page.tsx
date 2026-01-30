@@ -25,7 +25,7 @@ export default function Dashboard() {
   const fetchSituations = async () => {
     try {
       const response = await api.get('/situations')
-      setSituations(response.data)
+      setSituations(response.data.data || [])
     } catch (err) {
       console.error(err)
     } finally {
