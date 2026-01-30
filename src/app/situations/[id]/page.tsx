@@ -483,7 +483,7 @@ export default function SituationDetailPage() {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {hasChildren && (
                 <button
                   type="button"
@@ -503,7 +503,7 @@ export default function SituationDetailPage() {
                   </svg>
                 </button>
               )}
-              <span className={`font-semibold truncate ${
+              <span className={`font-semibold line-clamp-2 break-words ${
                 isFolder ? 'text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'
               }`}>
                 {node.title}
@@ -517,12 +517,12 @@ export default function SituationDetailPage() {
             {!isFolder && (node.linkedTopicTitle || node.linkedQuestionTitle) && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {node.linkedTopicTitle && (
-                  <span className="badge-brand text-xs">
+                  <span className="badge-brand text-xs max-w-[220px] truncate">
                     {node.linkedTopicTitle}
                   </span>
                 )}
                 {node.linkedQuestionTitle && (
-                  <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs">
+                  <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs max-w-[220px] truncate">
                     {node.linkedQuestionTitle}
                   </span>
                 )}
