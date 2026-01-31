@@ -65,9 +65,9 @@ export default function Home() {
           </h1>
 
           <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto animate-fadeUp stagger-2">
-            面接、デート、商談...
+            友達との雑談、気になる人とのデート、初対面の会話...
             <br className="hidden sm:block" />
-            予測できる会話を事前に準備して、本番で最高のパフォーマンスを
+            話題に困らない自分になるための会話準備アプリ
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeUp stagger-3">
@@ -96,11 +96,11 @@ export default function Home() {
                 <div className="bg-brand-50 dark:bg-brand-900/30 rounded-2xl p-4">
                   <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-3">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white mb-1">就職面接</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">5つのトピック</div>
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">初デート</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">4つのトピック</div>
                 </div>
                 {/* Topic Card */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
@@ -109,8 +109,8 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white mb-1">自己紹介</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">3つの質問</div>
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">趣味の話</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">5つの質問</div>
                 </div>
                 {/* Question Card */}
                 <div className="bg-green-50 dark:bg-green-900/30 rounded-2xl p-4">
@@ -119,7 +119,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white mb-1">志望動機は？</div>
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">休日は何してる？</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">回答準備済み</div>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function Home() {
                   </svg>
                 ),
                 title: 'シチュエーション管理',
-                description: '面接、デート、商談など、場面ごとに会話を整理できます',
+                description: '友達との会話、デート、面接など、場面ごとに話題を整理できます',
               },
               {
                 icon: (
@@ -200,9 +200,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: '1', title: 'シチュエーション作成', desc: '準備したい場面を登録' },
-              { step: '2', title: '質問を追加', desc: '想定される質問と回答を準備' },
-              { step: '3', title: '本番で活用', desc: '自信を持って会話に臨む' },
+              { step: '1', title: 'シチュエーション作成', desc: 'デート、友達との食事など場面を作成' },
+              { step: '2', title: '質問を追加', desc: '話したいこと、聞きたいことをメモ' },
+              { step: '3', title: '本番で活用', desc: '準備があるから余裕を持てる' },
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4 shadow-glow">
