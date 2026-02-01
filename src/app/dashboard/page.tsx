@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Situation } from '@/types'
 import Header from '@/components/Header'
+import TabNavigation, { Tab } from '@/components/TabNavigation'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ title: '', description: '' })
+  const [activeTab, setActiveTab] = useState<Tab>('home')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -48,6 +50,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
       <Header />
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
