@@ -37,3 +37,24 @@ export interface Question {
   created_at: string
   updated_at: string
 }
+
+export interface PublicSituation extends Situation {
+  is_public: boolean
+  user?: {
+    id: number
+    name: string
+  }
+}
+
+export interface PublicSituationDetail extends PublicSituation {
+  topics: Topic[]
+  questions: Question[]
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  page: number
+  per_page: number
+  total: number
+  total_pages: number
+}
