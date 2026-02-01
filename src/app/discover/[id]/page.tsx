@@ -407,7 +407,7 @@ export default function DiscoverDetailPage() {
             </p>
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/home')}
                 className="btn-primary w-full"
               >
                 マイシチュエーションを見る

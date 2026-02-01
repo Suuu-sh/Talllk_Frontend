@@ -21,7 +21,7 @@ export default function Header() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/home')}
               className="flex items-center gap-3 group"
             >
               <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-lg tracking-wider rounded-xl shadow-glow-sm group-hover:shadow-glow transition-shadow duration-300">
