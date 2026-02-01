@@ -32,8 +32,16 @@ export default function DiscoverPage() {
       const response = await api.get<PaginatedResponse<PublicSituation>>(
         `/discover/situations?page=${page}&per_page=12`
       )
+      const newTotalPages = response.data.total_pages || 1
+
+      // If current page exceeds total pages, reset to page 1
+      if (page > newTotalPages) {
+        setPage(1)
+        return
+      }
+
       setSituations(response.data.data || [])
-      setTotalPages(response.data.total_pages || 1)
+      setTotalPages(newTotalPages)
     } catch (err) {
       console.error(err)
     } finally {
