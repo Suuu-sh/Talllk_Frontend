@@ -11,6 +11,8 @@ export interface Situation {
   user_id: number
   title: string
   description: string
+  is_public: boolean
+  is_favorite: boolean
   created_at: string
   updated_at: string
 }
