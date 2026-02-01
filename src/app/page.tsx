@@ -149,7 +149,7 @@ export default function Home() {
                   </svg>
                 ),
                 title: 'シチュエーション管理',
-                description: '友達との会話、デート、面接など、場面ごとに話題を整理できます',
+                description: '友達との会話、デート、商談など、場面ごとに話題を整理できます',
               },
               {
                 icon: (

@@ -40,6 +40,10 @@ export interface Question {
 
 export interface PublicSituation extends Situation {
   is_public: boolean
+  user?: {
+    id: number
+    name: string
+  }
 }
 
 export interface PublicSituationDetail extends PublicSituation {
