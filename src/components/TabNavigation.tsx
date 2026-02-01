@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export type Tab = 'home' | 'trending' | 'discover' | 'following'
 
@@ -10,6 +11,7 @@ interface TabNavigationProps {
 }
 
 export default function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const router = useRouter()
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -25,7 +27,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
       </svg>
     ), comingSoon: true },
-    { id: 'discover' as Tab, label: '見つける', icon: (
+    { id: 'discover' as Tab, label: '見つける', href: '/discover', icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
@@ -42,6 +44,8 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
       setToastMessage(`「${tab.label}」は近日公開予定です`)
       setShowToast(true)
       setTimeout(() => setShowToast(false), 3000)
+    } else if (tab.href) {
+      router.push(tab.href)
     } else {
       onTabChange(tab.id)
     }

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { PublicSituation, PaginatedResponse } from '@/types'
 import Header from '@/components/Header'
+import TabNavigation, { Tab } from '@/components/TabNavigation'
 
 export default function DiscoverPage() {
+  const [activeTab] = useState<Tab>('discover')
   const router = useRouter()
   const [situations, setSituations] = useState<PublicSituation[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -56,6 +58,7 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
       <Header />
+      <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
@@ -151,9 +154,21 @@ export default function DiscoverPage() {
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                     {situation.title}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-3">
                     {situation.description || '説明なし'}
                   </p>
+
+                  {/* Author */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {situation.user?.name || '匿名ユーザー'}
+                    </span>
+                  </div>
 
                   {/* Card Footer */}
                   <div className="flex items-center text-brand-600 dark:text-brand-400 text-sm font-medium">
