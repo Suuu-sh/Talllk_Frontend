@@ -51,7 +51,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
     <>
       <div className="glass-card-solid border-t-0 border-x-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto custom-scrollbar">
+          <div className="flex gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
