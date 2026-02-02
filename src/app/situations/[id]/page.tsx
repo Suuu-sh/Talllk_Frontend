@@ -422,16 +422,18 @@ export default function SituationDetailPage() {
 
   const handleTogglePublic = async () => {
     if (!situation || isTogglingPublic) return
+    const newValue = !situation.is_public
+    setSituation({ ...situation, is_public: newValue })
     setIsTogglingPublic(true)
     try {
       await api.put(`/situations/${params.id}`, {
         title: situation.title,
         description: situation.description,
-        is_public: !situation.is_public,
+        is_public: newValue,
       })
-      await fetchSituation()
     } catch (err) {
       console.error(err)
+      setSituation({ ...situation, is_public: !newValue })
     } finally {
       setIsTogglingPublic(false)
     }
@@ -439,16 +441,18 @@ export default function SituationDetailPage() {
 
   const handleToggleFavorite = async () => {
     if (!situation || isTogglingFavorite) return
+    const newValue = !situation.is_favorite
+    setSituation({ ...situation, is_favorite: newValue })
     setIsTogglingFavorite(true)
     try {
       await api.put(`/situations/${params.id}`, {
         title: situation.title,
         description: situation.description,
-        is_favorite: !situation.is_favorite,
+        is_favorite: newValue,
       })
-      await fetchSituation()
     } catch (err) {
       console.error(err)
+      setSituation({ ...situation, is_favorite: !newValue })
     } finally {
       setIsTogglingFavorite(false)
     }
