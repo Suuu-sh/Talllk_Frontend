@@ -14,7 +14,7 @@ export default function Home() {
 
   const handleGetStarted = () => {
     if (isLoggedIn) {
-      router.push('/dashboard')
+      router.push('/home')
     } else {
       router.push('/login?mode=signup')
     }
@@ -32,7 +32,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               {isLoggedIn ? (
                 <button
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push('/home')}
                   className="btn-primary text-sm py-2"
                 >
                   ダッシュボード

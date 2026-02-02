@@ -98,7 +98,7 @@ export default function TopicDetail() {
             シチュエーションが指定されていません。
           </p>
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/home")}
             className="btn-primary"
           >
             ダッシュボードへ戻る

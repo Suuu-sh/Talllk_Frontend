@@ -26,6 +26,15 @@ export default function DiscoverPage() {
     fetchSituations()
   }, [router, page])
 
+  // ページがフォーカスを取得したときにデータを再取得
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchSituations()
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [page])
+
   const fetchSituations = async () => {
     setIsLoading(true)
     try {

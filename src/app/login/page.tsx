@@ -33,7 +33,7 @@ export default function Login() {
 
       if (response.data.token) {
         localStorage.setItem('token', response.data.token)
-        router.push('/dashboard')
+        router.push('/home')
       } else if (!isLogin) {
         setIsLogin(true)
         setError('登録完了。ログインしてください。')
