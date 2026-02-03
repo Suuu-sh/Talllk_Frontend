@@ -177,8 +177,12 @@ export default function DiscoverPage() {
                   {situation.labels && situation.labels.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {situation.labels.map((label) => (
-                        <span key={label} className="badge-brand text-xs">
-                          {label}
+                        <span
+                          key={label.id}
+                          className="badge text-xs"
+                          style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                        >
+                          {label.name}
                         </span>
                       ))}
                     </div>

@@ -3,20 +3,23 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Situation } from '@/types'
+import { Label, Situation } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
+import LabelInput from '@/components/LabelInput'
 
 export default function Dashboard() {
   const router = useRouter()
   const [situations, setSituations] = useState<Situation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [formData, setFormData] = useState({ title: '', description: '', labels: [] as string[] })
-  const [labelInput, setLabelInput] = useState('')
+  const [formData, setFormData] = useState({ title: '', description: '' })
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [activeTab] = useState<Tab>('home')
   const [togglingFavoriteIds, setTogglingFavoriteIds] = useState<Set<number>>(new Set())
   const [togglingPublicIds, setTogglingPublicIds] = useState<Set<number>>(new Set())
+  const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
+  const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -41,9 +44,13 @@ export default function Dashboard() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.post('/situations', formData)
-      setFormData({ title: '', description: '', labels: [] })
-      setLabelInput('')
+      await api.post('/situations', {
+        title: formData.title,
+        description: formData.description,
+        label_ids: selectedLabels.map((label) => label.id),
+      })
+      setFormData({ title: '', description: '' })
+      setSelectedLabels([])
       setShowModal(false)
       fetchSituations()
     } catch (err) {
@@ -51,21 +58,51 @@ export default function Dashboard() {
     }
   }
 
-  const addLabel = (raw: string) => {
-    const trimmed = raw.trim()
-    if (!trimmed) return
-    if (formData.labels.includes(trimmed)) return
-    setFormData((prev) => ({ ...prev, labels: [...prev.labels, trimmed] }))
-  }
-
-  const removeLabel = (label: string) => {
-    setFormData((prev) => ({ ...prev, labels: prev.labels.filter((item) => item !== label) }))
-  }
-
   const updateSituation = (id: number, patch: Partial<Situation>) => {
     setSituations((prev) =>
       prev.map((situation) => (situation.id === id ? { ...situation, ...patch } : situation))
     )
+  }
+
+  const sortedSituations = [...situations].sort((a, b) => {
+    if (a.is_favorite !== b.is_favorite) {
+      return a.is_favorite ? -1 : 1
+    }
+    if (a.sort_order !== b.sort_order) {
+      return a.sort_order - b.sort_order
+    }
+    return a.id - b.id
+  })
+
+  const reorderSituationGroup = async (isFavoriteGroup: boolean, draggedId: number, targetId: number) => {
+    const group = sortedSituations.filter((situation) => situation.is_favorite === isFavoriteGroup)
+    const fromIndex = group.findIndex((situation) => situation.id === draggedId)
+    const toIndex = group.findIndex((situation) => situation.id === targetId)
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return
+
+    const nextGroup = [...group]
+    const [moved] = nextGroup.splice(fromIndex, 1)
+    nextGroup.splice(toIndex, 0, moved)
+
+    const orderById = new Map<number, number>()
+    nextGroup.forEach((item, index) => {
+      orderById.set(item.id, index + 1)
+    })
+
+    setSituations((prev) =>
+      prev.map((situation) =>
+        situation.is_favorite === isFavoriteGroup && orderById.has(situation.id)
+          ? { ...situation, sort_order: orderById.get(situation.id)! }
+          : situation
+      )
+    )
+
+    try {
+      await api.post('/situations/reorder', { ordered_ids: nextGroup.map((item) => item.id) })
+    } catch (err) {
+      console.error(err)
+      fetchSituations()
+    }
   }
 
   const handleToggleFavorite = async (situation: Situation, e: React.MouseEvent) => {
@@ -79,6 +116,7 @@ export default function Dashboard() {
         title: situation.title,
         description: situation.description,
         is_favorite: newValue,
+        labels: situation.labels ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -103,6 +141,7 @@ export default function Dashboard() {
         title: situation.title,
         description: situation.description,
         is_public: newValue,
+        labels: situation.labels ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -187,13 +226,37 @@ export default function Dashboard() {
             ) : (
               /* Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...situations]
-                  .sort((a, b) => Number(Boolean(b.is_favorite)) - Number(Boolean(a.is_favorite)))
-                  .map((situation, index) => (
+                {sortedSituations.map((situation, index) => (
                   <div
                     key={situation.id}
                     onClick={() => router.push(`/situations/${situation.id}`)}
+                    draggable
+                    onDragStart={() => {
+                      setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
+                    }}
+                    onDragEnd={() => {
+                      setDragSituation(null)
+                      setDragOverSituationId(null)
+                    }}
+                    onDragOver={(event) => {
+                      if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                      event.preventDefault()
+                      setDragOverSituationId(situation.id)
+                    }}
+                    onDragLeave={() => setDragOverSituationId(null)}
+                    onDrop={async (event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                      if (dragSituation.id === situation.id) return
+                      setDragOverSituationId(null)
+                      await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
+                    }}
                     className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)} ${
+                      dragOverSituationId === situation.id
+                        ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-900'
+                        : ''
+                    } ${
                       situation.is_favorite
                         ? 'bg-yellow-50/70 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/40 hover:border-yellow-300 dark:hover:border-yellow-600/60'
                         : ''
@@ -266,8 +329,12 @@ export default function Dashboard() {
                     {situation.labels && situation.labels.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {situation.labels.map((label) => (
-                          <span key={label} className="badge-brand text-xs">
-                            {label}
+                          <span
+                            key={label.id}
+                            className="badge text-xs"
+                            style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                          >
+                            {label.name}
                           </span>
                         ))}
                       </div>
@@ -342,39 +409,11 @@ export default function Dashboard() {
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     ラベル（任意）
                   </label>
-                  <input
-                    type="text"
-                    placeholder="例：面接, 初対面"
-                    className="input-field"
-                    value={labelInput}
-                    onChange={(e) => setLabelInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ',') {
-                        e.preventDefault()
-                        addLabel(labelInput)
-                        setLabelInput('')
-                      }
-                    }}
-                    onBlur={() => {
-                      addLabel(labelInput)
-                      setLabelInput('')
-                    }}
+                  <LabelInput
+                    value={selectedLabels}
+                    onChange={setSelectedLabels}
+                    placeholder="ラベルを検索・作成"
                   />
-                  {formData.labels.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {formData.labels.map((label) => (
-                        <button
-                          key={label}
-                          type="button"
-                          onClick={() => removeLabel(label)}
-                          className="badge-brand text-xs"
-                          title="削除"
-                        >
-                          {label} <span className="ml-1">×</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* Actions */}
