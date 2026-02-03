@@ -43,7 +43,8 @@ export default function SituationDetailPage() {
   const [editingQuestionHasChildren, setEditingQuestionHasChildren] = useState(false)
   const [editingTopicId, setEditingTopicId] = useState<number | null>(null)
   const [editingTopicHasChildren, setEditingTopicHasChildren] = useState(false)
-  const [situationForm, setSituationForm] = useState({ title: '', description: '' })
+  const [situationForm, setSituationForm] = useState({ title: '', description: '', labels: [] as string[] })
+  const [situationLabelInput, setSituationLabelInput] = useState('')
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
   const [questionForm, setQuestionForm] = useState({
     question: '',
@@ -352,7 +353,7 @@ export default function SituationDetailPage() {
   const confirmDeleteSituation = async () => {
     try {
       await api.delete(`/situations/${params.id}`)
-      router.push('/situations')
+      router.push('/home')
     } catch (err) {
       console.error(err)
     } finally {
@@ -418,6 +419,17 @@ export default function SituationDetailPage() {
     } catch (err) {
       console.error(err)
     }
+  }
+
+  const addSituationLabel = (raw: string) => {
+    const trimmed = raw.trim()
+    if (!trimmed) return
+    if (situationForm.labels.includes(trimmed)) return
+    setSituationForm((prev) => ({ ...prev, labels: [...prev.labels, trimmed] }))
+  }
+
+  const removeSituationLabel = (label: string) => {
+    setSituationForm((prev) => ({ ...prev, labels: prev.labels.filter((item) => item !== label) }))
   }
 
   const handleTogglePublic = async () => {
@@ -784,6 +796,15 @@ export default function SituationDetailPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                {situation.labels && situation.labels.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {situation.labels.map((label) => (
+                      <span key={label} className="badge-brand text-xs">
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -855,7 +876,12 @@ export default function SituationDetailPage() {
               </button>
               <button
                 onClick={() => {
-                  setSituationForm({ title: situation.title, description: situation.description })
+                  setSituationForm({
+                    title: situation.title,
+                    description: situation.description,
+                    labels: situation.labels || [],
+                  })
+                  setSituationLabelInput('')
                   setShowSituationModal(true)
                 }}
                 className="btn-icon"
@@ -1233,6 +1259,44 @@ export default function SituationDetailPage() {
                   value={situationForm.description}
                   onChange={(e) => setSituationForm({ ...situationForm, description: e.target.value })}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  ラベル（任意）
+                </label>
+                <input
+                  type="text"
+                  placeholder="例：面接, 初対面"
+                  className="input-field"
+                  value={situationLabelInput}
+                  onChange={(e) => setSituationLabelInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault()
+                      addSituationLabel(situationLabelInput)
+                      setSituationLabelInput('')
+                    }
+                  }}
+                  onBlur={() => {
+                    addSituationLabel(situationLabelInput)
+                    setSituationLabelInput('')
+                  }}
+                />
+                {situationForm.labels.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {situationForm.labels.map((label) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => removeSituationLabel(label)}
+                        className="badge-brand text-xs"
+                        title="削除"
+                      >
+                        {label} <span className="ml-1">×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">

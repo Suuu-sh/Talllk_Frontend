@@ -300,6 +300,15 @@ export default function DiscoverDetailPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                {situation.labels && situation.labels.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {situation.labels.map((label) => (
+                      <span key={label} className="badge-brand text-xs">
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <button

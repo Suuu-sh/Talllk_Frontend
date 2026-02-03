@@ -13,6 +13,7 @@ export interface Situation {
   description: string
   is_public: boolean
   is_favorite: boolean
+  labels?: string[]
   created_at: string
   updated_at: string
 }
