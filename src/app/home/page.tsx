@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Situation } from '@/types'
+import { Label, Situation } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
+import LabelInput from '@/components/LabelInput'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -13,7 +14,12 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({ title: '', description: '' })
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [activeTab] = useState<Tab>('home')
+  const [togglingFavoriteIds, setTogglingFavoriteIds] = useState<Set<number>>(new Set())
+  const [togglingPublicIds, setTogglingPublicIds] = useState<Set<number>>(new Set())
+  const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
+  const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -38,12 +44,114 @@ export default function Dashboard() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.post('/situations', formData)
+      await api.post('/situations', {
+        title: formData.title,
+        description: formData.description,
+        label_ids: selectedLabels.map((label) => label.id),
+      })
       setFormData({ title: '', description: '' })
+      setSelectedLabels([])
       setShowModal(false)
       fetchSituations()
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  const updateSituation = (id: number, patch: Partial<Situation>) => {
+    setSituations((prev) =>
+      prev.map((situation) => (situation.id === id ? { ...situation, ...patch } : situation))
+    )
+  }
+
+  const sortedSituations = [...situations].sort((a, b) => {
+    if (a.is_favorite !== b.is_favorite) {
+      return a.is_favorite ? -1 : 1
+    }
+    if (a.sort_order !== b.sort_order) {
+      return a.sort_order - b.sort_order
+    }
+    return a.id - b.id
+  })
+
+  const reorderSituationGroup = async (isFavoriteGroup: boolean, draggedId: number, targetId: number) => {
+    const group = sortedSituations.filter((situation) => situation.is_favorite === isFavoriteGroup)
+    const fromIndex = group.findIndex((situation) => situation.id === draggedId)
+    const toIndex = group.findIndex((situation) => situation.id === targetId)
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return
+
+    const nextGroup = [...group]
+    const [moved] = nextGroup.splice(fromIndex, 1)
+    nextGroup.splice(toIndex, 0, moved)
+
+    const orderById = new Map<number, number>()
+    nextGroup.forEach((item, index) => {
+      orderById.set(item.id, index + 1)
+    })
+
+    setSituations((prev) =>
+      prev.map((situation) =>
+        situation.is_favorite === isFavoriteGroup && orderById.has(situation.id)
+          ? { ...situation, sort_order: orderById.get(situation.id)! }
+          : situation
+      )
+    )
+
+    try {
+      await api.post('/situations/reorder', { ordered_ids: nextGroup.map((item) => item.id) })
+    } catch (err) {
+      console.error(err)
+      fetchSituations()
+    }
+  }
+
+  const handleToggleFavorite = async (situation: Situation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (togglingFavoriteIds.has(situation.id)) return
+    const newValue = !situation.is_favorite
+    updateSituation(situation.id, { is_favorite: newValue })
+    setTogglingFavoriteIds((prev) => new Set(prev).add(situation.id))
+    try {
+      await api.put(`/situations/${situation.id}`, {
+        title: situation.title,
+        description: situation.description,
+        is_favorite: newValue,
+        labels: situation.labels ?? [],
+      })
+    } catch (err) {
+      console.error(err)
+      updateSituation(situation.id, { is_favorite: !newValue })
+    } finally {
+      setTogglingFavoriteIds((prev) => {
+        const next = new Set(prev)
+        next.delete(situation.id)
+        return next
+      })
+    }
+  }
+
+  const handleTogglePublic = async (situation: Situation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (togglingPublicIds.has(situation.id)) return
+    const newValue = !situation.is_public
+    updateSituation(situation.id, { is_public: newValue })
+    setTogglingPublicIds((prev) => new Set(prev).add(situation.id))
+    try {
+      await api.put(`/situations/${situation.id}`, {
+        title: situation.title,
+        description: situation.description,
+        is_public: newValue,
+        labels: situation.labels ?? [],
+      })
+    } catch (err) {
+      console.error(err)
+      updateSituation(situation.id, { is_public: !newValue })
+    } finally {
+      setTogglingPublicIds((prev) => {
+        const next = new Set(prev)
+        next.delete(situation.id)
+        return next
+      })
     }
   }
 
@@ -118,11 +226,41 @@ export default function Dashboard() {
             ) : (
               /* Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {situations.map((situation, index) => (
+                {sortedSituations.map((situation, index) => (
                   <div
                     key={situation.id}
                     onClick={() => router.push(`/situations/${situation.id}`)}
-                    className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)}`}
+                    draggable
+                    onDragStart={() => {
+                      setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
+                    }}
+                    onDragEnd={() => {
+                      setDragSituation(null)
+                      setDragOverSituationId(null)
+                    }}
+                    onDragOver={(event) => {
+                      if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                      event.preventDefault()
+                      setDragOverSituationId(situation.id)
+                    }}
+                    onDragLeave={() => setDragOverSituationId(null)}
+                    onDrop={async (event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                      if (dragSituation.id === situation.id) return
+                      setDragOverSituationId(null)
+                      await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
+                    }}
+                    className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)} ${
+                      dragOverSituationId === situation.id
+                        ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-900'
+                        : ''
+                    } ${
+                      situation.is_favorite
+                        ? 'bg-yellow-50/70 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/40 hover:border-yellow-300 dark:hover:border-yellow-600/60'
+                        : ''
+                    }`}
                   >
                     {/* Card Header */}
                     <div className="flex items-start justify-between mb-4">
@@ -131,10 +269,53 @@ export default function Dashboard() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                       </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <svg className="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                      <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 md:pointer-events-none md:group-hover:pointer-events-auto">
+                        <button
+                          onClick={(e) => handleToggleFavorite(situation, e)}
+                          disabled={togglingFavoriteIds.has(situation.id)}
+                          className={`btn-icon-sm transition-all duration-300 ${
+                            situation.is_favorite
+                              ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-500'
+                              : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
+                          }`}
+                          title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
+                        >
+                          {togglingFavoriteIds.has(situation.id) ? (
+                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill={situation.is_favorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => handleTogglePublic(situation, e)}
+                          disabled={togglingPublicIds.has(situation.id)}
+                          className={`btn-icon-sm transition-all duration-300 ${
+                            situation.is_public
+                              ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                              : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
+                          }`}
+                          title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}
+                        >
+                          {togglingPublicIds.has(situation.id) ? (
+                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          ) : situation.is_public ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          )}
+                        </button>
                       </div>
                     </div>
 
@@ -145,6 +326,19 @@ export default function Dashboard() {
                     <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4">
                       {situation.description || '説明なし'}
                     </p>
+                    {situation.labels && situation.labels.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {situation.labels.map((label) => (
+                          <span
+                            key={label.id}
+                            className="badge text-xs"
+                            style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                          >
+                            {label.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Card Footer */}
                     <div className="flex items-center text-brand-600 dark:text-brand-400 text-sm font-medium">
@@ -203,16 +397,26 @@ export default function Dashboard() {
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   説明（任意）
                 </label>
-                <textarea
-                  placeholder="このシチュエーションについて簡単に説明してください"
-                  className="input-field resize-none"
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
+                  <textarea
+                    placeholder="このシチュエーションについて簡単に説明してください"
+                    className="input-field resize-none"
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    ラベル（任意）
+                  </label>
+                  <LabelInput
+                    value={selectedLabels}
+                    onChange={setSelectedLabels}
+                    placeholder="ラベルを検索・作成"
+                  />
+                </div>
 
-              {/* Actions */}
+                {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">
                   作成する

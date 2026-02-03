@@ -174,6 +174,19 @@ export default function DiscoverPage() {
                   <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-3">
                     {situation.description || '説明なし'}
                   </p>
+                  {situation.labels && situation.labels.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {situation.labels.map((label) => (
+                        <span
+                          key={label.id}
+                          className="badge text-xs"
+                          style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                        >
+                          {label.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Author */}
                   <div className="flex items-center gap-2 mb-4">

@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { Situation, Topic, Question } from '@/types'
+import { Label, Situation, Topic, Question } from '@/types'
+import LabelInput from '@/components/LabelInput'
 
 type SituationDetail = Situation & {
   topics: Topic[]
@@ -16,6 +17,7 @@ type TreeNode = {
   title: string
   answer?: string
   topicId?: number
+  sortOrder?: number
   linkedTopicId?: number | null
   linkedTopicTitle?: string
   linkedQuestionId?: number | null
@@ -44,6 +46,7 @@ export default function SituationDetailPage() {
   const [editingTopicId, setEditingTopicId] = useState<number | null>(null)
   const [editingTopicHasChildren, setEditingTopicHasChildren] = useState(false)
   const [situationForm, setSituationForm] = useState({ title: '', description: '' })
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [folderForm, setFolderForm] = useState({ title: '', description: '' })
   const [questionForm, setQuestionForm] = useState({
     question: '',
@@ -150,6 +153,122 @@ export default function SituationDetailPage() {
     }
   }
 
+  const getTopicOrder = (parentId: number | null) => {
+    if (!situation) return []
+    return situation.topics
+      .filter((topic) => (topic.parent_id ?? null) === parentId)
+      .sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+        return a.id - b.id
+      })
+      .map((topic) => topic.id)
+  }
+
+  const getQuestionOrder = (topicId: number, parentQuestionId: number | null) => {
+    if (!situation) return []
+    return situation.questions
+      .filter(
+        (question) =>
+          question.topic_id === topicId && (question.parent_id ?? null) === parentQuestionId
+      )
+      .sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+        return a.id - b.id
+      })
+      .map((question) => question.id)
+  }
+
+  const applyTopicOrder = (orderedIds: number[]) => {
+    const orderById = new Map<number, number>()
+    orderedIds.forEach((id, index) => orderById.set(id, index + 1))
+    setSituation((prev) =>
+      prev
+        ? {
+            ...prev,
+            topics: prev.topics.map((topic) =>
+              orderById.has(topic.id) ? { ...topic, sort_order: orderById.get(topic.id)! } : topic
+            ),
+          }
+        : prev
+    )
+  }
+
+  const applyQuestionOrder = (orderedIds: number[]) => {
+    const orderById = new Map<number, number>()
+    orderedIds.forEach((id, index) => orderById.set(id, index + 1))
+    setSituation((prev) =>
+      prev
+        ? {
+            ...prev,
+            questions: prev.questions.map((question) =>
+              orderById.has(question.id)
+                ? { ...question, sort_order: orderById.get(question.id)! }
+                : question
+            ),
+          }
+        : prev
+    )
+  }
+
+  const reorderIds = (ids: number[], draggedId: number, targetIndex: number) => {
+    if (!ids.includes(draggedId)) return ids
+    const next = ids.filter((id) => id !== draggedId)
+    const insertIndex = Math.max(0, Math.min(targetIndex, next.length))
+    next.splice(insertIndex, 0, draggedId)
+    return next
+  }
+
+  const reorderTopics = async (parentId: number | null, orderedIds: number[]) => {
+    if (!situation) return
+    applyTopicOrder(orderedIds)
+    try {
+      await api.post(`/situations/${params.id}/topics/reorder`, {
+        parent_id: parentId,
+        ordered_ids: orderedIds,
+      })
+    } catch (err) {
+      console.error(err)
+      await fetchSituation()
+    }
+  }
+
+  const reorderQuestions = async (
+    topicId: number,
+    parentQuestionId: number | null,
+    orderedIds: number[]
+  ) => {
+    if (!situation) return
+    applyQuestionOrder(orderedIds)
+    try {
+      await api.post(`/situations/${params.id}/topics/${topicId}/questions/reorder`, {
+        parent_id: parentQuestionId,
+        ordered_ids: orderedIds,
+      })
+    } catch (err) {
+      console.error(err)
+      await fetchSituation()
+    }
+  }
+
+  const sortTreeNodes = (nodes: TreeNode[]) => {
+    nodes.sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === 'folder' ? -1 : 1
+      }
+      const orderA = a.sortOrder ?? 0
+      const orderB = b.sortOrder ?? 0
+      if (orderA !== orderB) {
+        return orderA - orderB
+      }
+      return a.id - b.id
+    })
+    nodes.forEach((node) => {
+      if (node.children && node.children.length > 0) {
+        sortTreeNodes(node.children)
+      }
+    })
+  }
+
   const tree = useMemo(() => {
     if (!situation) return []
     const nodes = new Map<number, TreeNode>()
@@ -164,6 +283,7 @@ export default function SituationDetailPage() {
         id: topic.id,
         type: 'folder',
         title: topic.title,
+        sortOrder: topic.sort_order,
         children: [],
       })
     })
@@ -189,6 +309,7 @@ export default function SituationDetailPage() {
         title: question.question,
         answer: question.answer,
         topicId: question.topic_id,
+        sortOrder: question.sort_order,
         linkedTopicId: question.linked_topic_id,
         linkedTopicTitle: question.linked_topic_id
           ? topicTitles.get(question.linked_topic_id)
@@ -218,6 +339,7 @@ export default function SituationDetailPage() {
       }
     })
 
+    sortTreeNodes(roots)
     return roots
   }, [situation])
 
@@ -352,7 +474,7 @@ export default function SituationDetailPage() {
   const confirmDeleteSituation = async () => {
     try {
       await api.delete(`/situations/${params.id}`)
-      router.push('/situations')
+      router.push('/home')
     } catch (err) {
       console.error(err)
     } finally {
@@ -412,7 +534,11 @@ export default function SituationDetailPage() {
   const handleSituationSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.put(`/situations/${params.id}`, situationForm)
+      await api.put(`/situations/${params.id}`, {
+        title: situationForm.title,
+        description: situationForm.description,
+        label_ids: selectedLabels.map((label) => label.id),
+      })
       setShowSituationModal(false)
       await fetchSituation()
     } catch (err) {
@@ -430,6 +556,7 @@ export default function SituationDetailPage() {
         title: situation.title,
         description: situation.description,
         is_public: newValue,
+        labels: situation.labels ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -449,6 +576,7 @@ export default function SituationDetailPage() {
         title: situation.title,
         description: situation.description,
         is_favorite: newValue,
+        labels: situation.labels ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -470,12 +598,107 @@ export default function SituationDetailPage() {
     })
   }
 
+  const getTopicParentId = (topicId: number) => {
+    const topic = situation?.topics.find((item) => item.id === topicId)
+    return topic?.parent_id ?? null
+  }
+
+  const getQuestionParentId = (questionId: number) => {
+    const question = situation?.questions.find((item) => item.id === questionId)
+    return question?.parent_id ?? null
+  }
+
+  const getQuestionTopicId = (questionId: number) => {
+    const question = situation?.questions.find((item) => item.id === questionId)
+    return question?.topic_id
+  }
+
+  const renderTopicDropZone = (parentId: number | null, index: number) => {
+    const zoneKey = `topic-drop-${parentId ?? 'root'}-${index}`
+    return (
+      <div
+        key={zoneKey}
+        className={`h-3 rounded-xl transition-all duration-150 ${
+          dragOverKey === zoneKey ? 'bg-brand-200/70 dark:bg-brand-700/40' : 'bg-transparent'
+        }`}
+        onDragOver={(event) => {
+          const item = parseDragItem(event)
+          if (!item || item.kind !== 'topic') return
+          const currentParentId = getTopicParentId(item.id)
+          if ((currentParentId ?? null) !== (parentId ?? null)) return
+          event.preventDefault()
+          setDragOverKey(zoneKey)
+        }}
+        onDragLeave={() => setDragOverKey(null)}
+        onDrop={async (event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          setDragOverKey(null)
+          const item = parseDragItem(event)
+          if (!item || item.kind !== 'topic') return
+          const currentParentId = getTopicParentId(item.id)
+          if ((currentParentId ?? null) !== (parentId ?? null)) return
+          const orderedIds = getTopicOrder(parentId)
+          const nextIds = reorderIds(orderedIds, item.id, index)
+          if (nextIds.join(',') === orderedIds.join(',')) return
+          await reorderTopics(parentId, nextIds)
+        }}
+      />
+    )
+  }
+
+  const renderQuestionDropZone = (
+    topicId: number,
+    parentQuestionId: number | null,
+    index: number
+  ) => {
+    const zoneKey = `question-drop-${topicId}-${parentQuestionId ?? 'root'}-${index}`
+    return (
+      <div
+        key={zoneKey}
+        className={`h-3 rounded-xl transition-all duration-150 ${
+          dragOverKey === zoneKey ? 'bg-brand-200/70 dark:bg-brand-700/40' : 'bg-transparent'
+        }`}
+        onDragOver={(event) => {
+          const item = parseDragItem(event)
+          if (!item || item.kind !== 'question') return
+          const currentTopicId = getQuestionTopicId(item.id)
+          const currentParentId = getQuestionParentId(item.id)
+          if (currentTopicId !== topicId) return
+          if ((currentParentId ?? null) !== (parentQuestionId ?? null)) return
+          event.preventDefault()
+          setDragOverKey(zoneKey)
+        }}
+        onDragLeave={() => setDragOverKey(null)}
+        onDrop={async (event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          setDragOverKey(null)
+          const item = parseDragItem(event)
+          if (!item || item.kind !== 'question') return
+          const currentTopicId = getQuestionTopicId(item.id)
+          const currentParentId = getQuestionParentId(item.id)
+          if (currentTopicId !== topicId) return
+          if ((currentParentId ?? null) !== (parentQuestionId ?? null)) return
+          const orderedIds = getQuestionOrder(topicId, parentQuestionId)
+          const nextIds = reorderIds(orderedIds, item.id, index)
+          if (nextIds.join(',') === orderedIds.join(',')) return
+          await reorderQuestions(topicId, parentQuestionId, nextIds)
+        }}
+      />
+    )
+  }
+
   const renderNode = (node: TreeNode, depth = 0) => {
     const nodeKey = `${node.type}-${node.id}`
     const hasChildren = (node.children && node.children.length > 0) ?? false
     const isExpanded = expandedNodes.has(nodeKey)
     const isDragOver = dragOverKey === nodeKey
     const isFolder = node.type === 'folder'
+    const folderChildren = (node.children ?? []).filter((child) => child.type === 'folder')
+    const fileChildren = (node.children ?? []).filter((child) => child.type === 'file')
+    const questionScopeTopicId = isFolder ? node.id : node.topicId ?? null
+    const questionScopeParentId = isFolder ? null : node.id
 
     return (
       <div key={nodeKey} className="animate-fadeUp" style={{ animationDelay: `${depth * 30}ms` }}>
@@ -534,9 +757,13 @@ export default function SituationDetailPage() {
             }
           }}
           onClick={() => {
-            if (hasChildren) {
-              toggleNode(nodeKey)
+            if (isFolder) {
+              if (hasChildren) {
+                toggleNode(nodeKey)
+              }
+              return
             }
+            setSelectedTask(node)
           }}
         >
           {/* Icon */}
@@ -693,7 +920,32 @@ export default function SituationDetailPage() {
         {/* Children */}
         {hasChildren && isExpanded && (
           <div className="ml-6 mt-2 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-2">
-            {node.children!.map((child) => renderNode(child, depth + 1))}
+            {folderChildren.length > 0 && (
+              <div className="space-y-2">
+                {renderTopicDropZone(node.id, 0)}
+                {folderChildren.map((child, index) => (
+                  <div key={`topic-${child.id}`}>
+                    {renderNode(child, depth + 1)}
+                    {renderTopicDropZone(node.id, index + 1)}
+                  </div>
+                ))}
+              </div>
+            )}
+            {fileChildren.length > 0 && questionScopeTopicId !== null && (
+              <div className="space-y-2">
+                {renderQuestionDropZone(questionScopeTopicId, questionScopeParentId, 0)}
+                {fileChildren.map((child, index) => (
+                  <div key={`question-${child.id}`}>
+                    {renderNode(child, depth + 1)}
+                    {renderQuestionDropZone(
+                      questionScopeTopicId,
+                      questionScopeParentId,
+                      index + 1
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -735,6 +987,18 @@ export default function SituationDetailPage() {
       <div className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
         ここにドロップしてルートへ移動
       </div>
+    </div>
+  )
+
+  const renderRootTopics = () => (
+    <div className="space-y-3">
+      {renderTopicDropZone(null, 0)}
+      {tree.map((node, index) => (
+        <div key={`root-${node.id}`}>
+          {renderNode(node, 0)}
+          {renderTopicDropZone(null, index + 1)}
+        </div>
+      ))}
     </div>
   )
 
@@ -784,6 +1048,19 @@ export default function SituationDetailPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                {situation.labels && situation.labels.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {situation.labels.map((label) => (
+                      <span
+                        key={label.id}
+                        className="badge text-xs"
+                        style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                      >
+                        {label.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -855,7 +1132,11 @@ export default function SituationDetailPage() {
               </button>
               <button
                 onClick={() => {
-                  setSituationForm({ title: situation.title, description: situation.description })
+                  setSituationForm({
+                    title: situation.title,
+                    description: situation.description,
+                  })
+                  setSelectedLabels(situation.labels || [])
                   setShowSituationModal(true)
                 }}
                 className="btn-icon"
@@ -876,7 +1157,7 @@ export default function SituationDetailPage() {
             {tree.length > 0 ? (
               <>
                 {renderRootDropZone()}
-                <div className="space-y-3">{tree.map((node) => renderNode(node))}</div>
+                {renderRootTopics()}
               </>
             ) : (
               <div className="text-center py-16 animate-fadeUp">
@@ -1232,6 +1513,16 @@ export default function SituationDetailPage() {
                   rows={3}
                   value={situationForm.description}
                   onChange={(e) => setSituationForm({ ...situationForm, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  ラベル（任意）
+                </label>
+                <LabelInput
+                  value={selectedLabels}
+                  onChange={setSelectedLabels}
+                  placeholder="ラベルを検索・作成"
                 />
               </div>
               <div className="flex gap-3 pt-2">

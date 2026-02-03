@@ -6,6 +6,12 @@ export interface User {
   updated_at: string
 }
 
+export interface Label {
+  id: number
+  name: string
+  color: string
+}
+
 export interface Situation {
   id: number
   user_id: number
@@ -13,6 +19,8 @@ export interface Situation {
   description: string
   is_public: boolean
   is_favorite: boolean
+  sort_order: number
+  labels?: Label[]
   created_at: string
   updated_at: string
 }
@@ -23,6 +31,7 @@ export interface Topic {
   parent_id: number | null
   title: string
   description: string
+  sort_order: number
   created_at: string
   updated_at: string
   questions?: Question[]
@@ -36,6 +45,7 @@ export interface Question {
   linked_question_id: number | null
   question: string
   answer: string
+  sort_order: number
   created_at: string
   updated_at: string
 }
