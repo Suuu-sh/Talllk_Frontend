@@ -275,7 +275,7 @@ export default function Dashboard() {
                           disabled={togglingFavoriteIds.has(situation.id)}
                           className={`btn-icon-sm transition-all duration-300 ${
                             situation.is_favorite
-                              ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-500'
+                              ? 'text-yellow-500 hover:text-yellow-600'
                               : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
                           }`}
                           title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
@@ -296,7 +296,7 @@ export default function Dashboard() {
                           disabled={togglingPublicIds.has(situation.id)}
                           className={`btn-icon-sm transition-all duration-300 ${
                             situation.is_public
-                              ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                              ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
                               : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
                           }`}
                           title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}

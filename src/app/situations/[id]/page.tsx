@@ -764,6 +764,9 @@ export default function SituationDetailPage() {
               return
             }
             setSelectedTask(node)
+            if (hasChildren) {
+              toggleNode(nodeKey)
+            }
           }}
         >
           {/* Icon */}
@@ -1070,7 +1073,7 @@ export default function SituationDetailPage() {
                 disabled={isTogglingFavorite}
                 className={`btn-icon transition-all duration-300 ${
                   situation.is_favorite === true
-                    ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-500'
+                    ? 'text-yellow-500 hover:text-yellow-600'
                     : ''
                 }`}
                 title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
@@ -1093,7 +1096,7 @@ export default function SituationDetailPage() {
                 disabled={isTogglingPublic}
                 className={`btn-icon transition-all duration-300 ${
                   situation.is_public === true
-                    ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                    ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
                     : ''
                 }`}
                 title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}
@@ -1151,9 +1154,9 @@ export default function SituationDetailPage() {
         </div>
 
         {/* Content */}
-        <div className={`grid gap-6 ${selectedTask ? 'lg:grid-cols-5' : ''}`}>
+        <div className={`grid gap-6 ${selectedTask ? 'lg:grid-cols-2' : ''}`}>
           {/* Tree View */}
-          <div className={selectedTask ? 'lg:col-span-3' : ''}>
+          <div className={selectedTask ? 'lg:col-span-1' : ''}>
             {tree.length > 0 ? (
               <>
                 {renderRootDropZone()}
@@ -1194,7 +1197,7 @@ export default function SituationDetailPage() {
 
           {/* Detail Panel */}
           {selectedTask && (
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-1">
               <div className="glass-card-solid rounded-3xl p-6 sticky top-24 animate-scaleIn">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">詳細</h2>

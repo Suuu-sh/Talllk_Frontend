@@ -16,6 +16,7 @@ export default function DiscoverPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [savingId, setSavingId] = useState<number | null>(null)
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
+  const [togglingStarIds, setTogglingStarIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -69,6 +70,38 @@ export default function DiscoverPage() {
       console.error(err)
     } finally {
       setSavingId(null)
+    }
+  }
+
+  const updateSituation = (id: number, patch: Partial<PublicSituation>) => {
+    setSituations((prev) =>
+      prev.map((situation) => (situation.id === id ? { ...situation, ...patch } : situation))
+    )
+  }
+
+  const handleToggleStar = async (situation: PublicSituation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (togglingStarIds.has(situation.id)) return
+    const newValue = !situation.is_starred
+    const originalCount = situation.star_count ?? 0
+    const nextCount = Math.max(0, originalCount + (newValue ? 1 : -1))
+    updateSituation(situation.id, { is_starred: newValue, star_count: nextCount })
+    setTogglingStarIds((prev) => new Set(prev).add(situation.id))
+    try {
+      if (newValue) {
+        await api.post(`/discover/situations/${situation.id}/star`)
+      } else {
+        await api.delete(`/discover/situations/${situation.id}/star`)
+      }
+    } catch (err) {
+      console.error(err)
+      updateSituation(situation.id, { is_starred: !newValue, star_count: originalCount })
+    } finally {
+      setTogglingStarIds((prev) => {
+        const next = new Set(prev)
+        next.delete(situation.id)
+        return next
+      })
     }
   }
 
@@ -139,32 +172,68 @@ export default function DiscoverPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                     </div>
-                    {/* Save Button */}
-                    <button
-                      onClick={(e) => handleSave(situation.id, e)}
-                      disabled={savingId === situation.id || savedIds.has(situation.id)}
-                      className={`btn-icon-sm transition-all duration-300 ${
-                        savedIds.has(situation.id)
-                          ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
-                          : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
-                      }`}
-                      title={savedIds.has(situation.id) ? '保存済み' : '保存'}
-                    >
-                      {savingId === situation.id ? (
-                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                      ) : savedIds.has(situation.id) ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {/* Star Button */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => handleToggleStar(situation, e)}
+                          disabled={togglingStarIds.has(situation.id)}
+                          className={`btn-icon-sm transition-all duration-300 ${
+                            situation.is_starred
+                              ? 'text-yellow-500 hover:text-yellow-600'
+                              : 'text-gray-400 hover:text-yellow-500 dark:text-gray-500'
+                          }`}
+                          title={situation.is_starred ? 'スター解除' : 'スター'}
+                        >
+                          {togglingStarIds.has(situation.id) ? (
+                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill={situation.is_starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
+                            </svg>
+                          )}
+                        </button>
+                        <span
+                          className={`text-xs font-semibold ${
+                            situation.is_starred
+                              ? 'text-yellow-600'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}
+                        >
+                          {situation.star_count ?? 0}
+                        </span>
+                      </div>
+
+                      {/* Save Button */}
+                      <button
+                        onClick={(e) => handleSave(situation.id, e)}
+                        disabled={savingId === situation.id || savedIds.has(situation.id)}
+                        className={`btn-icon-sm transition-all duration-300 ${
+                          savedIds.has(situation.id)
+                            ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
+                            : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
+                        }`}
+                        title={savedIds.has(situation.id) ? '保存済み' : '保存'}
+                      >
+                        {savingId === situation.id ? (
+                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                        ) : savedIds.has(situation.id) ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card Content */}
