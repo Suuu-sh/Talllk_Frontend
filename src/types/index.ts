@@ -50,8 +50,17 @@ export interface Question {
   updated_at: string
 }
 
-export interface PublicSituation extends Situation {
+export interface PublicSituation {
+  id: number
+  user_id: number
+  title: string
+  description: string
   is_public: boolean
+  is_starred: boolean
+  star_count: number
+  created_at: string
+  updated_at: string
+  labels?: Label[]
   user?: {
     id: number
     name: string
