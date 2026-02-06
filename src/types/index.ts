@@ -16,6 +16,7 @@ export interface Situation {
   id: number
   user_id: number
   title: string
+  title_reading?: string
   description: string
   is_public: boolean
   is_favorite: boolean
@@ -64,12 +65,23 @@ export interface PublicSituation {
   user?: {
     id: number
     name: string
+    is_following?: boolean
+    is_self?: boolean
   }
 }
 
 export interface PublicSituationDetail extends PublicSituation {
   topics: Topic[]
   questions: Question[]
+}
+
+export interface UserProfile {
+  id: number
+  name: string
+  follower_count: number
+  following_count: number
+  is_following: boolean
+  is_self: boolean
 }
 
 export interface PaginatedResponse<T> {

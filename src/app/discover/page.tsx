@@ -17,6 +17,7 @@ export default function DiscoverPage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
   const [togglingStarIds, setTogglingStarIds] = useState<Set<number>>(new Set())
+  const [togglingFollowIds, setTogglingFollowIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -79,6 +80,21 @@ export default function DiscoverPage() {
     )
   }
 
+  const updateFollowState = (userId: number, isFollowing: boolean) => {
+    setSituations((prev) =>
+      prev.map((situation) => {
+        if (situation.user?.id !== userId) return situation
+        return {
+          ...situation,
+          user: {
+            ...situation.user,
+            is_following: isFollowing,
+          },
+        }
+      })
+    )
+  }
+
   const handleToggleStar = async (situation: PublicSituation, e: React.MouseEvent) => {
     e.stopPropagation()
     if (togglingStarIds.has(situation.id)) return
@@ -100,6 +116,30 @@ export default function DiscoverPage() {
       setTogglingStarIds((prev) => {
         const next = new Set(prev)
         next.delete(situation.id)
+        return next
+      })
+    }
+  }
+
+  const handleToggleFollow = async (userId: number, isFollowing: boolean, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (togglingFollowIds.has(userId)) return
+    const newValue = !isFollowing
+    updateFollowState(userId, newValue)
+    setTogglingFollowIds((prev) => new Set(prev).add(userId))
+    try {
+      if (newValue) {
+        await api.post(`/users/${userId}/follow`)
+      } else {
+        await api.delete(`/users/${userId}/follow`)
+      }
+    } catch (err) {
+      console.error(err)
+      updateFollowState(userId, !newValue)
+    } finally {
+      setTogglingFollowIds((prev) => {
+        const next = new Set(prev)
+        next.delete(userId)
         return next
       })
     }
@@ -258,15 +298,44 @@ export default function DiscoverPage() {
                   )}
 
                   {/* Author */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {situation.user?.name || '匿名ユーザー'}
-                    </span>
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (situation.user?.id) {
+                          router.push(`/users/${situation.user.id}`)
+                        }
+                      }}
+                      className="flex items-center gap-2 text-left"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {situation.user?.name || '匿名ユーザー'}
+                      </span>
+                    </button>
+                    {situation.user && !situation.user.is_self && (
+                      <button
+                        onClick={(e) =>
+                          handleToggleFollow(
+                            situation.user!.id,
+                            Boolean(situation.user?.is_following),
+                            e
+                          )
+                        }
+                        disabled={togglingFollowIds.has(situation.user.id)}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${
+                          situation.user?.is_following
+                            ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                            : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
+                        }`}
+                      >
+                        {situation.user?.is_following ? 'フォロー中' : 'フォロー'}
+                      </button>
+                    )}
                   </div>
 
                   {/* Card Footer */}

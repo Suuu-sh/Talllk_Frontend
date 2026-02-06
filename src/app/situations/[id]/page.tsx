@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Label, Situation, Topic, Question } from '@/types'
 import LabelInput from '@/components/LabelInput'
+import { toTitleReading } from '@/lib/reading'
 
 type SituationDetail = Situation & {
   topics: Topic[]
@@ -534,8 +535,10 @@ export default function SituationDetailPage() {
   const handleSituationSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const titleReading = await toTitleReading(situationForm.title)
       await api.put(`/situations/${params.id}`, {
         title: situationForm.title,
+        title_reading: titleReading,
         description: situationForm.description,
         label_ids: selectedLabels.map((label) => label.id),
       })

@@ -6,9 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/copy-kuromoji-dict.mjs"
   },
   "dependencies": {
+    "kuroshiro": "^1.2.0",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0",
+    "wanakana": "^5.3.1",
     "next": "14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

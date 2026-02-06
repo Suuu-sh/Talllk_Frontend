@@ -8,6 +8,7 @@ export default function Header() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -31,6 +32,33 @@ export default function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Profile Button */}
+              <button
+                onClick={() => router.push('/users/me')}
+                className="btn-icon"
+                title="プロフィール"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+
+              {/* Notifications Button */}
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="btn-icon"
+                title="通知"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+              </button>
+
               {/* Settings Button */}
               <button
                 onClick={() => setShowSettings(!showSettings)}
@@ -126,6 +154,46 @@ export default function Header() {
                   Version 1.0.0
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Modal */}
+      {showNotifications && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setShowNotifications(false)}
+        >
+          <div
+            className="glass-card-solid rounded-3xl p-6 max-w-sm w-full shadow-glass-lg animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">通知</h3>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="btn-icon-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
+                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+              </div>
+              <p className="text-gray-500 dark:text-gray-400">
+                通知はありません
+              </p>
             </div>
           </div>
         </div>
