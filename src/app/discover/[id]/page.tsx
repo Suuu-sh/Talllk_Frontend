@@ -21,6 +21,7 @@ export default function DiscoverDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isTogglingStar, setIsTogglingStar] = useState(false)
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [selectedTask, setSelectedTask] = useState<TreeNode | null>(null)
@@ -79,6 +80,26 @@ export default function DiscoverDetailPage() {
       setSituation({ ...situation, is_starred: !newValue, star_count: originalCount })
     } finally {
       setIsTogglingStar(false)
+    }
+  }
+
+  const handleToggleFollow = async () => {
+    if (!situation?.user || situation.user.is_self || isTogglingFollow) return
+    const newValue = !situation.user.is_following
+    const updatedUser = { ...situation.user, is_following: newValue }
+    setSituation({ ...situation, user: updatedUser })
+    setIsTogglingFollow(true)
+    try {
+      if (newValue) {
+        await api.post(`/users/${situation.user.id}/follow`)
+      } else {
+        await api.delete(`/users/${situation.user.id}/follow`)
+      }
+    } catch (err) {
+      console.error(err)
+      setSituation({ ...situation, user: { ...situation.user, is_following: !newValue } })
+    } finally {
+      setIsTogglingFollow(false)
     }
   }
 
@@ -322,6 +343,36 @@ export default function DiscoverDetailPage() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                {situation.user && (
+                  <div className="flex items-center justify-between mt-3">
+                    <button
+                      onClick={() => router.push(`/users/${situation.user?.id}`)}
+                      className="flex items-center gap-2 text-left"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {situation.user.name || '匿名ユーザー'}
+                      </span>
+                    </button>
+                    {!situation.user.is_self && (
+                      <button
+                        onClick={handleToggleFollow}
+                        disabled={isTogglingFollow}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${
+                          situation.user.is_following
+                            ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                            : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
+                        }`}
+                      >
+                        {situation.user.is_following ? 'フォロー中' : 'フォロー'}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {situation.labels && situation.labels.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {situation.labels.map((label) => (

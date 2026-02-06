@@ -3,7 +3,8 @@ FROM node:18-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+COPY scripts ./scripts
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 FROM node:18-alpine AS builder
 
@@ -13,6 +14,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p /app/public
 
+RUN node scripts/copy-kuromoji-dict.mjs
 RUN npm run build
 
 FROM node:18-alpine AS runner

@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { toRomaji } from 'wanakana'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Label, Situation } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import LabelInput from '@/components/LabelInput'
+import { toTitleReading } from '@/lib/reading'
 
 export default function Dashboard() {
+  const FILTER_STORAGE_KEY = 'talllk:homeFilters'
   const router = useRouter()
   const [situations, setSituations] = useState<Situation[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -16,10 +19,14 @@ export default function Dashboard() {
   const [formData, setFormData] = useState({ title: '', description: '' })
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [activeTab] = useState<Tab>('home')
+  const [filterQuery, setFilterQuery] = useState('')
+  const [filterFavoritesOnly, setFilterFavoritesOnly] = useState(false)
+  const [filterPublicOnly, setFilterPublicOnly] = useState(false)
   const [togglingFavoriteIds, setTogglingFavoriteIds] = useState<Set<number>>(new Set())
   const [togglingPublicIds, setTogglingPublicIds] = useState<Set<number>>(new Set())
   const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
+  const readingBackfillIdsRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -29,6 +36,79 @@ export default function Dashboard() {
     }
     fetchSituations()
   }, [router])
+
+  useEffect(() => {
+    const stored = localStorage.getItem(FILTER_STORAGE_KEY)
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored)
+      setFilterQuery(typeof parsed.query === 'string' ? parsed.query : '')
+      setFilterFavoritesOnly(Boolean(parsed.favoritesOnly))
+      setFilterPublicOnly(Boolean(parsed.publicOnly))
+    } catch (err) {
+      console.error(err)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(
+      FILTER_STORAGE_KEY,
+      JSON.stringify({
+        query: filterQuery,
+        favoritesOnly: filterFavoritesOnly,
+        publicOnly: filterPublicOnly,
+      })
+    )
+  }, [filterQuery, filterFavoritesOnly, filterPublicOnly])
+
+  useEffect(() => {
+    if (isLoading || situations.length === 0) return
+    let canceled = false
+
+    const backfillReadings = async () => {
+      const targets = situations.filter(
+        (situation) =>
+          (!situation.title_reading || !situation.title_reading.trim()) &&
+          !readingBackfillIdsRef.current.has(situation.id)
+      )
+      if (targets.length === 0) return
+
+      for (const situation of targets) {
+        readingBackfillIdsRef.current.add(situation.id)
+        const titleReading = await toTitleReading(situation.title)
+        if (canceled) return
+        if (!titleReading) continue
+
+        setSituations((prev) =>
+          prev.map((item) =>
+            item.id === situation.id ? { ...item, title_reading: titleReading } : item
+          )
+        )
+
+        try {
+          const payload: Record<string, unknown> = {
+            title: situation.title,
+            title_reading: titleReading,
+            description: situation.description,
+            is_public: situation.is_public,
+            is_favorite: situation.is_favorite,
+          }
+          if (situation.labels) {
+            payload.label_ids = situation.labels.map((label) => label.id)
+          }
+          await api.put(`/situations/${situation.id}`, payload)
+        } catch (err) {
+          console.error(err)
+        }
+      }
+    }
+
+    backfillReadings()
+
+    return () => {
+      canceled = true
+    }
+  }, [isLoading, situations])
 
   const fetchSituations = async () => {
     try {
@@ -44,8 +124,10 @@ export default function Dashboard() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const titleReading = await toTitleReading(formData.title)
       await api.post('/situations', {
         title: formData.title,
+        title_reading: titleReading,
         description: formData.description,
         label_ids: selectedLabels.map((label) => label.id),
       })
@@ -72,6 +154,18 @@ export default function Dashboard() {
       return a.sort_order - b.sort_order
     }
     return a.id - b.id
+  })
+
+  const normalizedQuery = toRomaji(filterQuery.trim()).toLowerCase()
+  const filteredSituations = sortedSituations.filter((situation) => {
+    if (filterFavoritesOnly && !situation.is_favorite) return false
+    if (filterPublicOnly && !situation.is_public) return false
+    if (!normalizedQuery) return true
+    const haystack = toRomaji(
+      `${situation.title} ${situation.title_reading ?? ''} ${situation.description ?? ''}`
+    ).toLowerCase()
+    const tokens = haystack.split(/[^a-z0-9]+/).filter(Boolean)
+    return tokens.some((token) => token.startsWith(normalizedQuery))
   })
 
   const reorderSituationGroup = async (isFavoriteGroup: boolean, draggedId: number, targetId: number) => {
@@ -171,15 +265,56 @@ export default function Dashboard() {
                   会話の場面ごとに準備を整えましょう
                 </p>
               </div>
-              <button
-                onClick={() => setShowModal(true)}
-                className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                新規作成
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                {!isLoading && situations.length > 0 && (
+                  <div className="flex-1 min-w-[240px]">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-3 py-2 focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/10 dark:focus-within:ring-brand-500/20">
+                      <input
+                        type="text"
+                        placeholder="タイトル・説明で検索"
+                        className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none"
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setFilterFavoritesOnly((prev) => !prev)}
+                          aria-pressed={filterFavoritesOnly}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                            filterFavoritesOnly
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                          }`}
+                        >
+                          お気に入り
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFilterPublicOnly((prev) => !prev)}
+                          aria-pressed={filterPublicOnly}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                            filterPublicOnly
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                          }`}
+                        >
+                          公開のみ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  新規作成
+                </button>
+              </div>
             </div>
 
             {/* Content */}
@@ -223,10 +358,24 @@ export default function Dashboard() {
                   最初のシチュエーションを作成
                 </button>
               </div>
+            ) : filteredSituations.length === 0 ? (
+              <div className="text-center py-16 animate-fadeUp">
+                <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                  該当するシチュエーションがありません
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  検索条件を変更してみてください
+                </p>
+              </div>
             ) : (
               /* Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedSituations.map((situation, index) => (
+                {filteredSituations.map((situation, index) => (
                   <div
                     key={situation.id}
                     onClick={() => router.push(`/situations/${situation.id}`)}
