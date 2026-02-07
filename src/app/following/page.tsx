@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
-import { PublicSituation, PaginatedResponse } from '@/types'
+import { PaginatedResponse, PublicSituation } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 
-export default function DiscoverPage() {
-  const [activeTab] = useState<Tab>('discover')
+export default function FollowingPage() {
+  const [activeTab] = useState<Tab>('following')
   const router = useRouter()
   const [situations, setSituations] = useState<PublicSituation[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -43,11 +43,10 @@ export default function DiscoverPage() {
     setIsLoading(true)
     try {
       const response = await api.get<PaginatedResponse<PublicSituation>>(
-        `/discover/situations?page=${page}&per_page=12`
+        `/discover/situations?following_only=true&page=${page}&per_page=12`
       )
       const newTotalPages = response.data.total_pages || 1
 
-      // If current page exceeds total pages, reset to page 1
       if (page > newTotalPages) {
         setPage(1)
         return
@@ -59,20 +58,6 @@ export default function DiscoverPage() {
       console.error(err)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleSave = async (id: number, e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (savingId !== null || savedIds.has(id)) return
-    setSavingId(id)
-    try {
-      await api.post(`/discover/situations/${id}/save`)
-      setSavedIds((prev) => new Set(prev).add(id))
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setSavingId(null)
     }
   }
 
@@ -95,6 +80,24 @@ export default function DiscoverPage() {
         }
       })
     )
+  }
+
+  const removeSituationsByUser = (userId: number) => {
+    setSituations((prev) => prev.filter((situation) => situation.user?.id !== userId))
+  }
+
+  const handleSave = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (savingId !== null || savedIds.has(id)) return
+    setSavingId(id)
+    try {
+      await api.post(`/discover/situations/${id}/save`)
+      setSavedIds((prev) => new Set(prev).add(id))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingId(null)
+    }
   }
 
   const handleToggleStar = async (situation: PublicSituation, e: React.MouseEvent) => {
@@ -134,6 +137,7 @@ export default function DiscoverPage() {
         await api.post(`/users/${userId}/follow`)
       } else {
         await api.delete(`/users/${userId}/follow`)
+        removeSituationsByUser(userId)
       }
     } catch (err) {
       console.error(err)
@@ -157,10 +161,10 @@ export default function DiscoverPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 animate-fadeUp">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              みんなの準備を探す
+              フォロー中の準備を探す
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              公開されているシチュエーションを見つけて、自分の準備に活用しましょう
+              フォローしているユーザーの公開シチュエーションをまとめて確認できます
             </p>
           </div>
         </div>
@@ -171,7 +175,7 @@ export default function DiscoverPage() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="glass-card-solid rounded-2xl p-6 animate-pulse"
+                className="glass-card-solid rounded-2xl p-6 animate-pulse h-[320px]"
               >
                 <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4 mb-3" />
                 <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-full mb-2" />
@@ -182,20 +186,26 @@ export default function DiscoverPage() {
         ) : situations.length === 0 ? (
           /* Empty State */
           <div className="text-center py-16 animate-fadeUp">
-            <div className="relative inline-block mb-8">
+            <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-brand-500/20 blur-2xl rounded-full" />
-              <div className="relative p-8 bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 rounded-3xl">
-                <svg className="w-16 h-16 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="relative p-6 bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 rounded-3xl">
+                <svg className="w-14 h-14 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 11c0 1.657-1.79 3-4 3s-4-1.343-4-3 1.79-3 4-3 4 1.343 4 3zm9 0c0 1.657-1.79 3-4 3s-4-1.343-4-3 1.79-3 4-3 4 1.343 4 3zm-9 6a6 6 0 00-6 6h12a6 6 0 00-6-6zm9 0a6 6 0 00-4.472 2.03A7.962 7.962 0 0119 23h5a6 6 0 00-4-6z" />
                 </svg>
               </div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              公開シチュエーションがありません
+              フォロー中の公開シチュエーションがありません
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-              まだ公開されているシチュエーションがありません。しばらくお待ちください。
+              見つけるタブから気になるユーザーをフォローしてみましょう
             </p>
+            <button
+              onClick={() => router.push('/discover')}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              見つけるへ
+            </button>
           </div>
         ) : (
           <>
@@ -205,12 +215,12 @@ export default function DiscoverPage() {
                 <div
                   key={situation.id}
                   onClick={() => router.push(`/discover/${situation.id}`)}
-                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)} flex flex-col h-[15rem]`}
+                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[320px] stagger-${Math.min(index + 1, 6)}`}
                 >
                   {/* Card Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                     </div>
@@ -286,7 +296,7 @@ export default function DiscoverPage() {
                     {truncateText(situation.description || '説明なし', 15)}
                   </p>
                   {situation.labels && situation.labels.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {situation.labels.slice(0, 4).map((label) => (
                         <span
                           key={label.id}
@@ -365,11 +375,11 @@ export default function DiscoverPage() {
                   className="btn-secondary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                   </svg>
                   前へ
                 </button>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {page} / {totalPages}
                 </span>
                 <button
@@ -379,7 +389,7 @@ export default function DiscoverPage() {
                 >
                   次へ
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
