@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "auto:watch": "node scripts/auto-commit-watch.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
