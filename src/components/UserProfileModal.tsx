@@ -10,6 +10,24 @@ type UserProfileModalProps = {
   userId?: string
 }
 
+const getInitial = (name: string): string => {
+  const trimmed = name.trim()
+  if (!trimmed) return '?'
+  return trimmed.charAt(0).toUpperCase()
+}
+
+const getAvatarGradient = (id: number): string => {
+  const gradients = [
+    'from-brand-400 to-brand-600',
+    'from-purple-400 to-purple-600',
+    'from-blue-400 to-blue-600',
+    'from-green-400 to-green-600',
+    'from-pink-400 to-pink-600',
+    'from-teal-400 to-teal-600',
+  ]
+  return gradients[id % gradients.length]
+}
+
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -85,124 +103,227 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
       onClick={handleClose}
     >
       <div
-        className="glass-card-solid rounded-3xl shadow-glass-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto animate-scaleIn"
+        className="glass-card-solid rounded-3xl shadow-glass-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto animate-scaleIn relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 dark:border-gray-700/60 sticky top-0 backdrop-blur bg-white/70 dark:bg-gray-900/70">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ユーザープロフィール</h2>
-          <button onClick={handleClose} className="btn-icon-sm" aria-label="閉じる">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        {/* Background decoration blobs */}
+        <div className="absolute top-20 -right-10 w-64 h-64 bg-brand-400/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 -left-10 w-48 h-48 bg-purple-400/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="px-6 py-6">
+        {/* Floating close button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/40 transition-colors duration-200"
+          aria-label="閉じる"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="relative">
           {isLoading ? (
-            <div className="glass-card-solid rounded-3xl p-8 animate-pulse">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-1/3 mb-4" />
-              <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-1/4" />
+            /* Skeleton loading */
+            <div className="animate-pulse">
+              {/* Banner skeleton */}
+              <div className="h-28 sm:h-32 bg-gray-200 dark:bg-gray-700 rounded-t-3xl" />
+              {/* Profile card skeleton */}
+              <div className="glass-card-solid rounded-b-3xl px-6 pb-6">
+                <div className="flex items-end gap-4 -mt-12 mb-4">
+                  <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-600 border-4 border-white dark:border-gray-900 shrink-0" />
+                  <div className="pb-2 flex-1">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-32 mb-2" />
+                    <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-20" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="rounded-2xl bg-gray-100 dark:bg-gray-800 h-20" />
+                  <div className="rounded-2xl bg-gray-100 dark:bg-gray-800 h-20" />
+                </div>
+              </div>
+              {/* Situation cards skeleton */}
+              <div className="px-6 py-6">
+                <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="glass-card-solid rounded-2xl p-6">
+                      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3" />
+                      <div className="flex gap-2 mb-4">
+                        <div className="h-5 bg-gray-100 dark:bg-gray-700/50 rounded-full w-14" />
+                        <div className="h-5 bg-gray-100 dark:bg-gray-700/50 rounded-full w-12" />
+                      </div>
+                      <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : !profile ? (
-            <div className="text-center py-16">
-              <p className="text-gray-500 dark:text-gray-400">ユーザーが見つかりません</p>
+            /* Not found state */
+            <div className="text-center py-20 px-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 mb-6">
+                <svg className="w-10 h-10 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">ユーザーが見つかりません</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">このユーザーは存在しないか、削除された可能性があります。</p>
             </div>
           ) : (
             <>
-              <div className="glass-card-solid rounded-3xl p-6 mb-8 animate-fadeUp">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profile.name || 'ユーザー'}
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">公開プロフィール</p>
+              {/* Banner gradient */}
+              <div className="h-28 sm:h-32 rounded-t-3xl bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
+                <div className="absolute bottom-0 left-1/4 w-24 h-24 bg-white/10 rounded-full translate-y-1/2" />
+                <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/5 rounded-full" />
+              </div>
+
+              {/* Profile card */}
+              <div className="glass-card-solid rounded-b-3xl px-6 pb-6 mb-8 animate-fadeUp">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                  {/* Avatar */}
+                  <div className={`-mt-12 w-24 h-24 rounded-full bg-gradient-to-br ${getAvatarGradient(profile.id)} border-4 border-white dark:border-gray-900 shadow-lg flex items-center justify-center shrink-0`}>
+                    <span className="text-3xl font-bold text-white">
+                      {getInitial(profile.name || '')}
+                    </span>
                   </div>
-                  {!profile.is_self && (
-                    <button
-                      onClick={handleToggleFollow}
-                      disabled={isTogglingFollow}
-                      className={`text-sm font-semibold px-5 py-2 rounded-full border transition-all duration-200 ${
-                        profile.is_following
-                          ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
-                          : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
-                      }`}
-                    >
-                      {profile.is_following ? 'フォロー中' : 'フォロー'}
-                    </button>
-                  )}
+
+                  {/* Name + follow */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-1 gap-3 pb-1">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {profile.name || 'ユーザー'}
+                      </h1>
+                      {profile.is_self && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">マイプロフィール</p>
+                      )}
+                    </div>
+                    {!profile.is_self && (
+                      <button
+                        onClick={handleToggleFollow}
+                        disabled={isTogglingFollow}
+                        className={`text-sm font-semibold px-5 py-2 rounded-full border transition-all duration-200 ${
+                          profile.is_following
+                            ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                            : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
+                        }`}
+                      >
+                        {profile.is_following ? 'フォロー中' : 'フォロー'}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
+                {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 mt-6">
-                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-4 py-3">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">フォロー中</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profile.following_count}
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-4 py-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                      <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">フォロー中</div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {profile.following_count}
+                      </div>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-4 py-3">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">フォロワー</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profile.follower_count}
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-4 py-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                      <svg className="w-4.5 h-4.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">フォロワー</div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {profile.follower_count}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mb-4">
+              {/* Section header */}
+              <div className="flex items-center justify-between mb-4 px-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">公開シチュエーション</h2>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="badge-brand text-xs font-semibold">
                   {situations.length}件
                 </span>
               </div>
 
-              {situations.length === 0 ? (
-                <div className="text-center py-16 animate-fadeUp">
-                  <p className="text-gray-500 dark:text-gray-400">公開シチュエーションがありません</p>
-                </div>
-              ) : (
-                <div className="grid grid-flow-col grid-rows-1 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2">
-                  {situations.map((situation, index) => (
-                    <div
-                      key={situation.id}
-                      onClick={() => router.push(`/discover/${situation.id}`)}
-                      className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[14rem] stagger-${Math.min(index + 1, 6)}`}
-                    >
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
-                        {truncateText(situation.title || '')}
-                      </h3>
-                      {situation.labels && situation.labels.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {situation.labels.slice(0, 3).map((label) => (
-                            <span
-                              key={label.id}
-                              className="badge text-xs"
-                              style={{ backgroundColor: label.color, color: '#FFFFFF' }}
-                            >
-                              {label.name}
+              {/* Situations grid */}
+              <div className="px-6 pb-6">
+                {situations.length === 0 ? (
+                  <div className="text-center py-16 animate-fadeUp">
+                    <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
+                      <div className="absolute inset-0 rounded-full bg-brand-400/10 animate-pulse" />
+                      <svg className="w-10 h-10 text-gray-400 dark:text-gray-500 relative" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 font-medium mb-1">
+                      {profile.is_self
+                        ? 'まだシチュエーションを公開していません'
+                        : '公開シチュエーションがありません'}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {profile.is_self
+                        ? 'シチュエーションを作成して公開してみましょう'
+                        : 'このユーザーはまだシチュエーションを公開していません'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {situations.map((situation, index) => (
+                      <div
+                        key={situation.id}
+                        onClick={() => router.push(`/discover/${situation.id}`)}
+                        className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col stagger-${Math.min(index + 1, 6)}`}
+                      >
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
+                          {truncateText(situation.title || '')}
+                        </h3>
+                        {situation.labels && situation.labels.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {situation.labels.slice(0, 3).map((label) => (
+                              <span
+                                key={label.id}
+                                className="badge text-xs"
+                                style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                              >
+                                {label.name}
+                              </span>
+                            ))}
+                            {situation.labels.length > 3 && (
+                              <span className="badge text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                                +{situation.labels.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between text-brand-600 dark:text-brand-400 text-sm font-medium mt-auto">
+                          <div className="flex items-center gap-1 text-yellow-500">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
+                            </svg>
+                            <span className="text-xs font-semibold text-yellow-600">
+                              {situation.star_count ?? 0}
                             </span>
-                          ))}
-                          {situation.labels.length > 3 && (
-                            <span className="badge text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                              +{situation.labels.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between text-brand-600 dark:text-brand-400 text-sm font-medium mt-auto">
-                        <div className="flex items-center gap-1 text-yellow-500">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
-                          </svg>
-                          <span className="text-xs font-semibold text-yellow-600">
-                            {situation.star_count ?? 0}
+                          </div>
+                          <span className="group-hover:underline flex items-center gap-1">
+                            詳細を見る
+                            <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
                           </span>
                         </div>
-                        <span className="group-hover:underline">詳細を見る</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
