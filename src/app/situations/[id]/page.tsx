@@ -70,6 +70,8 @@ export default function SituationDetailPage() {
     message: string
   } | null>(null)
   const [isTogglingPublic, setIsTogglingPublic] = useState(false)
+  const [showPublicConfirm, setShowPublicConfirm] = useState(false)
+  const [pendingPublicValue, setPendingPublicValue] = useState<boolean | null>(null)
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
 
   useEffect(() => {
@@ -549,9 +551,8 @@ export default function SituationDetailPage() {
     }
   }
 
-  const handleTogglePublic = async () => {
+  const updatePublicStatus = async (newValue: boolean) => {
     if (!situation || isTogglingPublic) return
-    const newValue = !situation.is_public
     setSituation({ ...situation, is_public: newValue })
     setIsTogglingPublic(true)
     try {
@@ -567,6 +568,21 @@ export default function SituationDetailPage() {
     } finally {
       setIsTogglingPublic(false)
     }
+  }
+
+  const handlePublicClick = () => {
+    if (!situation || isTogglingPublic) return
+    const nextValue = !situation.is_public
+    setPendingPublicValue(nextValue)
+    setShowPublicConfirm(true)
+  }
+
+  const handleConfirmPublic = async () => {
+    if (pendingPublicValue === null) return
+    const nextValue = pendingPublicValue
+    setShowPublicConfirm(false)
+    setPendingPublicValue(null)
+    await updatePublicStatus(nextValue)
   }
 
   const handleToggleFavorite = async () => {
@@ -816,6 +832,9 @@ export default function SituationDetailPage() {
               }`}>
                 {node.title}
               </span>
+              {isFolder && node.children && node.children.length > 0 && (
+                <span className="badge-brand text-xs flex-shrink-0">{node.children.length}</span>
+              )}
             </div>
             {!isFolder && node.answer && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
@@ -839,7 +858,7 @@ export default function SituationDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex-shrink-0 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             {isFolder ? (
               <>
                 <button
@@ -925,7 +944,7 @@ export default function SituationDetailPage() {
 
         {/* Children */}
         {hasChildren && isExpanded && (
-          <div className="ml-6 mt-2 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-2">
+          <div className="ml-6 mt-2 pl-4 border-l-2 border-brand-200/50 dark:border-brand-700/30 space-y-2">
             {folderChildren.length > 0 && (
               <div className="space-y-2">
                 {renderTopicDropZone(node.id, 0)}
@@ -1010,13 +1029,43 @@ export default function SituationDetailPage() {
 
   if (!situation) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-          <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-          読み込み中...
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        {/* Skeleton Nav */}
+        <div className="glass-card-solid sticky top-0 z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-16 gap-3">
+              <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="hidden sm:block w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {/* Skeleton Header Card */}
+          <div className="glass-card-solid rounded-3xl p-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="flex-1 space-y-3">
+                <div className="w-48 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="w-64 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="flex gap-3">
+                  <div className="w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Skeleton Tree */}
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800">
+                <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -1024,160 +1073,130 @@ export default function SituationDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
+      {/* Background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-32 right-0 w-96 h-96 bg-brand-400/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-400/5 rounded-full blur-3xl" />
+      </div>
+
       {/* Navigation */}
       <nav className="glass-card-solid sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button
-              onClick={() => router.back()}
-              className="btn-ghost flex items-center gap-2 text-brand-600 dark:text-brand-400"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="font-medium">戻る</span>
-            </button>
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => router.back()}
+                className="btn-ghost flex items-center gap-2 text-brand-600 dark:text-brand-400 flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="font-medium">戻る</span>
+              </button>
+              <span className="hidden sm:block text-sm font-semibold text-gray-700 dark:text-gray-300 truncate max-w-[200px] lg:max-w-[300px]">
+                {situation.title}
+              </span>
+            </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Card */}
-        <div className="glass-card-solid rounded-3xl p-6 mb-8 animate-fadeUp">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
-                {situation.labels && situation.labels.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {situation.labels.map((label) => (
-                      <span
-                        key={label.id}
-                        className="badge text-xs"
-                        style={{ backgroundColor: label.color, color: '#FFFFFF' }}
-                      >
-                        {label.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Favorite Button */}
-              <button
-                onClick={handleToggleFavorite}
-                disabled={isTogglingFavorite}
-                className={`btn-icon transition-all duration-300 ${
-                  situation.is_favorite === true
-                    ? 'text-yellow-500 hover:text-yellow-600'
-                    : ''
-                }`}
-                title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
-              >
-                {isTogglingFavorite ? (
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill={situation.is_favorite === true ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                  </svg>
-                )}
-              </button>
-
-              {/* Public Toggle Button */}
-              <button
-                onClick={handleTogglePublic}
-                disabled={isTogglingPublic}
-                className={`btn-icon transition-all duration-300 ${
-                  situation.is_public === true
-                    ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
-                    : ''
-                }`}
-                title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}
-              >
-                {isTogglingPublic ? (
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                ) : situation.is_public === true ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                )}
-              </button>
-
-              <button
-                onClick={() =>
-                  openCreateModal({
-                    parentTopicId: null,
-                    parentQuestionId: null,
-                    allowFolder: true,
-                    allowQuestion: false,
-                  })
-                }
-                className="btn-primary flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span className="hidden sm:inline">追加</span>
-              </button>
-              <button
-                onClick={() => {
-                  setSituationForm({
-                    title: situation.title,
-                    description: situation.description,
-                  })
-                  setSelectedLabels(situation.labels || [])
-                  setShowSituationModal(true)
-                }}
-                className="btn-icon"
-                title="編集"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className={`grid gap-6 ${selectedTask ? 'lg:grid-cols-2' : ''}`}>
-          {/* Tree View */}
-          <div className={selectedTask ? 'lg:col-span-1' : ''}>
-            {tree.length > 0 ? (
-              <>
-                {renderRootDropZone()}
-                {renderRootTopics()}
-              </>
-            ) : (
-              <div className="text-center py-16 animate-fadeUp">
-                <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
-                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      <main className={`relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 ${selectedTask ? 'lg:grid lg:grid-cols-2 lg:gap-6 lg:h-[calc(100vh-4rem)] lg:overflow-hidden lg:py-4' : 'py-4 sm:py-6 lg:py-8'}`}>
+        {/* Left Column: Header Card + Tree View */}
+        <div className={selectedTask ? 'lg:overflow-y-auto lg:h-full lg:pr-2 py-0 sm:py-0 lg:py-0' : ''}>
+          {/* Header Card */}
+          <div className="glass-card-solid rounded-3xl p-6 mb-8 animate-fadeUp">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  フォルダがありません
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  最初のフォルダを作成して質問を追加しましょう
-                </p>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                  {situation.labels && situation.labels.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {situation.labels.map((label) => (
+                        <span
+                          key={label.id}
+                          className="badge text-xs"
+                          style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                        >
+                          {label.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {/* Stats row */}
+                  <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                      <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                      <span className="font-medium">{situation.topics.length}</span>
+                      <span>フォルダ</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">{situation.questions.length}</span>
+                      <span>質問</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleToggleFavorite}
+                  disabled={isTogglingFavorite}
+                  className={`btn-icon transition-all duration-300 ${
+                    situation.is_favorite === true
+                      ? 'text-yellow-500 hover:text-yellow-600'
+                      : ''
+                  }`}
+                  title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
+                >
+                  {isTogglingFavorite ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill={situation.is_favorite === true ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={handlePublicClick}
+                  disabled={isTogglingPublic}
+                  className={`btn-icon transition-all duration-300 ${
+                    situation.is_public === true
+                      ? 'text-green-600 dark:text-green-400'
+                      : ''
+                  }`}
+                  title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}
+                >
+                  {isTogglingPublic ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : situation.is_public === true ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
+                </button>
+
                 <button
                   onClick={() =>
                     openCreateModal({
@@ -1187,41 +1206,182 @@ export default function SituationDetailPage() {
                       allowQuestion: false,
                     })
                   }
-                  className="btn-primary inline-flex items-center gap-2"
+                  className="btn-icon"
+                  title="追加"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  フォルダを作成
+                </button>
+                <button
+                  onClick={() => {
+                    setSituationForm({
+                      title: situation.title,
+                      description: situation.description,
+                    })
+                    setSelectedLabels(situation.labels || [])
+                    setShowSituationModal(true)
+                  }}
+                  className="btn-icon"
+                  title="編集"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
                 </button>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Detail Panel */}
-          {selectedTask && (
-            <div className="lg:col-span-1">
-              <div className="glass-card-solid rounded-3xl p-6 sticky top-24 animate-scaleIn">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">詳細</h2>
-                  <button
-                    onClick={() => setSelectedTask(null)}
-                    className="btn-icon-sm"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          {/* Tree View */}
+          {tree.length > 0 ? (
+            <>
+              {renderRootDropZone()}
+              {renderRootTopics()}
+            </>
+          ) : (
+            <div className="text-center py-16 animate-fadeUp">
+              <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                フォルダがありません
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                最初のフォルダを作成して質問を追加しましょう
+              </p>
+              <button
+                onClick={() =>
+                  openCreateModal({
+                    parentTopicId: null,
+                    parentQuestionId: null,
+                    allowFolder: true,
+                    allowQuestion: false,
+                  })
+                }
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                フォルダを作成
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Detail Panel — Desktop (Right Column) */}
+        {selectedTask && (
+          <div className="hidden lg:flex lg:flex-col lg:overflow-y-auto lg:h-full min-w-0">
+            <div className="glass-card-solid rounded-3xl overflow-hidden animate-scaleIn relative flex-1 flex flex-col min-h-0">
+              <button
+                onClick={() => setSelectedTask(null)}
+                className="btn-icon-sm absolute top-4 right-4 z-10"
+                aria-label="詳細を閉じる"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="p-6 pt-10 space-y-4 flex-1 overflow-y-auto min-h-0">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                  </button>
+                    質問
+                  </div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</div>
                 </div>
-                <div className="space-y-4">
+                <div className="divider" />
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    回答
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                    {selectedTask.answer || '（未回答）'}
+                  </div>
+                </div>
+                {(selectedTask.linkedTopicTitle || selectedTask.linkedQuestionTitle) && (
+                  <>
+                    <div className="divider" />
+                    <div>
+                      <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">紐付け</div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTask.linkedTopicTitle && (
+                          <span className="badge-brand">{selectedTask.linkedTopicTitle}</span>
+                        )}
+                        {selectedTask.linkedQuestionTitle && (
+                          <span className="badge bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                            {selectedTask.linkedQuestionTitle}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+                <button
+                  onClick={() => openEditQuestionModal(selectedTask)}
+                  className="w-full btn-secondary flex items-center justify-center gap-2 mt-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  この質問を編集
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detail Panel — Mobile Bottom Sheet */}
+          {selectedTask && (
+            <div
+              className="lg:hidden fixed inset-0 z-40 animate-fadeIn"
+              onClick={() => setSelectedTask(null)}
+            >
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+              <div
+                className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl max-h-[80vh] overflow-y-auto animate-slideUp relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Drag handle */}
+                <div className="flex justify-center pt-3 pb-1">
+                  <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                </div>
+                <button
+                  onClick={() => setSelectedTask(null)}
+                  className="btn-icon-sm absolute top-4 right-4"
+                  aria-label="詳細を閉じる"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="px-6 pt-6 pb-8 space-y-4">
                   <div>
-                    <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">質問</div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      質問
+                    </div>
                     <div className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</div>
                   </div>
                   <div className="divider" />
                   <div>
-                    <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">回答</div>
-                    <div className="text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider mb-1">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      回答
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
                       {selectedTask.answer || '（未回答）'}
                     </div>
                   </div>
@@ -1243,11 +1403,19 @@ export default function SituationDetailPage() {
                       </div>
                     </>
                   )}
+                  <button
+                    onClick={() => openEditQuestionModal(selectedTask)}
+                    className="w-full btn-secondary flex items-center justify-center gap-2 mt-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    この質問を編集
+                  </button>
                 </div>
               </div>
             </div>
           )}
-        </div>
       </main>
 
       {/* Create/Edit Modal */}
@@ -1554,6 +1722,49 @@ export default function SituationDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showPublicConfirm && pendingPublicValue !== null && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+          onClick={() => setShowPublicConfirm(false)}
+        >
+          <div
+            className="glass-card-solid rounded-3xl p-6 max-w-sm w-full shadow-glass-lg animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {pendingPublicValue ? '公開しますか？' : '非公開にしますか？'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {pendingPublicValue
+                  ? '公開すると他のユーザーに表示されます。'
+                  : '非公開にすると他のユーザーから見えなくなります。'}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                className="btn-secondary px-4 py-2 text-sm"
+                onClick={() => {
+                  setShowPublicConfirm(false)
+                  setPendingPublicValue(null)
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                className="btn-primary px-4 py-2 text-sm"
+                onClick={handleConfirmPublic}
+                disabled={isTogglingPublic}
+              >
+                {pendingPublicValue ? '公開する' : '非公開にする'}
+              </button>
+            </div>
           </div>
         </div>
       )}
