@@ -165,7 +165,7 @@ export default function DiscoverPage() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-flow-col grid-rows-2 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -198,21 +198,21 @@ export default function DiscoverPage() {
         ) : (
           <>
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-flow-col grid-rows-2 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2">
               {situations.map((situation, index) => (
                 <div
                   key={situation.id}
                   onClick={() => router.push(`/discover/${situation.id}`)}
-                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)}`}
+                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)} flex flex-col h-[15rem]`}
                 >
                   {/* Card Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 md:pointer-events-none md:group-hover:pointer-events-auto">
                       {/* Star Button */}
                       <div className="flex items-center gap-1">
                         <button
@@ -221,7 +221,7 @@ export default function DiscoverPage() {
                           className={`btn-icon-sm transition-all duration-300 ${
                             situation.is_starred
                               ? 'text-yellow-500 hover:text-yellow-600'
-                              : 'text-gray-400 hover:text-yellow-500 dark:text-gray-500'
+                              : 'hover:bg-brand-100 dark:hover:bg-brand-900/50 hover:text-brand-600 dark:hover:text-brand-400'
                           }`}
                           title={situation.is_starred ? 'スター解除' : 'スター'}
                         >
@@ -278,13 +278,13 @@ export default function DiscoverPage() {
 
                   {/* Card Content */}
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
-                    {situation.title}
+                    {situation.title.length > 10 ? situation.title.slice(0, 10) + '...' : situation.title}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-3">
-                    {situation.description || '説明なし'}
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                    {(situation.description || '説明なし').length > 15 ? (situation.description || '説明なし').slice(0, 15) + '...' : (situation.description || '説明なし')}
                   </p>
                   {situation.labels && situation.labels.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-2 overflow-hidden max-h-6">
                       {situation.labels.map((label) => (
                         <span
                           key={label.id}
@@ -297,8 +297,8 @@ export default function DiscoverPage() {
                     </div>
                   )}
 
-                  {/* Author */}
-                  <div className="flex items-center justify-between mb-4">
+                  {/* Card Footer */}
+                  <div className="flex items-center justify-between text-sm mt-auto">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -306,44 +306,44 @@ export default function DiscoverPage() {
                           router.push(`/users/${situation.user.id}`)
                         }
                       }}
-                      className="flex items-center gap-2 text-left"
+                      className="flex items-center gap-2 text-left min-w-0"
                     >
                       <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                         <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 truncate">
                         {situation.user?.name || '匿名ユーザー'}
                       </span>
                     </button>
-                    {situation.user && !situation.user.is_self && (
-                      <button
-                        onClick={(e) =>
-                          handleToggleFollow(
-                            situation.user!.id,
-                            Boolean(situation.user?.is_following),
-                            e
-                          )
-                        }
-                        disabled={togglingFollowIds.has(situation.user.id)}
-                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${
-                          situation.user?.is_following
-                            ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
-                            : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
-                        }`}
-                      >
-                        {situation.user?.is_following ? 'フォロー中' : 'フォロー'}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="flex items-center text-brand-600 dark:text-brand-400 text-sm font-medium">
-                    <span className="group-hover:underline">詳細を見る</span>
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <div className="flex items-center gap-2">
+                      {situation.user && !situation.user.is_self && (
+                        <button
+                          onClick={(e) =>
+                            handleToggleFollow(
+                              situation.user!.id,
+                              Boolean(situation.user?.is_following),
+                              e
+                            )
+                          }
+                          disabled={togglingFollowIds.has(situation.user.id)}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 whitespace-nowrap ${
+                            situation.user?.is_following
+                              ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                              : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
+                          }`}
+                        >
+                          {situation.user?.is_following ? 'フォロー中' : 'フォロー'}
+                        </button>
+                      )}
+                      <div className="flex items-center text-brand-600 dark:text-brand-400 text-sm font-medium">
+                        <span className="group-hover:underline">詳細を見る</span>
+                        <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
