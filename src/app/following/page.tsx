@@ -175,7 +175,7 @@ export default function FollowingPage() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="glass-card-solid rounded-2xl p-6 animate-pulse h-[320px]"
+                className="glass-card-solid rounded-2xl p-6 animate-pulse h-[14rem]"
               >
                 <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4 mb-3" />
                 <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-full mb-2" />
@@ -215,7 +215,7 @@ export default function FollowingPage() {
                 <div
                   key={situation.id}
                   onClick={() => router.push(`/discover/${situation.id}`)}
-                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[320px] stagger-${Math.min(index + 1, 6)}`}
+                  className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[14rem] stagger-${Math.min(index + 1, 6)}`}
                 >
                   {/* Card Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -292,9 +292,6 @@ export default function FollowingPage() {
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                     {truncateText(situation.title)}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                    {truncateText(situation.description || '説明なし', 15)}
-                  </p>
                   {situation.labels && situation.labels.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-3">
                       {situation.labels.slice(0, 4).map((label) => (

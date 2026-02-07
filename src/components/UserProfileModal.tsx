@@ -165,14 +165,11 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                     <div
                       key={situation.id}
                       onClick={() => router.push(`/discover/${situation.id}`)}
-                      className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[260px] stagger-${Math.min(index + 1, 6)}`}
+                      className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[14rem] stagger-${Math.min(index + 1, 6)}`}
                     >
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                         {truncateText(situation.title || '')}
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
-                        {truncateText(situation.description || '説明なし', 15)}
-                      </p>
                       {situation.labels && situation.labels.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4">
                           {situation.labels.slice(0, 3).map((label) => (
