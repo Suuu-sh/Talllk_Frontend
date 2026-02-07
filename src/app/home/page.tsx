@@ -316,7 +316,7 @@ export default function Dashboard() {
   const publicCount = situations.filter((s) => s.is_public).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-32 right-0 w-96 h-96 bg-brand-400/5 rounded-full blur-3xl" />
@@ -326,7 +326,7 @@ export default function Dashboard() {
       <Header />
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
         {/* Welcome + Stats */}
         <div className="mb-6 animate-fadeUp">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-4">
@@ -358,7 +358,7 @@ export default function Dashboard() {
         </div>
 
         {/* Filter + Create */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6 animate-fadeUp stagger-1 relative z-40">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3 animate-fadeUp stagger-1 relative z-40">
           {!isLoading && situations.length > 0 && (
             <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl glass-card-solid px-3 py-2 transition-all duration-300 focus-within:shadow-xl focus-within:shadow-brand-500/10 focus-within:border-brand-400/50 dark:focus-within:border-brand-500/50">
@@ -489,12 +489,13 @@ export default function Dashboard() {
         </div>
 
         {/* Content */}
+        <div className="flex-1 min-h-0 relative z-0">
         {isLoading ? (
-          <div className="grid grid-flow-col grid-rows-2 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2">
+          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="glass-card-solid rounded-2xl p-6 animate-pulse h-[14rem]"
+                className="glass-card-solid rounded-2xl p-5 animate-pulse"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-9 h-9 rounded-xl bg-gray-200 dark:bg-gray-700" />
@@ -511,7 +512,7 @@ export default function Dashboard() {
           </div>
         ) : situations.length === 0 ? (
           /* Empty State */
-          <div className="text-center py-20 animate-fadeUp">
+          <div className="text-center py-12 animate-fadeUp">
             <div className="relative inline-block mb-8">
               <div className="absolute inset-0 bg-brand-500/20 blur-2xl rounded-full" />
               <div className="relative p-8 bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 rounded-3xl">
@@ -537,7 +538,7 @@ export default function Dashboard() {
             </button>
           </div>
         ) : filteredSituations.length === 0 ? (
-          <div className="text-center py-20 animate-fadeUp">
+          <div className="text-center py-12 animate-fadeUp">
             <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
               <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -552,7 +553,7 @@ export default function Dashboard() {
           </div>
         ) : (
           /* Grid */
-          <div className="grid grid-flow-col grid-rows-2 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2 animate-fadeUp stagger-2">
+          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2 animate-fadeUp stagger-2">
             {filteredSituations.map((situation, index) => (
               <div
                 key={situation.id}
@@ -579,7 +580,7 @@ export default function Dashboard() {
                   setDragOverSituationId(null)
                   await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
                 }}
-                className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 flex flex-col h-[14rem] ${
+                className={`group glass-card-solid rounded-2xl p-5 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 flex flex-col ${
                   dragOverSituationId === situation.id
                     ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-900'
                     : ''
@@ -647,10 +648,13 @@ export default function Dashboard() {
                 </div>
 
                 {/* Card Content */}
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                   {truncateText(situation.title)}
                 </h3>
-                    {situation.labels && situation.labels.length > 0 && (
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+                  {truncateText(situation.description || '説明なし', 15)}
+                </p>
+                {situation.labels && situation.labels.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {situation.labels.slice(0, 4).map((label) => (
                       <span
@@ -680,6 +684,7 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+        </div>
       </main>
 
       {/* Create Modal */}

@@ -48,7 +48,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-y-auto">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-72 h-72 bg-brand-400/15 rounded-full blur-3xl animate-pulse-soft" />
@@ -85,7 +85,7 @@ export default function Login() {
       </div>
 
       {/* Left panel (lg+) */}
-      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-8 lg:p-12">
         <div className="relative max-w-md">
           <div className="mb-8 animate-fadeUp">
             <div className="inline-block px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-3xl tracking-wider rounded-2xl shadow-glow mb-8">
@@ -190,7 +190,7 @@ export default function Login() {
           </div>
 
           {/* Card */}
-          <div className="glass-card-solid rounded-3xl shadow-glass-lg p-8">
+          <div className="glass-card-solid rounded-3xl shadow-glass-lg p-6 sm:p-8 lg:p-12">
             {/* Tab Switcher */}
             <div className="flex gap-1 p-1 mb-8 bg-gray-100 dark:bg-gray-700/50 rounded-2xl">
               <button

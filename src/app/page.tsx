@@ -81,11 +81,11 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+      <section className="relative pt-20 sm:pt-32 pb-12 sm:pb-20 px-4 overflow-hidden">
         {/* Background blobs */}
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-brand-400/20 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute top-40 right-1/4 w-96 h-96 bg-purple-400/15 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-0 left-1/2 w-80 h-80 bg-brand-300/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-20 left-1/4 w-48 h-48 sm:w-72 sm:h-72 bg-brand-400/20 rounded-full blur-3xl animate-pulse-soft" />
+        <div className="absolute top-40 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-400/15 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-0 left-1/2 w-48 h-48 sm:w-80 sm:h-80 bg-brand-300/10 rounded-full blur-3xl animate-pulse-soft" style={{ animationDelay: '2s' }} />
 
         <div className="relative max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full text-sm font-medium mb-8 animate-fadeUp">
@@ -218,7 +218,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4">
+      <section id="features" className="py-12 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="badge-brand mb-4 inline-block">Features</span>
@@ -287,7 +287,7 @@ export default function Home() {
       </div>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-4 bg-gray-50/50 dark:bg-gray-800/30">
+      <section id="how-it-works" className="py-12 sm:py-20 px-4 bg-gray-50/50 dark:bg-gray-800/30">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="badge-brand mb-4 inline-block">How It Works</span>
@@ -357,7 +357,7 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-600 rounded-3xl blur-xl opacity-20" />
