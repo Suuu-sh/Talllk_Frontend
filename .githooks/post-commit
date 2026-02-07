@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+if [ -n "$SKIP_DOCKER_COMPOSE" ]; then
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+COMPOSE_ROOT="$REPO_ROOT/.."
+
+if [ -f "$COMPOSE_ROOT/docker-compose.yml" ]; then
+  cd "$COMPOSE_ROOT"
+else
+  cd "$REPO_ROOT"
+fi
+
+docker compose up --build frontend backend -d

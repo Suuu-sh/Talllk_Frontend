@@ -16,6 +16,8 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
   const [situations, setSituations] = useState<PublicSituation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isTogglingFollow, setIsTogglingFollow] = useState(false)
+  const truncateText = (text: string, maxLength = 10) =>
+    text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -158,22 +160,22 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                   <p className="text-gray-500 dark:text-gray-400">公開シチュエーションがありません</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-flow-col grid-rows-1 auto-cols-[minmax(18rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-6 overflow-x-auto pb-2">
                   {situations.map((situation, index) => (
                     <div
                       key={situation.id}
                       onClick={() => router.push(`/discover/${situation.id}`)}
-                      className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp stagger-${Math.min(index + 1, 6)}`}
+                      className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col h-[260px] stagger-${Math.min(index + 1, 6)}`}
                     >
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
-                        {situation.title}
+                        {truncateText(situation.title || '')}
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-3">
-                        {situation.description || '説明なし'}
+                      <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
+                        {truncateText(situation.description || '説明なし', 15)}
                       </p>
                       {situation.labels && situation.labels.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4">
-                          {situation.labels.map((label) => (
+                          {situation.labels.slice(0, 3).map((label) => (
                             <span
                               key={label.id}
                               className="badge text-xs"
@@ -182,9 +184,14 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                               {label.name}
                             </span>
                           ))}
+                          {situation.labels.length > 3 && (
+                            <span className="badge text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                              +{situation.labels.length - 3}
+                            </span>
+                          )}
                         </div>
                       )}
-                      <div className="flex items-center justify-between text-brand-600 dark:text-brand-400 text-sm font-medium">
+                      <div className="flex items-center justify-between text-brand-600 dark:text-brand-400 text-sm font-medium mt-auto">
                         <div className="flex items-center gap-1 text-yellow-500">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />

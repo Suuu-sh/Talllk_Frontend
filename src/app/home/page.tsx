@@ -22,11 +22,18 @@ export default function Dashboard() {
   const [filterQuery, setFilterQuery] = useState('')
   const [filterFavoritesOnly, setFilterFavoritesOnly] = useState(false)
   const [filterPublicOnly, setFilterPublicOnly] = useState(false)
+  const [selectedLabelIds, setSelectedLabelIds] = useState<number[]>([])
+  const [labelOptions, setLabelOptions] = useState<Label[]>([])
+  const [isLabelOpen, setIsLabelOpen] = useState(false)
+  const [isLabelLoading, setIsLabelLoading] = useState(false)
+  const labelDropdownRef = useRef<HTMLDivElement | null>(null)
   const [togglingFavoriteIds, setTogglingFavoriteIds] = useState<Set<number>>(new Set())
   const [togglingPublicIds, setTogglingPublicIds] = useState<Set<number>>(new Set())
   const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
+  const truncateText = (text: string, maxLength = 10) =>
+    text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -45,6 +52,13 @@ export default function Dashboard() {
       setFilterQuery(typeof parsed.query === 'string' ? parsed.query : '')
       setFilterFavoritesOnly(Boolean(parsed.favoritesOnly))
       setFilterPublicOnly(Boolean(parsed.publicOnly))
+      setSelectedLabelIds(
+        Array.isArray(parsed.labelIds)
+          ? parsed.labelIds
+              .map((id: unknown) => Number(id))
+              .filter((id: number) => Number.isFinite(id))
+          : []
+      )
     } catch (err) {
       console.error(err)
     }
@@ -57,9 +71,46 @@ export default function Dashboard() {
         query: filterQuery,
         favoritesOnly: filterFavoritesOnly,
         publicOnly: filterPublicOnly,
+        labelIds: selectedLabelIds,
       })
     )
-  }, [filterQuery, filterFavoritesOnly, filterPublicOnly])
+  }, [filterQuery, filterFavoritesOnly, filterPublicOnly, selectedLabelIds])
+
+  useEffect(() => {
+    if (!isLabelOpen) return
+    if (labelOptions.length > 0) return
+    let isMounted = true
+    const fetchLabels = async () => {
+      setIsLabelLoading(true)
+      try {
+        const response = await api.get('/labels')
+        if (!isMounted) return
+        setLabelOptions(response.data?.data || [])
+      } catch (err) {
+        if (!isMounted) return
+        setLabelOptions([])
+      } finally {
+        if (!isMounted) return
+        setIsLabelLoading(false)
+      }
+    }
+    fetchLabels()
+    return () => {
+      isMounted = false
+    }
+  }, [isLabelOpen, labelOptions.length])
+
+  useEffect(() => {
+    if (!isLabelOpen) return
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!labelDropdownRef.current) return
+      if (!labelDropdownRef.current.contains(event.target as Node)) {
+        setIsLabelOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isLabelOpen])
 
   useEffect(() => {
     if (isLoading || situations.length === 0) return
@@ -160,6 +211,11 @@ export default function Dashboard() {
   const filteredSituations = sortedSituations.filter((situation) => {
     if (filterFavoritesOnly && !situation.is_favorite) return false
     if (filterPublicOnly && !situation.is_public) return false
+    if (selectedLabelIds.length > 0) {
+      if (!situation.labels || situation.labels.length === 0) return false
+      const hasMatch = situation.labels.some((label) => selectedLabelIds.includes(label.id))
+      if (!hasMatch) return false
+    }
     if (!normalizedQuery) return true
     const haystack = toRomaji(
       `${situation.title} ${situation.title_reading ?? ''} ${situation.description ?? ''}`
@@ -254,37 +310,53 @@ export default function Dashboard() {
       <Header />
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fadeUp">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 animate-fadeUp relative z-40">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   シチュエーション
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   会話の場面ごとに準備を整えましょう
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 {!isLoading && situations.length > 0 && (
-                  <div className="flex-1 min-w-[240px]">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 px-3 py-2 focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/10 dark:focus-within:ring-brand-500/20">
-                      <input
-                        type="text"
-                        placeholder="タイトル・説明で検索"
-                        className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none"
-                        value={filterQuery}
-                        onChange={(e) => setFilterQuery(e.target.value)}
-                      />
-                      <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-[240px] relative">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg hover:shadow-xl px-3 py-2 transition-all duration-300 focus-within:shadow-xl focus-within:shadow-brand-500/10 focus-within:scale-[1.01] focus-within:border-brand-400/50 dark:focus-within:border-brand-500/50">
+                      <div className="flex items-center gap-2 flex-1">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          placeholder="タイトル・説明で検索"
+                          className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none"
+                          value={filterQuery}
+                          onChange={(e) => setFilterQuery(e.target.value)}
+                        />
+                        {filterQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setFilterQuery('')}
+                            className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 relative" ref={labelDropdownRef}>
                         <button
                           type="button"
                           onClick={() => setFilterFavoritesOnly((prev) => !prev)}
                           aria-pressed={filterFavoritesOnly}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
                             filterFavoritesOnly
-                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 shadow-sm'
+                              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/60 dark:hover:text-gray-200'
                           }`}
                         >
                           お気に入り
@@ -293,14 +365,77 @@ export default function Dashboard() {
                           type="button"
                           onClick={() => setFilterPublicOnly((prev) => !prev)}
                           aria-pressed={filterPublicOnly}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
                             filterPublicOnly
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 shadow-sm'
+                              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/60 dark:hover:text-gray-200'
                           }`}
                         >
                           公開のみ
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsLabelOpen((prev) => !prev)}
+                          aria-pressed={isLabelOpen || selectedLabelIds.length > 0}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                            isLabelOpen || selectedLabelIds.length > 0
+                              ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 shadow-sm'
+                              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/60 dark:hover:text-gray-200'
+                          }`}
+                        >
+                          ラベル{selectedLabelIds.length > 0 ? `(${selectedLabelIds.length})` : ''}
+                        </button>
+                        {isLabelOpen && (
+                          <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl z-50 overflow-hidden">
+                            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+                              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                ラベル選択
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedLabelIds([])}
+                                className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                                disabled={selectedLabelIds.length === 0}
+                              >
+                                すべて解除
+                              </button>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
+                              {isLabelLoading ? (
+                                <div className="px-4 py-3 text-sm text-gray-500">読み込み中...</div>
+                              ) : labelOptions.length === 0 ? (
+                                <div className="px-4 py-3 text-sm text-gray-500">ラベルがありません</div>
+                              ) : (
+                                <div className="p-2 flex flex-wrap gap-2">
+                                  {labelOptions.map((label) => {
+                                    const isSelected = selectedLabelIds.includes(label.id)
+                                    return (
+                                      <button
+                                        key={label.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedLabelIds((prev) =>
+                                            isSelected
+                                              ? prev.filter((id) => id !== label.id)
+                                              : [...prev, label.id]
+                                          )
+                                        }}
+                                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                                          isSelected
+                                            ? 'border-transparent text-white'
+                                            : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                        style={isSelected ? { backgroundColor: label.color } : undefined}
+                                      >
+                                        {label.name}
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -312,7 +447,7 @@ export default function Dashboard() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  新規作成
+
                 </button>
               </div>
             </div>
@@ -470,14 +605,14 @@ export default function Dashboard() {
 
                     {/* Card Content */}
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
-                      {situation.title.length > 10 ? situation.title.slice(0, 10) + '...' : situation.title}
+                      {truncateText(situation.title)}
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                      {(situation.description || '説明なし').length > 15 ? (situation.description || '説明なし').slice(0, 15) + '...' : (situation.description || '説明なし')}
+                      {truncateText(situation.description || '説明なし', 15)}
                     </p>
                     {situation.labels && situation.labels.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-2 overflow-hidden max-h-6">
-                        {situation.labels.map((label) => (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {situation.labels.slice(0, 4).map((label) => (
                           <span
                             key={label.id}
                             className="badge text-xs"
@@ -486,6 +621,11 @@ export default function Dashboard() {
                             {label.name}
                           </span>
                         ))}
+                        {situation.labels.length > 4 && (
+                          <span className="badge text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                            +{situation.labels.length - 4}
+                          </span>
+                        )}
                       </div>
                     )}
 
