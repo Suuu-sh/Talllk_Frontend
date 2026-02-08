@@ -161,7 +161,7 @@ export default function FollowingPage() {
     : situations
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-base transition-colors duration-300">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-40 right-10 w-72 h-72 bg-brand-400/5 rounded-full blur-3xl" />
@@ -178,10 +178,10 @@ export default function FollowingPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="badge-brand text-xs">Following</span>
               {!isLoading && situations.length > 0 && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">{situations.length}件</span>
+                <span className="text-xs text-ink-faint">{situations.length}件</span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-ink">
               フォロー中の準備
             </h1>
           </div>
@@ -189,13 +189,13 @@ export default function FollowingPage() {
             {/* Search */}
             {!isLoading && situations.length > 0 && (
               <div className="flex-1 sm:w-64 flex items-center gap-2 rounded-2xl glass-card-solid px-3 py-2 transition-all duration-300 focus-within:shadow-xl focus-within:shadow-brand-500/10 focus-within:border-brand-400/50">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-ink-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                   type="text"
                   placeholder="タイトル・ユーザーで検索"
-                  className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none"
+                  className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-faint outline-none"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -203,7 +203,7 @@ export default function FollowingPage() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="p-0.5 rounded-full text-ink-faint hover:text-ink-body transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -224,7 +224,7 @@ export default function FollowingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <span className="text-xs text-gray-400 dark:text-gray-500 min-w-[3rem] text-center">{page}/{totalPages}</span>
+                <span className="text-xs text-ink-faint min-w-[3rem] text-center">{page}/{totalPages}</span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
@@ -242,19 +242,19 @@ export default function FollowingPage() {
         {/* Content */}
         <div className="flex-1 min-h-0">
         {isLoading ? (
-          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2">
+          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2 pt-2">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="glass-card-solid rounded-2xl p-5 animate-pulse">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-gray-200 dark:bg-gray-700" />
+                  <div className="w-9 h-9 rounded-xl bg-layer" />
                   <div className="flex gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700" />
-                    <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700" />
+                    <div className="w-8 h-8 rounded-lg bg-layer" />
+                    <div className="w-8 h-8 rounded-lg bg-layer" />
                   </div>
                 </div>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4 mb-3" />
-                <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-full mb-2" />
-                <div className="h-4 bg-gray-100 dark:bg-gray-700/50 rounded w-2/3" />
+                <div className="h-6 bg-layer rounded-lg w-3/4 mb-3" />
+                <div className="h-4 bg-layer rounded w-full mb-2" />
+                <div className="h-4 bg-layer rounded w-2/3" />
               </div>
             ))}
           </div>
@@ -274,10 +274,10 @@ export default function FollowingPage() {
                 )}
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            <h3 className="text-2xl font-bold text-ink mb-3">
               {searchQuery ? '該当するシチュエーションがありません' : 'フォロー中の公開シチュエーションがありません'}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="text-ink-muted mb-8 max-w-md mx-auto">
               {searchQuery ? '検索条件を変更してみてください' : '見つけるタブから気になるユーザーをフォローしてみましょう'}
             </p>
             {!searchQuery && (
@@ -293,7 +293,7 @@ export default function FollowingPage() {
             )}
           </div>
         ) : (
-          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2">
+          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(16rem,80vw)] sm:auto-cols-[minmax(20rem,60vw)] lg:auto-cols-[calc((100%-7rem)/3)] gap-4 overflow-x-auto pb-2 pt-2">
             {filteredSituations.map((situation) => (
               <div
                 key={situation.id}
@@ -329,7 +329,7 @@ export default function FollowingPage() {
                         </svg>
                       )}
                     </button>
-                    <span className={`text-xs font-semibold ${situation.is_starred ? 'text-yellow-600' : 'text-gray-400 dark:text-gray-500'}`}>
+                    <span className={`text-xs font-semibold ${situation.is_starred ? 'text-yellow-600' : 'text-ink-faint'}`}>
                       {situation.star_count ?? 0}
                     </span>
                     <button
@@ -361,10 +361,10 @@ export default function FollowingPage() {
                 </div>
 
                 {/* Card Content */}
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
+                <h3 className="text-xl font-bold text-ink mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                   {truncateText(situation.title)}
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+                <p className="text-ink-muted text-sm mb-2">
                   {truncateText(situation.description || '説明なし', 15)}
                 </p>
                 {situation.labels && situation.labels.length > 0 && (
@@ -375,7 +375,7 @@ export default function FollowingPage() {
                       </span>
                     ))}
                     {situation.labels.length > 4 && (
-                      <span className="badge text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">+{situation.labels.length - 4}</span>
+                      <span className="badge text-xs bg-layer text-ink-sub">+{situation.labels.length - 4}</span>
                     )}
                   </div>
                 )}
@@ -389,10 +389,12 @@ export default function FollowingPage() {
                     }}
                     className="flex items-center gap-2 text-left min-w-0"
                   >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                      {(situation.user?.name || '?')[0]}
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shrink-0">
+                      <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" />
+                      </svg>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 truncate">{situation.user?.name || '匿名'}</span>
+                    <span className="text-sm text-ink-muted truncate">{situation.user?.name || '匿名'}</span>
                   </button>
                   <div className="flex items-center gap-2">
                     {situation.user && !situation.user.is_self && (

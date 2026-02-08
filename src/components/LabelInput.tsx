@@ -112,9 +112,9 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
         </div>
       )}
       {isOpen && (
-        <div className="absolute z-20 mt-2 w-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg max-h-56 overflow-auto custom-scrollbar">
+        <div className="absolute z-20 mt-2 w-full rounded-2xl bg-surface border border-line shadow-lg max-h-40 overflow-auto custom-scrollbar">
           {isLoading ? (
-            <div className="px-4 py-3 text-sm text-gray-500">読み込み中...</div>
+            <div className="px-4 py-3 text-sm text-ink-muted">読み込み中...</div>
           ) : (
             <>
               {options
@@ -124,9 +124,9 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
                     key={label.id}
                     type="button"
                     onClick={() => addLabel(label)}
-                    className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-subtle"
                   >
-                    <span className="text-sm text-gray-700 dark:text-gray-200">{label.name}</span>
+                    <span className="text-sm text-ink-sub">{label.name}</span>
                     <span
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: label.color }}
@@ -143,7 +143,7 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
                 </button>
               )}
               {!trimmedQuery && options.length === 0 && (
-                <div className="px-4 py-3 text-sm text-gray-500">ラベルがありません</div>
+                <div className="px-4 py-3 text-sm text-ink-muted">ラベルがありません</div>
               )}
             </>
           )}

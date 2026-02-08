@@ -725,9 +725,9 @@ export default function SituationDetailPage() {
           className={`group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer
             ${isFolder
               ? 'bg-brand-50/50 dark:bg-brand-900/20 hover:bg-brand-100/70 dark:hover:bg-brand-900/30'
-              : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700'
+              : 'bg-surface hover:bg-subtle border border-line'
             }
-            ${isDragOver ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-900' : ''}
+            ${isDragOver ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-surface' : ''}
           `}
           draggable
           onDragStart={handleDragStart(
@@ -792,7 +792,7 @@ export default function SituationDetailPage() {
           <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
             isFolder
               ? 'bg-brand-100 dark:bg-brand-800/50 text-brand-600 dark:text-brand-400'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              : 'bg-layer text-ink-muted'
           }`}>
             {isFolder ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -815,7 +815,7 @@ export default function SituationDetailPage() {
                     event.stopPropagation()
                     toggleNode(nodeKey)
                   }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="text-ink-faint hover:text-ink-body transition-colors"
                 >
                   <svg
                     className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
@@ -828,7 +828,7 @@ export default function SituationDetailPage() {
                 </button>
               )}
               <span className={`font-semibold line-clamp-2 break-words ${
-                isFolder ? 'text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'
+                isFolder ? 'text-brand-700 dark:text-brand-300' : 'text-ink'
               }`}>
                 {node.title}
               </span>
@@ -837,7 +837,7 @@ export default function SituationDetailPage() {
               )}
             </div>
             {!isFolder && node.answer && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+              <p className="text-sm text-ink-muted mt-1 line-clamp-1">
                 {node.answer}
               </p>
             )}
@@ -982,7 +982,7 @@ export default function SituationDetailPage() {
       className={`mb-4 rounded-2xl border-2 border-dashed transition-all duration-200 ${
         dragOverKey === 'root'
           ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
-          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+          : 'border-line hover:border-edge'
       }`}
       onDragOver={(event) => {
         event.preventDefault()
@@ -1009,7 +1009,7 @@ export default function SituationDetailPage() {
         }
       }}
     >
-      <div className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
+      <div className="px-4 py-3 text-sm text-ink-faint text-center">
         ここにドロップしてルートへ移動
       </div>
     </div>
@@ -1029,13 +1029,13 @@ export default function SituationDetailPage() {
 
   if (!situation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-base">
         {/* Skeleton Nav */}
         <div className="glass-card-solid sticky top-0 z-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16 gap-3">
-              <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-              <div className="hidden sm:block w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="w-16 h-8 bg-layer rounded-lg animate-pulse" />
+              <div className="hidden sm:block w-32 h-4 bg-layer rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -1043,13 +1043,13 @@ export default function SituationDetailPage() {
           {/* Skeleton Header Card */}
           <div className="glass-card-solid rounded-3xl p-6 mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="w-14 h-14 rounded-2xl bg-layer animate-pulse" />
               <div className="flex-1 space-y-3">
-                <div className="w-48 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                <div className="w-64 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="w-48 h-6 bg-layer rounded animate-pulse" />
+                <div className="w-64 h-4 bg-layer rounded animate-pulse" />
                 <div className="flex gap-3">
-                  <div className="w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  <div className="w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-layer rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-layer rounded animate-pulse" />
                 </div>
               </div>
             </div>
@@ -1057,11 +1057,11 @@ export default function SituationDetailPage() {
           {/* Skeleton Tree */}
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800">
-                <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-surface">
+                <div className="w-10 h-10 rounded-xl bg-layer animate-pulse" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
-                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-1/2" />
+                  <div className="h-4 bg-layer rounded animate-pulse" style={{ width: `${60 + i * 10}%` }} />
+                  <div className="h-3 bg-layer rounded animate-pulse w-1/2" />
                 </div>
               </div>
             ))}
@@ -1072,7 +1072,7 @@ export default function SituationDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <div className="min-h-screen bg-base transition-colors duration-300">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-32 right-0 w-96 h-96 bg-brand-400/5 rounded-full blur-3xl" />
@@ -1093,7 +1093,7 @@ export default function SituationDetailPage() {
                 </svg>
                 <span className="font-medium">戻る</span>
               </button>
-              <span className="hidden sm:block text-sm font-semibold text-gray-700 dark:text-gray-300 truncate max-w-[200px] lg:max-w-[300px]">
+              <span className="hidden sm:block text-sm font-semibold text-ink-sub truncate max-w-[200px] lg:max-w-[300px]">
                 {situation.title}
               </span>
             </div>
@@ -1114,8 +1114,8 @@ export default function SituationDetailPage() {
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{situation.title}</h1>
-                  <p className="text-gray-500 dark:text-gray-400 mt-1">{situation.description || '説明なし'}</p>
+                  <h1 className="text-2xl font-bold text-ink">{situation.title}</h1>
+                  <p className="text-ink-muted mt-1">{situation.description || '説明なし'}</p>
                   {situation.labels && situation.labels.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {situation.labels.map((label) => (
@@ -1131,15 +1131,15 @@ export default function SituationDetailPage() {
                   )}
                   {/* Stats row */}
                   <div className="flex items-center gap-3 mt-3">
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1.5 text-sm text-ink-muted">
                       <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                       </svg>
                       <span className="font-medium">{situation.topics.length}</span>
                       <span>フォルダ</span>
                     </div>
-                    <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="w-px h-4 bg-line" />
+                    <div className="flex items-center gap-1.5 text-sm text-ink-muted">
                       <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -1241,15 +1241,15 @@ export default function SituationDetailPage() {
             </>
           ) : (
             <div className="text-center py-16 animate-fadeUp">
-              <div className="inline-block p-6 bg-gray-100 dark:bg-gray-800 rounded-2xl mb-4">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-block p-6 bg-layer rounded-2xl mb-4">
+                <svg className="w-12 h-12 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-ink mb-2">
                 フォルダがありません
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-ink-muted mb-6">
                 最初のフォルダを作成して質問を追加しましょう
               </p>
               <button
@@ -1293,7 +1293,7 @@ export default function SituationDetailPage() {
                     </svg>
                     質問
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</div>
+                  <div className="font-semibold text-ink">{selectedTask.title}</div>
                 </div>
                 <div className="divider" />
                 <div>
@@ -1303,7 +1303,7 @@ export default function SituationDetailPage() {
                     </svg>
                     回答
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                  <div className="bg-inset rounded-xl p-4 text-ink-sub whitespace-pre-wrap">
                     {selectedTask.answer || '（未回答）'}
                   </div>
                 </div>
@@ -1311,7 +1311,7 @@ export default function SituationDetailPage() {
                   <>
                     <div className="divider" />
                     <div>
-                      <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">紐付け</div>
+                      <div className="text-xs font-medium text-ink-faint uppercase tracking-wider mb-2">紐付け</div>
                       <div className="flex flex-wrap gap-2">
                         {selectedTask.linkedTopicTitle && (
                           <span className="badge-brand">{selectedTask.linkedTopicTitle}</span>
@@ -1347,12 +1347,12 @@ export default function SituationDetailPage() {
             >
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
               <div
-                className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl max-h-[80vh] overflow-y-auto animate-slideUp relative"
+                className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[80vh] overflow-y-auto animate-slideUp relative"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Drag handle */}
                 <div className="flex justify-center pt-3 pb-1">
-                  <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  <div className="w-10 h-1 rounded-full bg-edge" />
                 </div>
                 <button
                   onClick={() => setSelectedTask(null)}
@@ -1371,7 +1371,7 @@ export default function SituationDetailPage() {
                       </svg>
                       質問
                     </div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{selectedTask.title}</div>
+                    <div className="font-semibold text-ink">{selectedTask.title}</div>
                   </div>
                   <div className="divider" />
                   <div>
@@ -1381,7 +1381,7 @@ export default function SituationDetailPage() {
                       </svg>
                       回答
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                    <div className="bg-inset rounded-xl p-4 text-ink-sub whitespace-pre-wrap">
                       {selectedTask.answer || '（未回答）'}
                     </div>
                   </div>
@@ -1389,7 +1389,7 @@ export default function SituationDetailPage() {
                     <>
                       <div className="divider" />
                       <div>
-                        <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">紐付け</div>
+                        <div className="text-xs font-medium text-ink-faint uppercase tracking-wider mb-2">紐付け</div>
                         <div className="flex flex-wrap gap-2">
                           {selectedTask.linkedTopicTitle && (
                             <span className="badge-brand">{selectedTask.linkedTopicTitle}</span>
@@ -1429,7 +1429,7 @@ export default function SituationDetailPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h3 className="text-xl font-bold text-ink">
                 {modalType === 'folder'
                   ? editingTopicId !== null
                     ? 'フォルダを編集'
@@ -1448,7 +1448,7 @@ export default function SituationDetailPage() {
               {modalType === 'folder' ? (
                 <>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       フォルダ名 <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1461,7 +1461,7 @@ export default function SituationDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       説明（任意）
                     </label>
                     <textarea
@@ -1476,7 +1476,7 @@ export default function SituationDetailPage() {
               ) : (
                 <>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       質問 <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1489,7 +1489,7 @@ export default function SituationDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       回答（任意）
                     </label>
                     <textarea
@@ -1501,7 +1501,7 @@ export default function SituationDetailPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       フォルダへの紐付け
                     </label>
                     <select
@@ -1523,7 +1523,7 @@ export default function SituationDetailPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-semibold text-ink-sub mb-2">
                       質問への紐付け
                     </label>
                     <select
@@ -1593,7 +1593,7 @@ export default function SituationDetailPage() {
             className="glass-card-solid rounded-3xl p-6 max-w-sm w-full shadow-glass-lg animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+            <h3 className="text-xl font-bold text-ink mb-6 text-center">
               何を作成しますか？
             </h3>
             <div className="space-y-3">
@@ -1609,8 +1609,8 @@ export default function SituationDetailPage() {
                     </svg>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">フォルダ</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">質問をグループ化</div>
+                    <div className="font-semibold text-ink">フォルダ</div>
+                    <div className="text-sm text-ink-muted">質問をグループ化</div>
                   </div>
                 </button>
               )}
@@ -1628,8 +1628,8 @@ export default function SituationDetailPage() {
                     </svg>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">質問</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Q&Aを追加</div>
+                    <div className="font-semibold text-ink">質問</div>
+                    <div className="text-sm text-ink-muted">Q&Aを追加</div>
                   </div>
                 </button>
               )}
@@ -1656,7 +1656,7 @@ export default function SituationDetailPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">シチュエーションを編集</h3>
+              <h3 className="text-xl font-bold text-ink">シチュエーションを編集</h3>
               <button onClick={() => setShowSituationModal(false)} className="btn-icon-sm">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1665,7 +1665,7 @@ export default function SituationDetailPage() {
             </div>
             <form onSubmit={handleSituationSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-ink-sub mb-2">
                   タイトル <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1678,7 +1678,7 @@ export default function SituationDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-ink-sub mb-2">
                   説明（任意）
                 </label>
                 <textarea
@@ -1690,7 +1690,7 @@ export default function SituationDetailPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-ink-sub mb-2">
                   ラベル（任意）
                 </label>
                 <LabelInput
@@ -1736,10 +1736,10 @@ export default function SituationDetailPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-ink">
                 {pendingPublicValue ? '公開しますか？' : '非公開にしますか？'}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-sm text-ink-muted mt-2">
                 {pendingPublicValue
                   ? '公開すると他のユーザーに表示されます。'
                   : '非公開にすると他のユーザーから見えなくなります。'}
@@ -1785,8 +1785,8 @@ export default function SituationDetailPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">削除の確認</h3>
-              <p className="text-gray-600 dark:text-gray-400">{deleteConfirm.message}</p>
+              <h3 className="text-lg font-bold text-ink mb-2">削除の確認</h3>
+              <p className="text-ink-body">{deleteConfirm.message}</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -1803,7 +1803,7 @@ export default function SituationDetailPage() {
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-colors"
+                className="flex-1 py-3 px-4 bg-layer hover:bg-subtle text-ink-sub font-medium rounded-xl transition-colors"
               >
                 キャンセル
               </button>

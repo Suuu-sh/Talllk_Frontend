@@ -29,15 +29,21 @@ export default function Home() {
     }
   }
 
+  const scrolledNavClass = scrolled
+    ? theme === 'dark'
+      ? 'bg-surface/95'
+      : 'glass-card-solid shadow-glass'
+    : 'bg-transparent'
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-base">
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass-card-solid shadow-glass' : 'bg-transparent'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${scrolledNavClass}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-lg tracking-wider rounded-xl shadow-glow-sm">
+            <span className="font-logo text-xl font-bold text-brand-500 px-3 py-1 border-2 border-brand-500 rounded-xl">
               Talllk
-            </div>
+            </span>
             <div className="flex items-center gap-3">
               <a href="#features" className="hidden sm:inline-block btn-ghost text-sm">
                 機能
@@ -93,16 +99,16 @@ export default function Home() {
             会話準備アプリ
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 animate-fadeUp stagger-1">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-ink mb-4 animate-fadeUp stagger-1">
             もう、話題に困らない
           </h1>
 
-          <p className="text-xl sm:text-2xl text-gray-700 dark:text-gray-200 font-medium mb-6 animate-fadeUp stagger-2">
+          <p className="text-xl sm:text-2xl text-ink-sub font-medium mb-6 animate-fadeUp stagger-2">
             大切な会話に、
             <span className="text-gradient">自信を持って臨む</span>
           </p>
 
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto animate-fadeUp stagger-3">
+          <p className="text-lg text-ink-body mb-10 max-w-2xl mx-auto animate-fadeUp stagger-3">
             友達との雑談、気になる人とのデート、初対面の会話...
             <br className="hidden sm:block" />
             話題に困らない自分になるための会話準備アプリ
@@ -118,7 +124,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
-            <span className="text-sm text-gray-500 dark:text-gray-400">無料 / 30秒で登録</span>
+            <span className="text-sm text-ink-muted">無料 / 30秒で登録</span>
           </div>
         </div>
 
@@ -134,18 +140,18 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
-                <div className="font-semibold text-gray-900 dark:text-white mb-1">初デート</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">4つのトピック</div>
+                <div className="font-semibold text-ink mb-1">初デート</div>
+                <div className="text-sm text-ink-muted">4つのトピック</div>
               </div>
               {/* Topic Card */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 animate-float" style={{ animationDelay: '0.5s' }}>
-                <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 mb-3">
+              <div className="bg-surface rounded-2xl p-4 border border-line animate-float" style={{ animationDelay: '0.5s' }}>
+                <div className="w-10 h-10 rounded-xl bg-layer flex items-center justify-center text-ink-muted mb-3">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
                 </div>
-                <div className="font-semibold text-gray-900 dark:text-white mb-1">趣味の話</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">5つの質問</div>
+                <div className="font-semibold text-ink mb-1">趣味の話</div>
+                <div className="text-sm text-ink-muted">5つの質問</div>
               </div>
               {/* Question Card */}
               <div className="bg-green-50 dark:bg-green-900/30 rounded-2xl p-4 animate-float" style={{ animationDelay: '1s' }}>
@@ -154,8 +160,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="font-semibold text-gray-900 dark:text-white mb-1">休日は何してる？</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">回答準備済み</div>
+                <div className="font-semibold text-ink mb-1">休日は何してる？</div>
+                <div className="text-sm text-ink-muted">回答準備済み</div>
               </div>
             </div>
           </div>
@@ -174,7 +180,7 @@ export default function Home() {
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="text-2xl sm:text-4xl font-bold text-gradient mb-1">{stat.value}</div>
-                <div className="text-sm sm:text-base text-gray-500 dark:text-gray-400">{stat.label}</div>
+                <div className="text-sm sm:text-base text-ink-muted">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -200,15 +206,17 @@ export default function Home() {
             ].map((review, i) => (
               <div key={i} className="glass-card-solid rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-sm">
-                    {review.name[0]}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" />
+                    </svg>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">{review.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{review.role}</div>
+                    <div className="font-semibold text-ink text-sm">{review.name}</div>
+                    <div className="text-xs text-ink-muted">{review.role}</div>
                   </div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                <p className="text-ink-body text-sm leading-relaxed">
                   &ldquo;{review.text}&rdquo;
                 </p>
               </div>
@@ -222,10 +230,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="badge-brand mb-4 inline-block">Features</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               シンプルで使いやすい
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+            <p className="text-ink-body text-lg max-w-2xl mx-auto">
               直感的なインターフェースで、すぐに会話の準備を始められます
             </p>
           </div>
@@ -267,10 +275,10 @@ export default function Home() {
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-4 shadow-glow-sm">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-ink mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-ink-body">
                   {feature.description}
                 </p>
               </div>
@@ -280,18 +288,18 @@ export default function Home() {
       </section>
 
       {/* Wave divider */}
-      <div className="text-gray-50 dark:text-gray-800/30">
+      <div className="text-layer">
         <svg viewBox="0 0 1440 60" fill="currentColor" preserveAspectRatio="none" className="w-full h-[40px] sm:h-[60px]">
           <path d="M0,0 C360,60 1080,0 1440,40 L1440,60 L0,60 Z" />
         </svg>
       </div>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-12 sm:py-20 px-4 bg-gray-50/50 dark:bg-gray-800/30">
+      <section id="how-it-works" className="py-12 sm:py-20 px-4 bg-layer">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="badge-brand mb-4 inline-block">How It Works</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-ink mb-4">
               3ステップで準備完了
             </h2>
           </div>
@@ -306,7 +314,7 @@ export default function Home() {
                 title: 'シチュエーション作成',
                 desc: 'デート、友達との食事など場面を作成',
                 icon: (
-                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                   </svg>
                 ),
@@ -316,7 +324,7 @@ export default function Home() {
                 title: '質問を追加',
                 desc: '話したいこと、聞きたいことをメモ',
                 icon: (
-                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 ),
@@ -326,7 +334,7 @@ export default function Home() {
                 title: '本番で活用',
                 desc: '準備があるから余裕を持てる',
                 icon: (
-                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
                   </svg>
                 ),
@@ -336,10 +344,10 @@ export default function Home() {
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4 shadow-glow relative z-10">
                   {item.step}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-ink mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-3">
+                <p className="text-ink-body mb-3">
                   {item.desc}
                 </p>
                 <div className="flex justify-center">{item.icon}</div>
@@ -350,7 +358,7 @@ export default function Home() {
       </section>
 
       {/* Wave divider (flipped) */}
-      <div className="text-gray-50 dark:text-gray-800/30 rotate-180">
+      <div className="text-layer rotate-180">
         <svg viewBox="0 0 1440 60" fill="currentColor" preserveAspectRatio="none" className="w-full h-[40px] sm:h-[60px]">
           <path d="M0,0 C360,60 1080,0 1440,40 L1440,60 L0,60 Z" />
         </svg>
@@ -385,30 +393,30 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-gray-200 dark:border-gray-700">
+      <footer className="py-12 px-4 border-t border-line">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
             {/* Brand */}
             <div>
-              <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold tracking-wider rounded-xl inline-block mb-3">
+              <span className="font-logo text-lg font-bold text-brand-500 px-3 py-1 border-2 border-brand-500 rounded-xl inline-block mb-3">
                 Talllk
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              </span>
+              <p className="text-sm text-ink-muted">
                 大切な会話に自信を持って臨むための会話準備アプリ
               </p>
             </div>
             {/* Product links */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">プロダクト</h4>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+              <h4 className="font-semibold text-ink mb-3 text-sm">プロダクト</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
                 <li><a href="#features" className="hover:text-brand-500 transition-colors">機能</a></li>
                 <li><a href="#how-it-works" className="hover:text-brand-500 transition-colors">使い方</a></li>
               </ul>
             </div>
             {/* SNS / Links */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm">リンク</h4>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+              <h4 className="font-semibold text-ink mb-3 text-sm">リンク</h4>
+              <ul className="space-y-2 text-sm text-ink-muted">
                 <li><a href="/privacy" className="hover:text-brand-500 transition-colors">プライバシーポリシー</a></li>
                 <li><a href="/terms" className="hover:text-brand-500 transition-colors">利用規約</a></li>
               </ul>
@@ -416,7 +424,7 @@ export default function Home() {
           </div>
           <div className="divider mb-6" />
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-ink-faint">
               &copy; {new Date().getFullYear()} Talllk. All rights reserved.
             </p>
           </div>

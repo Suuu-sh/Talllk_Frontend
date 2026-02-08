@@ -48,7 +48,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-white to-brand-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-y-auto">
+    <div className="min-h-screen flex bg-base overflow-y-auto">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-72 h-72 bg-brand-400/15 rounded-full blur-3xl animate-pulse-soft" />
@@ -60,7 +60,7 @@ export default function Login() {
       <div className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <button
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium"
+          className="flex items-center gap-2 text-ink-muted hover:text-ink transition-colors text-sm font-medium"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -88,13 +88,13 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-8 lg:p-12">
         <div className="relative max-w-md">
           <div className="mb-8 animate-fadeUp">
-            <div className="inline-block px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-3xl tracking-wider rounded-2xl shadow-glow mb-8">
+            <span className="font-logo text-4xl font-bold text-brand-500 px-5 py-2 border-3 border-brand-500 rounded-2xl inline-block mb-8">
               Talllk
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            </span>
+            <h2 className="text-4xl font-bold text-ink mb-4">
               もう、話題に困らない
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
+            <p className="text-lg text-ink-body">
               大切な会話に自信を持って臨むための会話準備アプリ
             </p>
           </div>
@@ -134,24 +134,24 @@ export default function Login() {
                   {item.icon}
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</div>
+                  <div className="font-semibold text-ink text-sm">{item.title}</div>
+                  <div className="text-sm text-ink-muted">{item.desc}</div>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Mini social proof */}
-          <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700 animate-fadeUp stagger-3">
+          <div className="mt-10 pt-8 border-t border-line animate-fadeUp stagger-3">
             <div className="flex items-center gap-6">
               <div>
                 <div className="text-2xl font-bold text-gradient">1,200+</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">ユーザー</div>
+                <div className="text-xs text-ink-muted">ユーザー</div>
               </div>
-              <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+              <div className="w-px h-8 bg-line" />
               <div>
                 <div className="text-2xl font-bold text-gradient">98%</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">満足度</div>
+                <div className="text-xs text-ink-muted">満足度</div>
               </div>
             </div>
           </div>
@@ -164,27 +164,24 @@ export default function Login() {
           {/* Logo (mobile/tablet only) */}
           <div className="text-center mb-10 lg:hidden">
             <div className="inline-flex items-center justify-center mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-brand-500/20 blur-xl rounded-full" />
-                <div className="relative px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-2xl tracking-wider rounded-2xl shadow-glow">
-                  Talllk
-                </div>
-              </div>
+              <span className="font-logo text-3xl font-bold text-brand-500 px-4 py-1.5 border-2 border-brand-500 rounded-2xl">
+                Talllk
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+            <h1 className="text-3xl font-bold text-ink mb-3">
               {isLogin ? 'おかえりなさい' : 'はじめまして'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
+            <p className="text-ink-muted text-lg">
               会話の準備をサポートします
             </p>
           </div>
 
           {/* Desktop heading */}
           <div className="hidden lg:block text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-ink mb-2">
               {isLogin ? 'おかえりなさい' : 'はじめまして'}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-ink-muted">
               {isLogin ? 'アカウントにログインしてください' : '無料でアカウントを作成'}
             </p>
           </div>
@@ -192,13 +189,13 @@ export default function Login() {
           {/* Card */}
           <div className="glass-card-solid rounded-3xl shadow-glass-lg p-6 sm:p-8 lg:p-12">
             {/* Tab Switcher */}
-            <div className="flex gap-1 p-1 mb-8 bg-gray-100 dark:bg-gray-700/50 rounded-2xl">
+            <div className="flex gap-1 p-1 mb-8 bg-layer rounded-2xl">
               <button
                 onClick={() => setIsLogin(true)}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   isLogin
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-surface text-ink shadow-md'
+                    : 'text-ink-muted hover:text-ink-sub'
                 }`}
               >
                 ログイン
@@ -207,8 +204,8 @@ export default function Login() {
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   !isLogin
-                    ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    ? 'bg-surface text-ink shadow-md'
+                    : 'text-ink-muted hover:text-ink-sub'
                 }`}
               >
                 新規登録
@@ -247,7 +244,7 @@ export default function Login() {
               {/* Name Field (Register only) */}
               {!isLogin && (
                 <div className="animate-fadeUp">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-ink-sub mb-2">
                     お名前
                   </label>
                   <input
@@ -263,7 +260,7 @@ export default function Login() {
 
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-ink-sub mb-2">
                   メールアドレス
                 </label>
                 <input
@@ -278,7 +275,7 @@ export default function Login() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-ink-sub mb-2">
                   パスワード
                 </label>
                 <input
@@ -317,7 +314,7 @@ export default function Login() {
             </form>
 
             {!isLogin && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-4">
+              <p className="text-xs text-ink-faint text-center mt-4">
                 無料 / 30秒で登録完了
               </p>
             )}
@@ -325,7 +322,7 @@ export default function Login() {
 
           {/* Footer Text */}
           <div className="text-center mt-8">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-ink-muted">
               面接、デート、会議などの会話準備に
             </p>
           </div>

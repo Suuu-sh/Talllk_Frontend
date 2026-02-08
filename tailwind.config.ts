@@ -22,6 +22,20 @@ const config: Config = {
           800: '#9a3412',
           900: '#7c2d12',
         },
+        base: 'rgb(var(--base) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        layer: 'rgb(var(--layer) / <alpha-value>)',
+        inset: 'rgb(var(--inset) / <alpha-value>)',
+        subtle: 'rgb(var(--subtle) / <alpha-value>)',
+        line: 'rgb(var(--line) / <alpha-value>)',
+        edge: 'rgb(var(--edge) / <alpha-value>)',
+        ink: {
+          DEFAULT: 'rgb(var(--ink) / <alpha-value>)',
+          sub: 'rgb(var(--ink-sub) / <alpha-value>)',
+          body: 'rgb(var(--ink-body) / <alpha-value>)',
+          muted: 'rgb(var(--ink-muted) / <alpha-value>)',
+          faint: 'rgb(var(--ink-faint) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: [
@@ -32,6 +46,7 @@ const config: Config = {
           '"Noto Sans JP"',
           'sans-serif',
         ],
+        logo: ['var(--font-logo)', 'sans-serif'],
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
