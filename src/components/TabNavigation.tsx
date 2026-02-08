@@ -53,7 +53,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
 
   return (
     <>
-      <div className="glass-card-solid border-t-0 border-x-0">
+      <div className="glass-card-solid border-t-0 border-x-0 shadow-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1">
             {tabs.map((tab) => (

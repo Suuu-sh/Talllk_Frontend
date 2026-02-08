@@ -114,9 +114,9 @@ export default function Header() {
               onClick={() => router.push('/home')}
               className="flex items-center gap-3 group"
             >
-              <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-lg tracking-wider rounded-xl shadow-glow-sm group-hover:shadow-glow transition-shadow duration-300">
+              <span className="font-logo text-xl font-bold text-brand-500 px-3 py-1 border-2 border-brand-500 rounded-xl group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">
                 Talllk
-              </div>
+              </span>
             </button>
 
             {/* Actions */}
@@ -163,7 +163,7 @@ export default function Header() {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="btn-ghost flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
+                className="btn-ghost flex items-center gap-2 text-ink-body hover:text-red-600 dark:hover:text-red-400"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -187,7 +187,7 @@ export default function Header() {
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">設定</h3>
+              <h3 className="text-xl font-bold text-ink">設定</h3>
               <button
                 onClick={() => setShowSettings(false)}
                 className="btn-icon-sm"
@@ -200,7 +200,7 @@ export default function Header() {
 
             {/* Theme Toggle */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
+                <div className="flex items-center justify-between p-4 bg-layer rounded-2xl">
                   <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-md">
                     {theme === 'dark' ? (
@@ -214,8 +214,8 @@ export default function Header() {
                     )}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">外観</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="font-semibold text-ink">外観</div>
+                    <div className="text-sm text-ink-muted">
                       {theme === 'dark' ? 'ダークモード' : 'ライトモード'}
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={openLabelModal}
-                className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="w-full flex items-center justify-between p-4 bg-layer rounded-2xl hover:bg-subtle transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white shadow-md">
@@ -245,13 +245,13 @@ export default function Header() {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-gray-900 dark:text-white">ラベル管理</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="font-semibold text-ink">ラベル管理</div>
+                    <div className="text-sm text-ink-muted">
                       ラベルの追加・削除
                     </div>
                   </div>
                 </div>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -261,7 +261,7 @@ export default function Header() {
 
               {/* Version */}
               <div className="text-center">
-                <span className="text-xs text-gray-400 dark:text-gray-500">
+                <span className="text-xs text-ink-faint">
                   Version 1.0.0
                 </span>
               </div>
@@ -281,7 +281,7 @@ export default function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">ラベル管理</h3>
+              <h3 className="text-xl font-bold text-ink">ラベル管理</h3>
               <button
                 onClick={closeLabelModal}
                 className="btn-icon-sm"
@@ -316,21 +316,21 @@ export default function Header() {
 
             <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-2">
               {isLabelLoading ? (
-                <div className="text-sm text-gray-500 py-4 text-center">読み込み中...</div>
+                <div className="text-sm text-ink-muted py-4 text-center">読み込み中...</div>
               ) : labels.length === 0 ? (
-                <div className="text-sm text-gray-500 py-4 text-center">ラベルがありません</div>
+                <div className="text-sm text-ink-muted py-4 text-center">ラベルがありません</div>
               ) : (
                 labels.map((label) => (
                   <div
                     key={label.id}
-                    className="flex items-center justify-between px-3 py-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60"
+                    className="flex items-center justify-between px-3 py-2 rounded-2xl border border-line bg-surface/60"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: label.color }}
                       />
-                      <span className="text-sm text-gray-700 dark:text-gray-200 truncate">
+                      <span className="text-sm text-ink-sub truncate">
                         {label.name}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export default function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">通知</h3>
+              <h3 className="text-xl font-bold text-ink">通知</h3>
               <button
                 onClick={() => setShowNotifications(false)}
                 className="btn-icon-sm"
@@ -382,8 +382,8 @@ export default function Header() {
               </button>
             </div>
             <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
-                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-layer mb-4">
+                <svg className="w-7 h-7 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -392,7 +392,7 @@ export default function Header() {
                   />
                 </svg>
               </div>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-ink-muted">
                 通知はありません
               </p>
             </div>

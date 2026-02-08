@@ -78,6 +78,8 @@ export interface PublicSituationDetail extends PublicSituation {
 export interface UserProfile {
   id: number
   name: string
+  avatar_url: string
+  header_image_url: string
   follower_count: number
   following_count: number
   is_following: boolean
