@@ -341,41 +341,6 @@ export default function SituationsPage() {
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
       <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-        {/* Page Header */}
-        <div className="mb-6 animate-fadeUp">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="badge-brand text-xs">Situations</span>
-                {!isLoading && situations.length > 0 && (
-                  <span className="text-xs text-ink-faint">{situations.length}件</span>
-                )}
-              </div>
-              <h1 className="text-2xl font-bold text-ink">
-                シチュエーション
-              </h1>
-            </div>
-            {!isLoading && situations.length > 0 && (
-              <div className="flex items-center gap-4 sm:gap-6">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-ink">{situations.length}</div>
-                  <div className="text-xs text-ink-muted">合計</div>
-                </div>
-                <div className="w-px h-8 bg-line" />
-                <div className="text-center">
-                  <div className="text-lg font-bold text-yellow-500">{favoriteCount}</div>
-                  <div className="text-xs text-ink-muted">お気に入り</div>
-                </div>
-                <div className="w-px h-8 bg-line" />
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-500">{publicCount}</div>
-                  <div className="text-xs text-ink-muted">公開中</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Filter + Create */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3 animate-fadeUp relative z-40">
           {!isLoading && situations.length > 0 && (

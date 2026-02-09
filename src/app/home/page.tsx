@@ -241,20 +241,6 @@ export default function Dashboard() {
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
       <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
-        {/* Welcome */}
-        <div className="mb-4 animate-fadeUp">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="badge-brand text-xs">Home</span>
-              </div>
-              <h1 className="text-2xl font-bold text-ink">
-                ホーム
-              </h1>
-            </div>
-          </div>
-        </div>
-
         {/* 2-column Dashboard */}
         {isLoading ? (
           <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-pulse">
