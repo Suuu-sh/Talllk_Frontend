@@ -530,30 +530,10 @@ export default function SituationsPage() {
           )}
         </div>
 
-        {/* Stats bar */}
-        {!isLoading && situations.length > 0 && (
-          <div className="flex items-center gap-4 sm:gap-6 mb-3 animate-fadeUp">
-            <div className="text-center">
-              <div className="text-lg font-bold text-ink">{situations.length}</div>
-              <div className="text-xs text-ink-muted">合計</div>
-            </div>
-            <div className="w-px h-8 bg-line" />
-            <div className="text-center">
-              <div className="text-lg font-bold text-yellow-500">{favoriteCount}</div>
-              <div className="text-xs text-ink-muted">お気に入り</div>
-            </div>
-            <div className="w-px h-8 bg-line" />
-            <div className="text-center">
-              <div className="text-lg font-bold text-green-500">{publicCount}</div>
-              <div className="text-xs text-ink-muted">公開中</div>
-            </div>
-          </div>
-        )}
-
         {/* Content */}
         <div className="flex-1 min-h-0 relative z-0">
         {isLoading ? (
-          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(13rem,70vw)] sm:auto-cols-[minmax(16rem,48vw)] lg:auto-cols-[calc((100%-10rem)/3)] gap-4 overflow-x-auto scrollbar-hide pb-2 mt-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-2">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -616,7 +596,7 @@ export default function SituationsPage() {
           </div>
         ) : (
           /* Grid */
-          <div className="h-full grid grid-flow-col grid-rows-1 md:grid-rows-2 auto-cols-[minmax(13rem,70vw)] sm:auto-cols-[minmax(16rem,48vw)] lg:auto-cols-[calc((100%-10rem)/3)] gap-4 overflow-x-auto scrollbar-hide pb-2 animate-fadeUp stagger-2 mt-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeUp stagger-2 mt-3 pt-2">
             {filteredSituations.map((situation) => (
               <div
                 key={situation.id}
@@ -649,21 +629,48 @@ export default function SituationsPage() {
                     : ''
                 }`}
               >
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500 group-hover:scale-110 transition-all duration-300">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-layer flex items-center justify-center text-ink">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 19a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-4l-2-2H6a2 2 0 00-2 2v14z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-semibold text-brand-500 truncate">
+                          {truncateText(situation.title)}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={(e) => handleTogglePublic(situation, e)}
+                          disabled={togglingPublicIds.has(situation.id)}
+                          className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70 hover:bg-surface transition-colors"
+                        >
+                          {situation.is_public ? '公開' : '非公開'}
+                        </button>
+                      </div>
+                      {situation.labels && situation.labels.length > 0 ? (
+                        <div className="flex items-center gap-2 text-xs text-ink-muted mt-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: situation.labels[0].color }}
+                          />
+                          <span className="truncate">{situation.labels[0].name}</span>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-ink-muted mt-2">ラベルなし</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={(e) => handleToggleFavorite(situation, e)}
                       disabled={togglingFavoriteIds.has(situation.id)}
-                      className={`btn-icon-sm transition-all duration-300 ${
+                      className={`transition-all duration-300 ${
                         situation.is_favorite
-                          ? '!text-yellow-500'
-                          : 'hover:bg-brand-500/15 hover:text-brand-500'
+                          ? 'text-yellow-500'
+                          : 'text-ink-muted hover:text-ink'
                       }`}
                       title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
                     >
@@ -678,66 +685,17 @@ export default function SituationsPage() {
                         </svg>
                       )}
                     </button>
-                    <button
-                      onClick={(e) => handleTogglePublic(situation, e)}
-                      disabled={togglingPublicIds.has(situation.id)}
-                      className={`btn-icon-sm transition-all duration-300 ${
-                        situation.is_public
-                          ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
-                          : 'hover:bg-brand-500/15 hover:text-brand-500'
-                      }`}
-                      title={situation.is_public ? '公開中（クリックで非公開に）' : '非公開（クリックで公開に）'}
-                    >
-                      {togglingPublicIds.has(situation.id) ? (
-                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                      ) : situation.is_public ? (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      )}
-                    </button>
+                    <div className="text-ink-faint">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="8" cy="7" r="1.5" />
+                        <circle cx="8" cy="12" r="1.5" />
+                        <circle cx="8" cy="17" r="1.5" />
+                        <circle cx="13" cy="7" r="1.5" />
+                        <circle cx="13" cy="12" r="1.5" />
+                        <circle cx="13" cy="17" r="1.5" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-
-                {/* Card Content */}
-                <h3 className="text-xl font-bold text-ink mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
-                  {truncateText(situation.title)}
-                </h3>
-                <p className="text-ink-muted text-sm mb-2">
-                  {truncateText(situation.description || '説明なし', 15)}
-                </p>
-                {situation.labels && situation.labels.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {situation.labels.slice(0, 4).map((label) => (
-                      <span
-                        key={label.id}
-                        className="badge text-xs"
-                        style={{ backgroundColor: label.color, color: '#FFFFFF' }}
-                      >
-                        {label.name}
-                      </span>
-                    ))}
-                    {situation.labels.length > 4 && (
-                      <span className="badge text-xs bg-layer text-ink-sub">
-                        +{situation.labels.length - 4}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Card Footer */}
-                <div className="flex items-center text-brand-500 text-sm font-medium mt-auto">
-                  <span className="group-hover:underline">詳細を見る</span>
-                  <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
                 </div>
               </div>
             ))}
