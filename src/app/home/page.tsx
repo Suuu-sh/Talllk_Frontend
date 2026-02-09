@@ -259,7 +259,7 @@ export default function Dashboard() {
               <div className="flex flex-col items-center px-5 pt-6 pb-5">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
-                  className={`w-36 h-36 rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
+                  className={`w-[13.5rem] h-[13.5rem] rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
                     profile?.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile?.id ?? 0)}`
                   } flex items-center justify-center overflow-hidden ring-2 ring-white/10 relative group`}
                 >
