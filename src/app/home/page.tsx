@@ -39,16 +39,6 @@ const dummyChartData1 = [
   { day: '日', value: 9 },
 ]
 
-const dummyChartData2 = [
-  { day: '月', value: 2 },
-  { day: '火', value: 4 },
-  { day: '水', value: 3 },
-  { day: '木', value: 5 },
-  { day: '金', value: 8 },
-  { day: '土', value: 6 },
-  { day: '日', value: 7 },
-]
-
 export default function Dashboard() {
   const router = useRouter()
   const [situations, setSituations] = useState<Situation[]>([])
@@ -231,11 +221,11 @@ export default function Dashboard() {
 
       <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
         {/* Welcome */}
-        <div className="mb-6 animate-fadeUp">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-4">
+        <div className="mb-4 animate-fadeUp">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="badge-brand text-xs">Dashboard</span>
+                <span className="badge-brand text-xs">Home</span>
               </div>
               <h1 className="text-2xl font-bold text-ink">
                 ホーム
@@ -244,223 +234,255 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 4-column Dashboard Grid */}
+        {/* 2-column Dashboard */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="glass-card-muted rounded-2xl p-5 min-h-[20rem]">
-                <div className="h-6 bg-layer rounded-lg w-3/4 mb-4" />
-                <div className="h-4 bg-layer rounded w-full mb-2" />
-                <div className="h-4 bg-layer rounded w-2/3" />
-              </div>
-            ))}
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-pulse">
+            <div className="glass-card-muted rounded-2xl p-5 min-h-[24rem]" />
+            <div className="flex flex-col gap-6">
+              <div className="glass-card-muted rounded-2xl p-5 min-h-[14rem]" />
+              <div className="glass-card-muted rounded-2xl p-5 min-h-[14rem]" />
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fadeUp stagger-2">
-            {/* Column 1: Profile */}
-            <div className="glass-card-muted rounded-2xl p-5 flex flex-col items-center justify-center min-h-[20rem]">
-              {/* Avatar */}
-              <div
-                className={`w-20 h-20 rounded-full shadow-lg shrink-0 ${
-                  profile?.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile?.id ?? 0)}`
-                } flex items-center justify-center overflow-hidden mb-4`}
-              >
-                {profile?.avatar_url ? (
+          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-fadeUp stagger-2">
+            {/* Left Column: Profile */}
+            <section className="glass-card-muted rounded-2xl overflow-hidden lg:self-stretch lg:h-full flex flex-col">
+              {/* Mini banner */}
+              <div className="relative h-24 overflow-hidden">
+                {profile?.header_image_url ? (
                   <img
-                    src={`${API_BASE}${profile.avatar_url}`}
-                    alt={profile.name}
+                    src={`${API_BASE}${profile.header_image_url}`}
+                    alt=""
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-2xl font-bold text-white">
-                    {getInitial(profile?.name || '')}
-                  </span>
-                )}
-              </div>
-              {/* Name */}
-              <h2 className="text-lg font-bold text-ink mb-1">
-                {profile?.name || 'ユーザー'}
-              </h2>
-              <p className="text-xs text-ink-muted mb-4">マイプロフィール</p>
-              {/* Stats */}
-              <div className="w-full grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-line bg-surface/70 px-3 py-2 text-center">
-                  <div className="text-xs text-ink-muted">フォロー中</div>
-                  <div className="text-xl font-bold text-ink">{profile?.following_count ?? 0}</div>
-                </div>
-                <div className="rounded-xl border border-line bg-surface/70 px-3 py-2 text-center">
-                  <div className="text-xs text-ink-muted">フォロワー</div>
-                  <div className="text-xl font-bold text-ink">{profile?.follower_count ?? 0}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Column 2: Chart 1 — 学習進捗 */}
-            <div className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[20rem]">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-ink">学習進捗</h3>
-                <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
-              </div>
-              <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dummyChartData1}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--color-surface, #fff)',
-                        border: '1px solid var(--color-line, #e5e7eb)',
-                        borderRadius: '0.75rem',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="var(--color-brand-500, #6366f1)"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: 'var(--color-brand-500, #6366f1)' }}
-                      activeDot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Column 3: Chart 2 — アクティビティ */}
-            <div className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[20rem]">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-ink">アクティビティ</h3>
-                <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
-              </div>
-              <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dummyChartData2}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--color-surface, #fff)',
-                        border: '1px solid var(--color-line, #e5e7eb)',
-                        borderRadius: '0.75rem',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#a855f7"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: '#a855f7' }}
-                      activeDot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Column 4: Favorites */}
-            <div className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[20rem]">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-ink">お気に入り</h3>
-                {favoriteSituations.length > 0 && (
-                  <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">
-                    {favoriteSituations.length}件
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-2 scrollbar-hide">
-                {favoriteSituations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <div className="relative inline-block mb-4">
-                      <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full" />
-                      <div className="relative p-4 bg-yellow-500/15 rounded-2xl">
-                        <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-ink-sub mb-1">お気に入りがありません</p>
-                    <p className="text-xs text-ink-muted mb-3">シチュエーションタブで追加</p>
-                    <button
-                      onClick={() => router.push('/situations')}
-                      className="btn-accent-soft inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-semibold text-xs"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                      シチュエーションを見る
-                    </button>
+                  <div className="w-full h-full bg-gradient-to-br from-brand-400 via-brand-500 to-purple-600">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/3 translate-x-1/4" />
+                    <div className="absolute bottom-0 left-1/4 w-14 h-14 bg-white/10 rounded-full translate-y-1/3" />
+                    <div className="absolute top-1/2 right-1/3 w-10 h-10 bg-white/5 rounded-full" />
                   </div>
-                ) : (
-                  favoriteSituations.map((situation) => (
-                    <div
-                      key={situation.id}
-                      onClick={() => router.push(`/situations/${situation.id}`)}
-                      draggable
-                      onDragStart={() => {
-                        setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
-                      }}
-                      onDragEnd={() => {
-                        setDragSituation(null)
-                        setDragOverSituationId(null)
-                      }}
-                      onDragOver={(event) => {
-                        if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
-                        event.preventDefault()
-                        setDragOverSituationId(situation.id)
-                      }}
-                      onDragLeave={() => setDragOverSituationId(null)}
-                      onDrop={async (event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
-                        if (dragSituation.id === situation.id) return
-                        setDragOverSituationId(null)
-                        await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
-                      }}
-                      className={`group flex items-center gap-3 rounded-xl p-3 cursor-pointer border border-line hover:border-brand-200 dark:hover:border-brand-500/30 bg-surface/50 hover:bg-surface transition-all duration-200 ${
-                        dragOverSituationId === situation.id
-                          ? 'ring-2 ring-brand-500 ring-offset-1 dark:ring-offset-surface'
-                          : ''
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-brand-500/15 flex items-center justify-center text-brand-500 shrink-0">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-ink truncate group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-                          {truncateText(situation.title, 15)}
-                        </h4>
-                        <p className="text-xs text-ink-muted truncate">
-                          {truncateText(situation.description || '説明なし', 20)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => handleToggleFavorite(situation, e)}
-                        disabled={togglingFavoriteIds.has(situation.id)}
-                        className="text-yellow-500 shrink-0"
-                        title="お気に入り解除"
-                      >
-                        {togglingFavoriteIds.has(situation.id) ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
+
+              {/* Avatar + Info */}
+              <div className="flex flex-col items-center px-5 pb-5 -mt-10 relative z-10">
+                <div
+                  className={`w-20 h-20 rounded-full border-[3px] border-surface shadow-lg shrink-0 ${
+                    profile?.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile?.id ?? 0)}`
+                  } flex items-center justify-center overflow-hidden ring-2 ring-white/10`}
+                >
+                  {profile?.avatar_url ? (
+                    <img
+                      src={`${API_BASE}${profile.avatar_url}`}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-white drop-shadow-sm">
+                      {getInitial(profile?.name || '')}
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-lg font-bold text-ink mt-3 mb-0.5">
+                  {profile?.name || 'ユーザー'}
+                </h2>
+                <p className="text-[11px] text-ink-faint tracking-wide uppercase mb-5">My Profile</p>
+
+                {/* Stats */}
+                <div className="w-full flex items-center gap-2">
+                  <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/10 px-3 py-2.5 text-center">
+                    <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.following_count ?? 0}</div>
+                    <div className="text-[10px] text-ink-muted font-medium">フォロー中</div>
+                  </div>
+                  <div className="flex-1 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/10 px-3 py-2.5 text-center">
+                    <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.follower_count ?? 0}</div>
+                    <div className="text-[10px] text-ink-muted font-medium">フォロワー</div>
+                  </div>
+                </div>
+
+                {/* Quick stats row */}
+                <div className="w-full mt-3 flex items-center justify-center gap-4 text-[11px] text-ink-muted">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <span>オンライン</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
+                    </svg>
+                    <span>{favoriteSituations.length} お気に入り</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Right Column */}
+            <div className="flex flex-col gap-6">
+              {/* Favorites */}
+              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[14rem]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-ink">お気に入り</h3>
+                  {favoriteSituations.length > 0 && (
+                    <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">
+                      {favoriteSituations.length}件
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                  {favoriteSituations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <div className="relative inline-block mb-4">
+                        <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full" />
+                        <div className="relative p-4 bg-yellow-500/15 rounded-2xl">
+                          <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                           </svg>
-                        )}
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-ink-sub mb-1">お気に入りがありません</p>
+                      <p className="text-xs text-ink-muted mb-3">シチュエーションタブで追加</p>
+                      <button
+                        onClick={() => router.push('/situations')}
+                        className="btn-accent-soft inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-semibold text-xs"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        シチュエーションを見る
                       </button>
                     </div>
-                  ))
-                )}
-              </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {favoriteSituations.map((situation) => (
+                        <div
+                          key={situation.id}
+                          onClick={() => router.push(`/situations/${situation.id}`)}
+                          draggable
+                          onDragStart={() => {
+                            setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
+                          }}
+                          onDragEnd={() => {
+                            setDragSituation(null)
+                            setDragOverSituationId(null)
+                          }}
+                          onDragOver={(event) => {
+                            if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                            event.preventDefault()
+                            setDragOverSituationId(situation.id)
+                          }}
+                          onDragLeave={() => setDragOverSituationId(null)}
+                          onDrop={async (event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                            if (dragSituation.id === situation.id) return
+                            setDragOverSituationId(null)
+                            await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
+                          }}
+                          className={`group flex items-start justify-between gap-3 rounded-2xl p-4 cursor-pointer border border-line bg-surface/40 hover:bg-surface/60 transition-all duration-200 ${
+                            dragOverSituationId === situation.id
+                              ? 'ring-2 ring-brand-500 ring-offset-1 dark:ring-offset-surface'
+                              : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className="w-9 h-9 rounded-xl bg-layer flex items-center justify-center text-ink-faint shrink-0">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 19a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-4l-2-2H6a2 2 0 00-2 2v14z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-sm font-semibold text-brand-400 truncate">
+                                  {truncateText(situation.title, 15)}
+                                </h4>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70">
+                                  {situation.is_public ? '公開' : '非公開'}
+                                </span>
+                              </div>
+                              {situation.labels && situation.labels.length > 0 ? (
+                                <div className="flex items-center gap-2 text-xs text-ink-muted mt-1">
+                                  <span
+                                    className="w-2.5 h-2.5 rounded-full"
+                                    style={{ backgroundColor: situation.labels[0].color }}
+                                  />
+                                  <span className="truncate">{situation.labels[0].name}</span>
+                                </div>
+                              ) : (
+                                <p className="text-xs text-ink-muted mt-1">ラベルなし</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={(e) => handleToggleFavorite(situation, e)}
+                              disabled={togglingFavoriteIds.has(situation.id)}
+                              className="text-yellow-500 hover:opacity-80 transition-opacity"
+                              title="お気に入り解除"
+                            >
+                              {togglingFavoriteIds.has(situation.id) ? (
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                              )}
+                            </button>
+                            <div className="text-ink-faint">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <circle cx="8" cy="7" r="1.5" />
+                                <circle cx="8" cy="12" r="1.5" />
+                                <circle cx="8" cy="17" r="1.5" />
+                                <circle cx="13" cy="7" r="1.5" />
+                                <circle cx="13" cy="12" r="1.5" />
+                                <circle cx="13" cy="17" r="1.5" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Line Chart */}
+              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[14rem]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-ink">アクティビティ</h3>
+                  <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dummyChartData1}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                      <YAxis tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--color-surface, #fff)',
+                          border: '1px solid var(--color-line, #e5e7eb)',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px',
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="var(--color-brand-500, #6366f1)"
+                        strokeWidth={2}
+                        dot={{ r: 3, fill: 'var(--color-brand-500, #6366f1)' }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </section>
             </div>
           </div>
         )}
