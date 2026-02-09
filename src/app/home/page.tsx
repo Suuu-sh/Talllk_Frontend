@@ -273,7 +273,7 @@ export default function Dashboard() {
               <div className="flex flex-col items-center px-5 pt-6 pb-5">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
-                  className={`w-20 h-20 rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
+                  className={`w-36 h-36 rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
                     profile?.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile?.id ?? 0)}`
                   } flex items-center justify-center overflow-hidden ring-2 ring-white/10 relative group`}
                 >
@@ -284,7 +284,7 @@ export default function Dashboard() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl font-bold text-white drop-shadow-sm">
+                    <span className="text-5xl font-bold text-white drop-shadow-sm">
                       {getInitial(profile?.name || '')}
                     </span>
                   )}
@@ -373,7 +373,7 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {favoriteSituations.map((situation) => (
+                      {favoriteSituations.slice(0, 4).map((situation) => (
                         <div
                           key={situation.id}
                           onClick={() => router.push(`/situations/${situation.id}`)}
