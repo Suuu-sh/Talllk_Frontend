@@ -284,20 +284,20 @@ export default function Dashboard() {
       <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
         {/* 2-column Dashboard */}
         {isLoading ? (
-          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-pulse">
-            <div className="glass-card-muted rounded-2xl p-5 min-h-[24rem]" />
-            <div className="flex flex-col gap-6">
-              <div className="glass-card-muted rounded-2xl p-5 min-h-[14rem]" />
-              <div className="glass-card-muted rounded-2xl p-5 min-h-[14rem]" />
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-4 animate-pulse">
+            <div className="glass-card-muted rounded-2xl p-5 min-h-[18rem]" />
+            <div className="flex flex-col gap-4">
+              <div className="glass-card-muted rounded-2xl p-5 min-h-[10rem]" />
+              <div className="glass-card-muted rounded-2xl p-5 min-h-[16rem]" />
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-fadeUp stagger-2">
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-4 animate-fadeUp stagger-2">
             {/* Left Column: Profile */}
             <section className="glass-card-muted rounded-2xl lg:self-stretch lg:h-full flex flex-col">
               {/* Avatar + Info */}
               <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUploadAvatar} />
-              <div className="flex flex-col items-center px-5 pt-6 pb-5">
+              <div className="flex flex-col items-center px-4 pt-4 pb-4">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
                   className={`w-[13.5rem] h-[13.5rem] rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
@@ -364,9 +364,9 @@ export default function Dashboard() {
             </section>
 
             {/* Right Column */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               {/* Favorites */}
-              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[14rem]">
+              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[10rem]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-ink">お気に入り</h3>
                   {favoriteSituations.length > 0 && (
@@ -497,7 +497,7 @@ export default function Dashboard() {
               </section>
 
               {/* Activity Chart — CloudWatch style */}
-              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[24rem]">
+              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[16rem]">
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
@@ -561,7 +561,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Summary stats */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-3 mb-3">
                   {(Object.keys(METRIC_CONFIG) as ChartMetric[]).map((m) => {
                     const data = chartData[m]
                     const total = data.reduce((sum, d) => sum + d[m], 0)
