@@ -247,14 +247,13 @@ export default function Dashboard() {
           <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-6 animate-fadeUp stagger-2">
             {/* Left Column: Profile */}
             <section className="glass-card-muted rounded-2xl overflow-hidden lg:self-stretch lg:h-full flex flex-col">
-              {/* Mini banner (gradient only) */}
+              {/* Mini banner */}
               <div className="relative h-24 overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-brand-400 via-brand-500 to-purple-600">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/3 translate-x-1/4" />
-                  <div className="absolute bottom-0 left-1/4 w-14 h-14 bg-white/10 rounded-full translate-y-1/3" />
-                  <div className="absolute top-1/2 right-1/3 w-10 h-10 bg-white/5 rounded-full" />
+                <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/4" />
+                  <div className="absolute bottom-0 left-1/4 w-14 h-14 bg-white/5 rounded-full translate-y-1/3" />
+                  <div className="absolute top-1/2 right-1/3 w-10 h-10 bg-white/3 rounded-full" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
 
               {/* Avatar + Info */}
