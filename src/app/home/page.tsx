@@ -7,7 +7,7 @@ import { Situation, UserProfile } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { toTitleReading } from '@/lib/reading'
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
 
@@ -29,15 +29,47 @@ const getAvatarGradient = (id: number): string => {
   return gradients[id % gradients.length]
 }
 
-const dummyChartData1 = [
-  { day: '月', value: 3 },
-  { day: '火', value: 5 },
-  { day: '水', value: 4 },
-  { day: '木', value: 7 },
-  { day: '金', value: 6 },
-  { day: '土', value: 8 },
-  { day: '日', value: 9 },
-]
+type ChartMetric = 'sessions' | 'topics' | 'questions'
+type ChartRange = '1d' | '7d' | '30d'
+type ChartType = 'line' | 'area' | 'bar'
+
+const METRIC_CONFIG: Record<ChartMetric, { label: string; color: string }> = {
+  sessions: { label: 'セッション数', color: '#6366f1' },
+  topics: { label: 'トピック追加', color: '#a855f7' },
+  questions: { label: 'Q&A追加', color: '#06b6d4' },
+}
+
+const RANGE_LABELS: Record<ChartRange, string> = {
+  '1d': '24h',
+  '7d': '7日',
+  '30d': '30日',
+}
+
+const CHART_TYPE_LABELS: Record<ChartType, string> = {
+  line: '折れ線',
+  area: 'エリア',
+  bar: '棒グラフ',
+}
+
+const generateDummyData = (range: ChartRange): Record<ChartMetric, { label: string; sessions: number; topics: number; questions: number }[]> => {
+  const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
+  if (range === '1d') {
+    const hours = Array.from({ length: 12 }, (_, i) => `${(i * 2).toString().padStart(2, '0')}:00`)
+    return {
+      sessions: hours.map(h => ({ label: h, sessions: rand(0, 5), topics: rand(0, 3), questions: rand(0, 8) })),
+      topics: hours.map(h => ({ label: h, sessions: rand(0, 5), topics: rand(0, 3), questions: rand(0, 8) })),
+      questions: hours.map(h => ({ label: h, sessions: rand(0, 5), topics: rand(0, 3), questions: rand(0, 8) })),
+    }
+  }
+  if (range === '7d') {
+    const days = ['月', '火', '水', '木', '金', '土', '日']
+    const data = days.map(d => ({ label: d, sessions: rand(1, 10), topics: rand(0, 6), questions: rand(1, 15) }))
+    return { sessions: data, topics: data, questions: data }
+  }
+  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+  const data = days.map(d => ({ label: d, sessions: rand(0, 12), topics: rand(0, 8), questions: rand(0, 20) }))
+  return { sessions: data, topics: data, questions: data }
+}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -48,11 +80,20 @@ export default function Dashboard() {
   const [togglingFavoriteIds, setTogglingFavoriteIds] = useState<Set<number>>(new Set())
   const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
+  const [chartMetric, setChartMetric] = useState<ChartMetric>('sessions')
+  const [chartRange, setChartRange] = useState<ChartRange>('7d')
+  const [chartType, setChartType] = useState<ChartType>('area')
+  const [chartDataCache] = useState(() => generateDummyData('7d'))
+  const [chartData, setChartData] = useState(chartDataCache)
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const truncateText = (text: string, maxLength = 10) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+
+  useEffect(() => {
+    setChartData(generateDummyData(chartRange))
+  }, [chartRange])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -455,35 +496,141 @@ export default function Dashboard() {
                 </div>
               </section>
 
-              {/* Line Chart */}
-              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[14rem]">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-ink">アクティビティ</h3>
-                  <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
+              {/* Activity Chart — CloudWatch style */}
+              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[24rem]">
+                {/* Header row */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-ink">アクティビティ</h3>
+                    <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Metric selector */}
+                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
+                      {(Object.keys(METRIC_CONFIG) as ChartMetric[]).map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setChartMetric(m)}
+                          className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                            chartMetric === m
+                              ? 'bg-brand-500 text-white'
+                              : 'text-ink-muted hover:bg-subtle'
+                          }`}
+                        >
+                          {METRIC_CONFIG[m].label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Chart type */}
+                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
+                      {(Object.keys(CHART_TYPE_LABELS) as ChartType[]).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => setChartType(t)}
+                          className={`px-2 py-1 text-[11px] font-medium transition-colors ${
+                            chartType === t
+                              ? 'bg-brand-500 text-white'
+                              : 'text-ink-muted hover:bg-subtle'
+                          }`}
+                        >
+                          {CHART_TYPE_LABELS[t]}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Range selector */}
+                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
+                      {(Object.keys(RANGE_LABELS) as ChartRange[]).map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => setChartRange(r)}
+                          className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                            chartRange === r
+                              ? 'bg-brand-500 text-white'
+                              : 'text-ink-muted hover:bg-subtle'
+                          }`}
+                        >
+                          {RANGE_LABELS[r]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                {/* Summary stats */}
+                <div className="flex items-center gap-4 mb-4">
+                  {(Object.keys(METRIC_CONFIG) as ChartMetric[]).map((m) => {
+                    const data = chartData[m]
+                    const total = data.reduce((sum, d) => sum + d[m], 0)
+                    const avg = data.length > 0 ? (total / data.length).toFixed(1) : '0'
+                    const max = data.length > 0 ? Math.max(...data.map(d => d[m])) : 0
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => setChartMetric(m)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                          chartMetric === m ? 'bg-surface/80 border border-line' : 'opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: METRIC_CONFIG[m].color }} />
+                        <div className="text-left">
+                          <div className="text-[10px] text-ink-muted">{METRIC_CONFIG[m].label}</div>
+                          <div className="text-sm font-bold text-ink leading-none">{total}<span className="text-[10px] font-normal text-ink-faint ml-1">avg {avg} / max {max}</span></div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Chart */}
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dummyChartData1}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                      <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                      <YAxis tick={{ fontSize: 11 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--color-surface, #fff)',
-                          border: '1px solid var(--color-line, #e5e7eb)',
-                          borderRadius: '0.75rem',
-                          fontSize: '12px',
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="var(--color-brand-500, #6366f1)"
-                        strokeWidth={2}
-                        dot={{ r: 3, fill: 'var(--color-brand-500, #6366f1)' }}
-                        activeDot={{ r: 5 }}
-                      />
-                    </LineChart>
+                    {chartType === 'bar' ? (
+                      <BarChart data={chartData[chartMetric]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
+                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        <Bar dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} fill={METRIC_CONFIG[chartMetric].color} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    ) : chartType === 'area' ? (
+                      <AreaChart data={chartData[chartMetric]}>
+                        <defs>
+                          <linearGradient id={`grad-${chartMetric}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={METRIC_CONFIG[chartMetric].color} stopOpacity={0.3} />
+                            <stop offset="100%" stopColor={METRIC_CONFIG[chartMetric].color} stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
+                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        <Area type="monotone" dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} stroke={METRIC_CONFIG[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: METRIC_CONFIG[chartMetric].color }} activeDot={{ r: 5 }} />
+                      </AreaChart>
+                    ) : (
+                      <LineChart data={chartData[chartMetric]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
+                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        <Line type="monotone" dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} stroke={METRIC_CONFIG[chartMetric].color} strokeWidth={2} dot={{ r: 2, fill: METRIC_CONFIG[chartMetric].color }} activeDot={{ r: 5 }} />
+                      </LineChart>
+                    )}
                   </ResponsiveContainer>
                 </div>
               </section>
