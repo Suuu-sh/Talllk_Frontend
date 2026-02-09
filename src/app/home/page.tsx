@@ -285,10 +285,10 @@ export default function Dashboard() {
         {/* 2-column Dashboard */}
         {isLoading ? (
           <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-4 animate-pulse">
-            <div className="glass-card-muted rounded-2xl p-5 min-h-[20rem]" />
+            <div className="glass-card-muted rounded-2xl p-5 min-h-[22rem]" />
             <div className="flex flex-col gap-4">
               <div className="glass-card-muted rounded-2xl p-5 min-h-[10rem]" />
-              <div className="glass-card-muted rounded-2xl p-5 min-h-[18rem]" />
+              <div className="glass-card-muted rounded-2xl p-5 min-h-[20rem]" />
             </div>
           </div>
         ) : (
@@ -497,7 +497,7 @@ export default function Dashboard() {
               </section>
 
               {/* Activity Chart — CloudWatch style */}
-              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[18rem]">
+              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[20rem]">
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
