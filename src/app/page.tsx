@@ -30,9 +30,7 @@ export default function Home() {
   }
 
   const scrolledNavClass = scrolled
-    ? theme === 'dark'
-      ? 'bg-surface/95'
-      : 'glass-card-solid shadow-glass'
+    ? 'bg-surface/80 backdrop-blur-lg shadow-sm border-b border-line/50'
     : 'bg-transparent'
 
   return (
@@ -117,7 +115,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeUp stagger-4">
             <button
               onClick={handleGetStarted}
-              className="btn-primary text-lg px-8 py-4 shadow-glow flex items-center gap-2"
+              className="btn-primary text-lg px-8 py-4  flex items-center gap-2"
             >
               {isLoggedIn ? 'ダッシュボードへ' : '無料ではじめる'}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,8 +132,8 @@ export default function Home() {
           <div className="relative glass-card-solid rounded-3xl p-6 shadow-glass-lg">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Situation Card */}
-              <div className="bg-brand-50 dark:bg-brand-900/30 rounded-2xl p-4 animate-float">
-                <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-3">
+              <div className="bg-brand-500/10 rounded-2xl p-4 animate-float">
+                <div className="w-10 h-10 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-500 mb-3">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
@@ -206,7 +204,7 @@ export default function Home() {
             ].map((review, i) => (
               <div key={i} className="glass-card-solid rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" />
                     </svg>
@@ -272,7 +270,7 @@ export default function Home() {
                 key={i}
                 className="glass-card-solid rounded-2xl p-6 card-hover"
               >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400 mb-4 shadow-glow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-brand-500/15 flex items-center justify-center text-brand-500 mb-4 -sm">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold text-ink mb-2">
@@ -341,7 +339,7 @@ export default function Home() {
               },
             ].map((item, i) => (
               <div key={i} className="relative text-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4 shadow-glow relative z-10">
+                <div className="w-16 h-16 rounded-full bg-brand-500 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4  relative z-10">
                   {item.step}
                 </div>
                 <h3 className="text-xl font-bold text-ink mb-2">
