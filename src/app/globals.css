@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide all scrollbars globally */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── Design Tokens ─── */
 :root {
   --base: 249 250 251;
