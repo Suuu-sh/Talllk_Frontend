@@ -30,7 +30,7 @@ export default function Home() {
   }
 
   const scrolledNavClass = scrolled
-    ? 'bg-surface/80 backdrop-blur-lg shadow-sm border-b border-line/50'
+    ? 'bg-surface/80 backdrop-blur-lg shadow-sm'
     : 'bg-transparent'
 
   return (
