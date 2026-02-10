@@ -9,10 +9,12 @@ import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import LabelInput from '@/components/LabelInput'
 import { toTitleReading } from '@/lib/reading'
+import { useI18n } from '@/contexts/I18nContext'
 
 export default function SituationsPage() {
   const FILTER_STORAGE_KEY = 'talllk:situationsFilters'
   const router = useRouter()
+  const { t, language } = useI18n()
   const [situations, setSituations] = useState<Situation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -34,7 +36,7 @@ export default function SituationsPage() {
   const [dragSituation, setDragSituation] = useState<{ id: number; isFavorite: boolean } | null>(null)
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
-  const truncateText = (text: string, maxLength = 10) =>
+  const truncateText = (text: string, maxLength = 15) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
@@ -350,13 +352,13 @@ export default function SituationsPage() {
                   <svg className="w-4 h-4 text-ink-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <input
-                    type="text"
-                    placeholder="タイトル・説明で検索"
-                    className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-faint outline-none"
-                    value={filterQuery}
-                    onChange={(e) => setFilterQuery(e.target.value)}
-                  />
+                    <input
+                      type="text"
+                      placeholder={t({ ja: 'タイトル・説明で検索', en: 'Search title or description' })}
+                      className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-faint outline-none"
+                      value={filterQuery}
+                      onChange={(e) => setFilterQuery(e.target.value)}
+                    />
                   {filterQuery && (
                     <button
                       type="button"
@@ -380,7 +382,7 @@ export default function SituationsPage() {
                         : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
                     }`}
                   >
-                    お気に入り
+                    {t({ ja: 'お気に入り', en: 'Favorites' })}
                   </button>
                   <div className="relative" ref={visibilityDropdownRef}>
                     <button
@@ -390,14 +392,14 @@ export default function SituationsPage() {
                         setIsLabelOpen(false)
                       }}
                       aria-pressed={filterVisibility !== 'all' || isVisibilityOpen}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                        filterVisibility !== 'all' || isVisibilityOpen
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 shadow-sm'
-                          : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
-                      }`}
-                    >
-                      公開
-                    </button>
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                      filterVisibility !== 'all' || isVisibilityOpen
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 shadow-sm'
+                        : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
+                    }`}
+                  >
+                    {t({ ja: '公開', en: 'Visibility' })}
+                  </button>
                     {isVisibilityOpen && (
                       <div className="absolute left-0 top-full mt-2 w-40 rounded-2xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
                         <button
@@ -412,7 +414,7 @@ export default function SituationsPage() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          すべて
+                          {t({ ja: 'すべて', en: 'All' })}
                         </button>
                         <button
                           type="button"
@@ -426,7 +428,7 @@ export default function SituationsPage() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          公開のみ
+                          {t({ ja: '公開のみ', en: 'Public only' })}
                         </button>
                         <button
                           type="button"
@@ -440,7 +442,7 @@ export default function SituationsPage() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          非公開のみ
+                          {t({ ja: '非公開のみ', en: 'Private only' })}
                         </button>
                       </div>
                     )}
@@ -458,13 +460,14 @@ export default function SituationsPage() {
                         : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
                     }`}
                   >
-                    ラベル{selectedLabelIds.length > 0 ? `(${selectedLabelIds.length})` : ''}
+                    {t({ ja: 'ラベル', en: 'Labels' })}
+                    {selectedLabelIds.length > 0 ? `(${selectedLabelIds.length})` : ''}
                   </button>
                   {isLabelOpen && (
                     <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
                       <div className="flex items-center justify-between px-3 py-2 border-b border-line">
                         <span className="text-xs font-semibold text-ink-muted">
-                          ラベル選択
+                          {t({ ja: 'ラベル選択', en: 'Select labels' })}
                         </span>
                         <button
                           type="button"
@@ -472,14 +475,18 @@ export default function SituationsPage() {
                           className="text-xs text-brand-500 hover:underline"
                           disabled={selectedLabelIds.length === 0}
                         >
-                          すべて解除
+                          {t({ ja: 'すべて解除', en: 'Clear' })}
                         </button>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
                         {isLabelLoading ? (
-                          <div className="px-4 py-3 text-sm text-ink-muted">読み込み中...</div>
+                          <div className="px-4 py-3 text-sm text-ink-muted">
+                            {t({ ja: '読み込み中...', en: 'Loading...' })}
+                          </div>
                         ) : labelOptions.length === 0 ? (
-                          <div className="px-4 py-3 text-sm text-ink-muted">ラベルがありません</div>
+                          <div className="px-4 py-3 text-sm text-ink-muted">
+                            {t({ ja: 'ラベルがありません', en: 'No labels' })}
+                          </div>
                         ) : (
                           <div className="p-2 flex flex-wrap gap-2">
                             {labelOptions.map((label) => {
@@ -519,13 +526,13 @@ export default function SituationsPage() {
             <button
               onClick={() => setShowModal(true)}
               className="btn-accent-soft text-sm flex items-center gap-2 w-full sm:w-auto justify-center px-4 py-2.5 rounded-2xl font-semibold"
-              aria-label="新規作成"
-              title="新規作成"
+              aria-label={t({ ja: '新規作成', en: 'Create new' })}
+              title={t({ ja: '新規作成', en: 'Create new' })}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span className="sm:inline">新規作成</span>
+              <span className="sm:inline">{t({ ja: '新規作成', en: 'Create' })}</span>
             </button>
           )}
         </div>
@@ -564,16 +571,19 @@ export default function SituationsPage() {
               </div>
             </div>
             <h3 className="text-2xl font-bold text-ink mb-3">
-              まだシチュエーションがありません
+              {t({ ja: 'まだシチュエーションがありません', en: 'No situations yet' })}
             </h3>
             <p className="text-ink-muted mb-8 max-w-md mx-auto">
-              面接、デート、商談など、準備したい場面を追加して会話の練習を始めましょう
+              {t({
+                ja: '面接、デート、商談など、準備したい場面を追加して会話の練習を始めましょう',
+                en: 'Add a situation (interview, date, meeting) and start preparing for conversations.',
+              })}
             </p>
             <button
               onClick={() => setShowModal(true)}
               className="btn-accent-soft inline-flex items-center justify-center w-10 h-10 p-0 "
-              aria-label="最初のシチュエーションを作成"
-              title="最初のシチュエーションを作成"
+              aria-label={t({ ja: '最初のシチュエーションを作成', en: 'Create your first situation' })}
+              title={t({ ja: '最初のシチュエーションを作成', en: 'Create your first situation' })}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -588,15 +598,15 @@ export default function SituationsPage() {
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-ink mb-3">
-              該当するシチュエーションがありません
+              {t({ ja: '該当するシチュエーションがありません', en: 'No matching situations' })}
             </h3>
             <p className="text-ink-muted mb-6">
-              検索条件を変更してみてください
+              {t({ ja: '検索条件を変更してみてください', en: 'Try adjusting your filters.' })}
             </p>
           </div>
         ) : (
           /* Grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeUp stagger-2 mt-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 animate-fadeUp stagger-2 mt-3 pt-2">
             {filteredSituations.map((situation) => (
               <div
                 key={situation.id}
@@ -638,28 +648,29 @@ export default function SituationsPage() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-lg font-semibold text-brand-500 truncate">
+                        <h3 className="text-base font-semibold text-ink truncate group-hover:text-brand-400 transition-colors duration-300">
                           {truncateText(situation.title)}
                         </h3>
-                        <button
-                          type="button"
-                          onClick={(e) => handleTogglePublic(situation, e)}
-                          disabled={togglingPublicIds.has(situation.id)}
-                          className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70 hover:bg-surface transition-colors"
-                        >
-                          {situation.is_public ? '公開' : '非公開'}
-                        </button>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70">
+                      {situation.is_public ? t({ ja: '公開', en: 'Public' }) : t({ ja: '非公開', en: 'Private' })}
+                    </span>
                       </div>
                       {situation.labels && situation.labels.length > 0 ? (
-                        <div className="flex items-center gap-2 text-xs text-ink-muted mt-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: situation.labels[0].color }}
-                          />
-                          <span className="truncate">{situation.labels[0].name}</span>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted mt-2">
+                          {situation.labels.slice(0, 3).map((label) => (
+                            <span key={label.id} className="inline-flex items-center gap-1.5 min-w-0">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: label.color }}
+                              />
+                              <span className="truncate max-w-[120px]">{label.name}</span>
+                            </span>
+                          ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-ink-muted mt-2">ラベルなし</p>
+                        <p className="text-xs text-ink-muted mt-2">
+                          {t({ ja: 'ラベルなし', en: 'No label' })}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -672,7 +683,7 @@ export default function SituationsPage() {
                           ? 'text-yellow-500'
                           : 'text-ink-muted hover:text-ink'
                       }`}
-                      title={situation.is_favorite ? 'お気に入り解除' : 'お気に入りに追加'}
+                      title={situation.is_favorite ? t({ ja: 'お気に入り解除', en: 'Remove favorite' }) : t({ ja: 'お気に入りに追加', en: 'Add to favorites' })}
                     >
                       {togglingFavoriteIds.has(situation.id) ? (
                         <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -718,9 +729,11 @@ export default function SituationsPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-ink">
-                  新しいシチュエーション
+                  {t({ ja: '新しいシチュエーション', en: 'New situation' })}
                 </h3>
-                <p className="text-sm text-ink-muted mt-1">準備したい場面を追加しましょう</p>
+                <p className="text-sm text-ink-muted mt-1">
+                  {t({ ja: '準備したい場面を追加しましょう', en: 'Add a situation you want to prepare for.' })}
+                </p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
@@ -736,12 +749,12 @@ export default function SituationsPage() {
             <form onSubmit={handleCreate} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-ink-sub mb-2">
-                  タイトル <span className="text-red-500">*</span>
+                  {t({ ja: 'タイトル', en: 'Title' })} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="例：面接、デート、商談"
+                  placeholder={t({ ja: '例：面接、デート、商談', en: 'e.g. Interview, Date, Meeting' })}
                   className="input-field"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -749,10 +762,13 @@ export default function SituationsPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-ink-sub mb-2">
-                  説明（任意）
+                  {t({ ja: '説明（任意）', en: 'Description (optional)' })}
                 </label>
                   <textarea
-                    placeholder="このシチュエーションについて簡単に説明してください"
+                    placeholder={t({
+                      ja: 'このシチュエーションについて簡単に説明してください',
+                      en: 'Describe this situation briefly.',
+                    })}
                     className="input-field resize-none"
                     rows={4}
                     value={formData.description}
@@ -761,26 +777,26 @@ export default function SituationsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-ink-sub mb-2">
-                    ラベル（任意）
+                    {t({ ja: 'ラベル（任意）', en: 'Labels (optional)' })}
                   </label>
                   <LabelInput
                     value={selectedLabels}
                     onChange={setSelectedLabels}
-                    placeholder="ラベルを検索・作成"
+                    placeholder={t({ ja: 'ラベルを検索・作成', en: 'Search or create labels' })}
                   />
                 </div>
 
                 {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">
-                  作成する
+                  {t({ ja: '作成する', en: 'Create' })}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   className="btn-secondary flex-1"
                 >
-                  キャンセル
+                  {t({ ja: 'キャンセル', en: 'Cancel' })}
                 </button>
               </div>
             </form>

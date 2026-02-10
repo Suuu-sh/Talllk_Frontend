@@ -95,7 +95,7 @@ export default function Dashboard() {
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const truncateText = (text: string, maxLength = 10) =>
+  const truncateText = (text: string, maxLength = 15) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
@@ -474,12 +474,16 @@ export default function Dashboard() {
                                 </span>
                               </div>
                               {situation.labels && situation.labels.length > 0 ? (
-                                <div className="flex items-center gap-2 text-xs text-ink-muted mt-1">
-                                  <span
-                                    className="w-2.5 h-2.5 rounded-full"
-                                    style={{ backgroundColor: situation.labels[0].color }}
-                                  />
-                                  <span className="truncate">{situation.labels[0].name}</span>
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted mt-1">
+                                  {situation.labels.slice(0, 3).map((label) => (
+                                    <span key={label.id} className="inline-flex items-center gap-1.5 min-w-0">
+                                      <span
+                                        className="w-2.5 h-2.5 rounded-full"
+                                        style={{ backgroundColor: label.color }}
+                                      />
+                                      <span className="truncate max-w-[120px]">{label.name}</span>
+                                    </span>
+                                  ))}
                                 </div>
                               ) : (
                                 <p className="text-xs text-ink-muted mt-1">

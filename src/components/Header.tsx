@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
 import type { Label } from '@/types'
 
 export default function Header() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
+  const { language, setLanguage, t } = useI18n()
   const [showSettings, setShowSettings] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showLabelModal, setShowLabelModal] = useState(false)
@@ -26,7 +28,7 @@ export default function Header() {
   }
 
   const sortLabels = (items: Label[]) =>
-    [...items].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+    [...items].sort((a, b) => a.name.localeCompare(b.name, language === 'en' ? 'en' : 'ja'))
 
   const openLabelModal = () => {
     setShowSettings(false)
@@ -53,7 +55,7 @@ export default function Header() {
       } catch (err) {
         if (!isMounted) return
         setLabels([])
-        setLabelError('ラベルの取得に失敗しました')
+        setLabelError(t({ ja: 'ラベルの取得に失敗しました', en: 'Failed to fetch labels.' }))
       } finally {
         if (!isMounted) return
         setIsLabelLoading(false)
@@ -77,7 +79,7 @@ export default function Header() {
       setLabels((prev) => sortLabels([...prev.filter((label) => label.id !== created.id), created]))
       setNewLabelName('')
     } catch (err) {
-      setLabelError('ラベルの作成に失敗しました')
+      setLabelError(t({ ja: 'ラベルの作成に失敗しました', en: 'Failed to create label.' }))
     } finally {
       setIsCreatingLabel(false)
     }
@@ -85,7 +87,7 @@ export default function Header() {
 
   const handleDeleteLabel = async (label: Label) => {
     if (isDeletingLabelId) return
-    if (!confirm(`「${label.name}」を削除しますか？`)) return
+    if (!confirm(t({ ja: `「${label.name}」を削除しますか？`, en: `Delete "${label.name}"?` }))) return
     setIsDeletingLabelId(label.id)
     setLabelError(null)
     try {
@@ -93,11 +95,11 @@ export default function Header() {
       setLabels((prev) => prev.filter((item) => item.id !== label.id))
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 409) {
-        setLabelError('使用中のラベルは削除できません')
+        setLabelError(t({ ja: '使用中のラベルは削除できません', en: 'This label is in use and cannot be deleted.' }))
       } else if (axios.isAxiosError(err) && err.response?.status === 404) {
-        setLabelError('ラベルが見つかりませんでした')
+        setLabelError(t({ ja: 'ラベルが見つかりませんでした', en: 'Label not found.' }))
       } else {
-        setLabelError('ラベルの削除に失敗しました')
+        setLabelError(t({ ja: 'ラベルの削除に失敗しました', en: 'Failed to delete label.' }))
       }
     } finally {
       setIsDeletingLabelId(null)
@@ -106,7 +108,7 @@ export default function Header() {
 
   return (
     <>
-      <nav className="glass-card-solid sticky top-0 z-20 transition-all duration-300">
+      <nav className="glass-card-solid sticky top-0 z-20 transition-all duration-300 shadow-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -121,22 +123,11 @@ export default function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              {/* Profile Button */}
-              <button
-                onClick={() => router.push('/users/me')}
-                className="btn-icon"
-                title="プロフィール"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </button>
-
               {/* Notifications Button */}
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="btn-icon"
-                title="通知"
+                title={t({ ja: '通知', en: 'Notifications' })}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -152,7 +143,7 @@ export default function Header() {
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className="btn-icon"
-                title="設定"
+                title={t({ ja: '設定', en: 'Settings' })}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -168,7 +159,7 @@ export default function Header() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="hidden sm:inline text-sm font-medium">ログアウト</span>
+                <span className="hidden sm:inline text-sm font-medium">{t({ ja: 'ログアウト', en: 'Log out' })}</span>
               </button>
             </div>
           </div>
@@ -187,7 +178,7 @@ export default function Header() {
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-ink">設定</h3>
+              <h3 className="text-xl font-bold text-ink">{t({ ja: '設定', en: 'Settings' })}</h3>
               <button
                 onClick={() => setShowSettings(false)}
                 className="btn-icon-sm"
@@ -202,7 +193,7 @@ export default function Header() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-layer rounded-2xl">
                   <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center text-yellow-500">
                     {theme === 'dark' ? (
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M21.64 13a1 1 0 00-1.05-.14 8.05 8.05 0 01-3.37.73 8.15 8.15 0 01-8.14-8.1 8.59 8.59 0 01.25-2A1 1 0 008 2.36a10.14 10.14 0 1014 11.69 1 1 0 00-.36-1.05zm-9.5 6.69A8.14 8.14 0 017.08 5.22v.27a10.15 10.15 0 0010.14 10.14 9.79 9.79 0 002.1-.22 8.11 8.11 0 01-7.18 4.32z" />
@@ -214,10 +205,51 @@ export default function Header() {
                     )}
                   </div>
                   <div>
-                    <div className="font-semibold text-ink">外観</div>
+                    <div className="font-semibold text-ink">{t({ ja: '外観', en: 'Appearance' })}</div>
                     <div className="text-sm text-ink-muted">
-                      {theme === 'dark' ? 'ダークモード' : 'ライトモード'}
+                      {theme === 'dark'
+                        ? t({ ja: 'ダークモード', en: 'Dark mode' })
+                        : t({ ja: 'ライトモード', en: 'Light mode' })}
                     </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-layer rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5h12M9 3v2m6 4H3m3 6h12m-6-2v2m6 4H3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-ink">{t({ ja: '言語', en: 'Language' })}</div>
+                      <div className="text-sm text-ink-muted">
+                        {language === 'ja' ? '日本語' : 'English'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('ja')}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                        language === 'ja'
+                          ? 'bg-brand-500/20 text-brand-500'
+                          : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
+                      }`}
+                    >
+                      日本語
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('en')}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                        language === 'en'
+                          ? 'bg-brand-500/20 text-brand-500'
+                          : 'text-ink-muted hover:bg-subtle hover:text-ink-sub'
+                      }`}
+                    >
+                      English
+                    </button>
                   </div>
                 </div>
                 <button
@@ -239,15 +271,15 @@ export default function Header() {
                 className="w-full flex items-center justify-between p-4 bg-layer rounded-2xl hover:bg-subtle transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M3 11.5l7.5-7.5a2.121 2.121 0 013 0l7.5 7.5a2.121 2.121 0 010 3l-7.5 7.5a2.121 2.121 0 01-3 0l-7.5-7.5a2.121 2.121 0 010-3z" />
                     </svg>
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-ink">ラベル管理</div>
+                    <div className="font-semibold text-ink">{t({ ja: 'ラベル管理', en: 'Label management' })}</div>
                     <div className="text-sm text-ink-muted">
-                      ラベルの追加・削除
+                      {t({ ja: 'ラベルの追加・削除', en: 'Add or remove labels' })}
                     </div>
                   </div>
                 </div>
@@ -281,11 +313,11 @@ export default function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-ink">ラベル管理</h3>
+              <h3 className="text-xl font-bold text-ink">{t({ ja: 'ラベル管理', en: 'Label management' })}</h3>
               <button
                 onClick={closeLabelModal}
                 className="btn-icon-sm"
-                aria-label="閉じる"
+                aria-label={t({ ja: '閉じる', en: 'Close' })}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -297,7 +329,7 @@ export default function Header() {
               <input
                 type="text"
                 className="input-field flex-1"
-                placeholder="新しいラベル名"
+                placeholder={t({ ja: '新しいラベル名', en: 'New label name' })}
                 value={newLabelName}
                 onChange={(e) => setNewLabelName(e.target.value)}
               />
@@ -306,7 +338,7 @@ export default function Header() {
                 className="btn-primary px-4 py-2 text-sm"
                 disabled={isCreatingLabel || newLabelName.trim().length === 0}
               >
-                {isCreatingLabel ? '追加中' : '追加'}
+                {isCreatingLabel ? t({ ja: '追加中', en: 'Adding' }) : t({ ja: '追加', en: 'Add' })}
               </button>
             </form>
 
@@ -316,9 +348,13 @@ export default function Header() {
 
             <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-2">
               {isLabelLoading ? (
-                <div className="text-sm text-ink-muted py-4 text-center">読み込み中...</div>
+                <div className="text-sm text-ink-muted py-4 text-center">
+                  {t({ ja: '読み込み中...', en: 'Loading...' })}
+                </div>
               ) : labels.length === 0 ? (
-                <div className="text-sm text-ink-muted py-4 text-center">ラベルがありません</div>
+                <div className="text-sm text-ink-muted py-4 text-center">
+                  {t({ ja: 'ラベルがありません', en: 'No labels' })}
+                </div>
               ) : (
                 labels.map((label) => (
                   <div
@@ -339,7 +375,7 @@ export default function Header() {
                       onClick={() => handleDeleteLabel(label)}
                       className="btn-icon-sm text-red-500 hover:text-red-600"
                       disabled={isDeletingLabelId === label.id}
-                      title="削除"
+                      title={t({ ja: '削除', en: 'Delete' })}
                     >
                       {isDeletingLabelId === label.id ? (
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -371,7 +407,7 @@ export default function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-ink">通知</h3>
+              <h3 className="text-xl font-bold text-ink">{t({ ja: '通知', en: 'Notifications' })}</h3>
               <button
                 onClick={() => setShowNotifications(false)}
                 className="btn-icon-sm"
@@ -393,7 +429,7 @@ export default function Header() {
                 </svg>
               </div>
               <p className="text-ink-muted">
-                通知はありません
+                {t({ ja: '通知はありません', en: 'No notifications' })}
               </p>
             </div>
           </div>

@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { Topic, Question } from "@/types";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function TopicDetail() {
   const router = useRouter();
   const params = useParams();
+  const { t, language } = useI18n();
   const searchParams = useSearchParams();
   const situationId = searchParams.get("situationId");
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -95,13 +97,13 @@ export default function TopicDetail() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-orange-50">
         <div className="text-center">
           <p className="text-gray-600 mb-6">
-            シチュエーションが指定されていません。
+            {t({ ja: "シチュエーションが指定されていません。", en: "No situation specified." })}
           </p>
           <button
             onClick={() => router.push("/home")}
             className="btn-primary"
           >
-            ダッシュボードへ戻る
+            {t({ ja: "ダッシュボードへ戻る", en: "Back to Dashboard" })}
           </button>
         </div>
       </div>
@@ -113,7 +115,7 @@ export default function TopicDetail() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-orange-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+          <p className="text-gray-600">{t({ ja: "読み込み中...", en: "Loading..." })}</p>
         </div>
       </div>
     );
@@ -140,7 +142,7 @@ export default function TopicDetail() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            戻る
+            {t({ ja: "戻る", en: "Back" })}
           </button>
         </div>
       </nav>
@@ -152,10 +154,10 @@ export default function TopicDetail() {
               <h1 className="text-3xl font-bold text-gray-900 mb-3">
                 {topic.title}
               </h1>
-              <p className="text-gray-600">{topic.description || "説明なし"}</p>
+              <p className="text-gray-600">{topic.description || t({ ja: "説明なし", en: "No description" })}</p>
             </div>
             <div className="ml-4 px-4 py-2 bg-orange-50 rounded-xl">
-              <div className="text-sm text-gray-600">質問数</div>
+              <div className="text-sm text-gray-600">{t({ ja: "質問数", en: "Questions" })}</div>
               <div className="text-2xl font-bold text-orange-600">
                 {topic.questions?.length || 0}
               </div>
@@ -164,7 +166,7 @@ export default function TopicDetail() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">質問と回答</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t({ ja: "質問と回答", en: "Questions & Answers" })}</h2>
           <button
             onClick={() => {
               setEditingQuestion(null);
@@ -186,7 +188,7 @@ export default function TopicDetail() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            質問を追加
+            {t({ ja: "質問を追加", en: "Add question" })}
           </button>
         </div>
 
@@ -208,10 +210,10 @@ export default function TopicDetail() {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              まだ質問がありません
+              {t({ ja: "まだ質問がありません", en: "No questions yet" })}
             </h3>
             <p className="text-gray-600 mb-6">
-              最初の質問を追加して、回答を準備しましょう
+              {t({ ja: "最初の質問を追加して、回答を準備しましょう", en: "Add your first question and prepare an answer." })}
             </p>
             <button
               onClick={() => {
@@ -234,7 +236,7 @@ export default function TopicDetail() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              最初の質問を追加
+              {t({ ja: "最初の質問を追加", en: "Add first question" })}
             </button>
           </div>
         ) : (
@@ -265,7 +267,7 @@ export default function TopicDetail() {
                                 openEditModal(q);
                               }}
                               className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all hover:scale-110"
-                              title="編集"
+                              title={t({ ja: "編集", en: "Edit" })}
                             >
                               <svg
                                 className="w-5 h-5"
@@ -287,7 +289,7 @@ export default function TopicDetail() {
                                 handleDelete(q.id);
                               }}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
-                              title="削除"
+                              title={t({ ja: "削除", en: "Delete" })}
                             >
                               <svg
                                 className="w-5 h-5"
@@ -309,7 +311,7 @@ export default function TopicDetail() {
                         <div className="bg-gradient-to-br from-gray-50 to-orange-50 rounded-xl p-4 overflow-hidden">
                           <p className="text-gray-900 break-all max-w-full">
                             <span className="text-green-600 font-bold">A: </span>
-                            {q.answer || "（未回答）"}
+                            {q.answer || t({ ja: "（未回答）", en: "(No answer)" })}
                           </p>
                         </div>
                       </div>
@@ -336,7 +338,7 @@ export default function TopicDetail() {
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">
-                {editingQuestion ? "質問を編集" : "新しい質問"}
+                {editingQuestion ? t({ ja: "質問を編集", en: "Edit question" }) : t({ ja: "新しい質問", en: "New question" })}
               </h3>
               <button
                 onClick={() => {
@@ -366,12 +368,12 @@ export default function TopicDetail() {
                 style={{ animationDelay: "100ms" }}
               >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  質問 <span className="text-red-500">*</span>
+                  {t({ ja: "質問", en: "Question" })} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="例：趣味は何ですか？"
+                  placeholder={t({ ja: "例：趣味は何ですか？", en: "e.g. What are your hobbies?" })}
                   className="input-field"
                   value={formData.question}
                   onChange={(e) =>
@@ -385,10 +387,10 @@ export default function TopicDetail() {
                 style={{ animationDelay: "200ms" }}
               >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  回答
+                  {t({ ja: "回答", en: "Answer" })}
                 </label>
                 <textarea
-                  placeholder="準備しておきたい回答を入力してください"
+                  placeholder={t({ ja: "準備しておきたい回答を入力してください", en: "Write the answer you'd like to prepare." })}
                   className="input-field resize-none"
                   rows={6}
                   value={formData.answer}
@@ -397,7 +399,7 @@ export default function TopicDetail() {
                   }
                 />
                 <div className="mt-2 text-xs text-gray-500">
-                  {formData.answer.length} 文字
+                  {language === "en" ? `${formData.answer.length} chars` : `${formData.answer.length} 文字`}
                 </div>
               </div>
               <div
@@ -405,7 +407,7 @@ export default function TopicDetail() {
                 style={{ animationDelay: "300ms" }}
               >
                 <button type="submit" className="btn-primary flex-1">
-                  {editingQuestion ? "更新" : "追加"}
+                  {editingQuestion ? t({ ja: "更新", en: "Update" }) : t({ ja: "追加", en: "Add" })}
                 </button>
                 <button
                   type="button"
@@ -415,7 +417,7 @@ export default function TopicDetail() {
                   }}
                   className="btn-secondary flex-1"
                 >
-                  キャンセル
+                  {t({ ja: "キャンセル", en: "Cancel" })}
                 </button>
               </div>
             </form>
@@ -438,21 +440,21 @@ export default function TopicDetail() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">削除の確認</h3>
-              <p className="text-gray-600">この質問を削除しますか？</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t({ ja: "削除の確認", en: "Confirm deletion" })}</h3>
+              <p className="text-gray-600">{t({ ja: "この質問を削除しますか？", en: "Delete this question?" })}</p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={confirmDelete}
                 className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
               >
-                削除
+                {t({ ja: "削除", en: "Delete" })}
               </button>
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
               >
-                キャンセル
+                {t({ ja: "キャンセル", en: "Cancel" })}
               </button>
             </div>
           </div>
