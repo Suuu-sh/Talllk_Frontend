@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
 
 export default function Login() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
+  const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
 
   useEffect(() => {
@@ -22,11 +24,13 @@ export default function Login() {
     name: '',
   })
   const [error, setError] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsSuccess(false)
     setIsLoading(true)
 
     try {
@@ -38,10 +42,12 @@ export default function Login() {
         router.push('/home')
       } else if (!isLogin) {
         setIsLogin(true)
-        setError('登録完了。ログインしてください。')
+        setIsSuccess(true)
+        setError(t({ ja: '登録完了。ログインしてください。', en: 'Registration complete. Please log in.' }))
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'エラーが発生しました')
+      setIsSuccess(false)
+      setError(err.response?.data?.error || t({ ja: 'エラーが発生しました', en: 'An error occurred.' }))
     } finally {
       setIsLoading(false)
     }
@@ -65,12 +71,12 @@ export default function Login() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          ホームに戻る
+          {t({ ja: 'ホームに戻る', en: 'Back to Home' })}
         </button>
         <button
           onClick={toggleTheme}
           className="btn-icon"
-          aria-label="テーマ切替"
+          aria-label={t({ ja: 'テーマ切替', en: 'Toggle theme' })}
         >
           {theme === 'light' ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,10 +98,13 @@ export default function Login() {
               Talllk
             </span>
             <h2 className="text-4xl font-bold text-ink mb-4">
-              もう、話題に困らない
+              {t({ ja: 'もう、話題に困らない', en: 'Never run out of topics' })}
             </h2>
             <p className="text-lg text-ink-body">
-              大切な会話に自信を持って臨むための会話準備アプリ
+              {t({
+                ja: '大切な会話に自信を持って臨むための会話準備アプリ',
+                en: 'Prepare with confidence for important conversations.',
+              })}
             </p>
           </div>
 
@@ -107,8 +116,8 @@ export default function Login() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 ),
-                title: 'シチュエーション別に整理',
-                desc: 'デート・面接・商談などシーンごとに準備',
+                title: t({ ja: 'シチュエーション別に整理', en: 'Organize by situation' }),
+                desc: t({ ja: 'デート・面接・商談などシーンごとに準備', en: 'Prepare for dates, interviews, meetings, and more.' }),
               },
               {
                 icon: (
@@ -116,8 +125,8 @@ export default function Login() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 ),
-                title: '質問と回答を事前準備',
-                desc: '聞かれそうなこと・話したいことをメモ',
+                title: t({ ja: '質問と回答を事前準備', en: 'Prepare Q&A in advance' }),
+                desc: t({ ja: '聞かれそうなこと・話したいことをメモ', en: 'Note what you want to ask or say.' }),
               },
               {
                 icon: (
@@ -125,8 +134,8 @@ export default function Login() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
                   </svg>
                 ),
-                title: '本番で自信を持てる',
-                desc: '準備があるから余裕が生まれる',
+                title: t({ ja: '本番で自信を持てる', en: 'Feel confident in real life' }),
+                desc: t({ ja: '準備があるから余裕が生まれる', en: 'Preparation gives you breathing room.' }),
               },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4">
@@ -146,12 +155,12 @@ export default function Login() {
             <div className="flex items-center gap-6">
               <div>
                 <div className="text-2xl font-bold text-gradient">1,200+</div>
-                <div className="text-xs text-ink-muted">ユーザー</div>
+                <div className="text-xs text-ink-muted">{t({ ja: 'ユーザー', en: 'Users' })}</div>
               </div>
               <div className="w-px h-8 bg-line" />
               <div>
                 <div className="text-2xl font-bold text-gradient">98%</div>
-                <div className="text-xs text-ink-muted">満足度</div>
+                <div className="text-xs text-ink-muted">{t({ ja: '満足度', en: 'Satisfaction' })}</div>
               </div>
             </div>
           </div>
@@ -169,20 +178,22 @@ export default function Login() {
               </span>
             </div>
             <h1 className="text-3xl font-bold text-ink mb-3">
-              {isLogin ? 'おかえりなさい' : 'はじめまして'}
+              {isLogin ? t({ ja: 'おかえりなさい', en: 'Welcome back' }) : t({ ja: 'はじめまして', en: 'Nice to meet you' })}
             </h1>
             <p className="text-ink-muted text-lg">
-              会話の準備をサポートします
+              {t({ ja: '会話の準備をサポートします', en: 'We help you prepare for conversations.' })}
             </p>
           </div>
 
           {/* Desktop heading */}
           <div className="hidden lg:block text-center mb-8">
             <h1 className="text-3xl font-bold text-ink mb-2">
-              {isLogin ? 'おかえりなさい' : 'はじめまして'}
+              {isLogin ? t({ ja: 'おかえりなさい', en: 'Welcome back' }) : t({ ja: 'はじめまして', en: 'Nice to meet you' })}
             </h1>
             <p className="text-ink-muted">
-              {isLogin ? 'アカウントにログインしてください' : '無料でアカウントを作成'}
+              {isLogin
+                ? t({ ja: 'アカウントにログインしてください', en: 'Please log in to your account.' })
+                : t({ ja: '無料でアカウントを作成', en: 'Create a free account.' })}
             </p>
           </div>
 
@@ -198,7 +209,7 @@ export default function Login() {
                     : 'text-ink-muted hover:text-ink-sub'
                 }`}
               >
-                ログイン
+                {t({ ja: 'ログイン', en: 'Log in' })}
               </button>
               <button
                 onClick={() => setIsLogin(false)}
@@ -208,22 +219,22 @@ export default function Login() {
                     : 'text-ink-muted hover:text-ink-sub'
                 }`}
               >
-                新規登録
+                {t({ ja: '新規登録', en: 'Sign up' })}
               </button>
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               {/* Error Message */}
               {error && (
-                <div className={`flex items-start gap-3 p-4 rounded-2xl animate-scaleIn ${
-                  error.includes('完了')
-                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                    : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-                }`}>
-                  <div className={`flex-shrink-0 w-5 h-5 mt-0.5 ${
-                    error.includes('完了') ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {error.includes('完了') ? (
+                <div
+                  className={`flex items-start gap-3 p-4 rounded-2xl animate-scaleIn ${
+                    isSuccess
+                      ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                      : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                  }`}
+                >
+                  <div className={`flex-shrink-0 w-5 h-5 mt-0.5 ${isSuccess ? 'text-green-500' : 'text-red-500'}`}>
+                    {isSuccess ? (
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
@@ -233,11 +244,9 @@ export default function Login() {
                       </svg>
                     )}
                   </div>
-                  <p className={`text-sm font-medium ${
-                    error.includes('完了')
-                      ? 'text-green-700 dark:text-green-300'
-                      : 'text-red-700 dark:text-red-300'
-                  }`}>{error}</p>
+                  <p className={`text-sm font-medium ${isSuccess ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                    {error}
+                  </p>
                 </div>
               )}
 
@@ -245,13 +254,13 @@ export default function Login() {
               {!isLogin && (
                 <div className="animate-fadeUp">
                   <label className="block text-sm font-semibold text-ink-sub mb-2">
-                    お名前
+                    {t({ ja: 'お名前', en: 'Name' })}
                   </label>
                   <input
                     type="text"
                     required
                     className="input-field"
-                    placeholder="山田太郎"
+                    placeholder={t({ ja: '山田太郎', en: 'John Doe' })}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -261,7 +270,7 @@ export default function Login() {
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-semibold text-ink-sub mb-2">
-                  メールアドレス
+                  {t({ ja: 'メールアドレス', en: 'Email' })}
                 </label>
                 <input
                   type="email"
@@ -276,13 +285,17 @@ export default function Login() {
               {/* Password Field */}
               <div>
                 <label className="block text-sm font-semibold text-ink-sub mb-2">
-                  パスワード
+                  {t({ ja: 'パスワード', en: 'Password' })}
                 </label>
                 <input
                   type="password"
                   required
                   className="input-field"
-                  placeholder={isLogin ? "パスワードを入力" : "6文字以上"}
+                  placeholder={
+                    isLogin
+                      ? t({ ja: 'パスワードを入力', en: 'Enter your password' })
+                      : t({ ja: '6文字以上', en: 'At least 6 characters' })
+                  }
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
@@ -292,7 +305,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn-primary w-full py-4 text-base mt-2 shadow-glow flex items-center justify-center gap-2"
+                className="btn-primary w-full py-4 text-base mt-2  flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -300,11 +313,11 @@ export default function Login() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    処理中...
+                    {t({ ja: '処理中...', en: 'Processing...' })}
                   </span>
                 ) : (
                   <>
-                    {isLogin ? 'ログイン' : 'アカウントを作成'}
+                    {isLogin ? t({ ja: 'ログイン', en: 'Log in' }) : t({ ja: 'アカウントを作成', en: 'Create account' })}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -315,7 +328,7 @@ export default function Login() {
 
             {!isLogin && (
               <p className="text-xs text-ink-faint text-center mt-4">
-                無料 / 30秒で登録完了
+                {t({ ja: '無料 / 30秒で登録完了', en: 'Free / Sign up in 30 seconds' })}
               </p>
             )}
           </div>
@@ -323,7 +336,7 @@ export default function Login() {
           {/* Footer Text */}
           <div className="text-center mt-8">
             <p className="text-sm text-ink-muted">
-              面接、デート、会議などの会話準備に
+              {t({ ja: '面接、デート、会議などの会話準備に', en: 'Prepare for interviews, dates, meetings, and more.' })}
             </p>
           </div>
         </div>

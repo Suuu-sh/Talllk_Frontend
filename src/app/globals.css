@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide all scrollbars globally */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* ─── Design Tokens ─── */
 :root {
   --base: 249 250 251;
@@ -22,9 +30,9 @@
 }
 
 .dark {
-  --base: 16 16 16;
+  --base: 24 24 24;
   --surface: 10 10 10;
-  --layer: 18 18 18;
+  --layer: 22 22 22;
   --inset: 5 5 5;
   --subtle: 26 26 26;
   --line: 30 30 30;
@@ -75,6 +83,18 @@ body {
   .glass-card-solid {
     @apply bg-surface border border-line shadow-md;
   }
+
+  .glass-card-muted {
+    @apply bg-surface border-[1.5px] border-line shadow-md;
+  }
+}
+
+.dark .glass-card-solid {
+  @apply bg-layer;
+}
+
+.dark .glass-card-muted {
+  @apply bg-layer;
 }
 
 @layer utilities {
@@ -88,25 +108,15 @@ body {
     box-shadow: 0 12px 24px -12px rgba(31, 38, 135, 0.25);
   }
 
-  /* Primary button with gradient */
+  /* Primary button */
   .btn-primary {
-    @apply relative overflow-hidden bg-gradient-to-r from-brand-500 to-brand-600
-           hover:from-brand-600 hover:to-brand-700
+    @apply relative overflow-hidden bg-brand-500
+           hover:bg-brand-600
            text-white font-semibold px-6 py-3 rounded-2xl
-           shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30
+           shadow-sm shadow-brand-500/15 hover:shadow-md hover:shadow-brand-500/20
            transition-all duration-300 ease-out
-           hover:scale-[1.02] active:scale-[0.98]
-           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
-  }
-
-  .btn-primary::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0
-           -translate-x-full transition-transform duration-500;
-  }
-
-  .btn-primary:hover::before {
-    @apply translate-x-full;
+           active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* Fix Chrome autofill background */
@@ -125,6 +135,18 @@ body {
            border border-line
            transition-all duration-300 ease-out
            hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-accent-soft {
+    @apply inline-flex items-center justify-center rounded-2xl
+           bg-brand-500/10 text-brand-500 border border-brand-500/60
+           hover:bg-brand-500/20 hover:border-brand-500
+           transition-all duration-200;
+  }
+
+  .dark .btn-accent-soft {
+    @apply bg-brand-500/15 text-brand-500 border-brand-500/60
+           hover:bg-brand-500/25 hover:border-brand-500;
   }
 
   /* Ghost button */
@@ -205,6 +227,14 @@ body {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: var(--scroll-hover);
   }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Animations */
@@ -270,3 +300,123 @@ body {
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
+
+/* Scroll-reveal animations */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes revealLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes revealRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes revealScale {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.8); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transition: none;
+}
+
+.scroll-reveal.revealed {
+  animation: revealUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scroll-reveal-left.revealed {
+  animation: revealLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scroll-reveal-right.revealed {
+  animation: revealRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scroll-reveal-scale.revealed {
+  animation: revealScale 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scroll-reveal-count.revealed {
+  animation: countUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scroll-delay-1 { animation-delay: 0.1s !important; }
+.scroll-delay-2 { animation-delay: 0.2s !important; }
+.scroll-delay-3 { animation-delay: 0.3s !important; }
+.scroll-delay-4 { animation-delay: 0.4s !important; }
+
+/* Shimmer text effect */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    currentColor 0%,
+    var(--color-brand-400, #818cf8) 50%,
+    currentColor 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Pulse glow */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-brand-500, #6366f1); opacity: 1; }
+  50% { box-shadow: 0 0 20px 8px var(--color-brand-500, #6366f1); opacity: 0.7; }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}

@@ -7,6 +7,7 @@ import { Situation, UserProfile } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { toTitleReading } from '@/lib/reading'
+import { useI18n } from '@/contexts/I18nContext'
 import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
@@ -33,25 +34,28 @@ type ChartMetric = 'sessions' | 'topics' | 'questions'
 type ChartRange = '1d' | '7d' | '30d'
 type ChartType = 'line' | 'area' | 'bar'
 
-const METRIC_CONFIG: Record<ChartMetric, { label: string; color: string }> = {
-  sessions: { label: 'セッション数', color: '#6366f1' },
-  topics: { label: 'トピック追加', color: '#a855f7' },
-  questions: { label: 'Q&A追加', color: '#06b6d4' },
-}
+const getMetricConfig = (lang: 'ja' | 'en'): Record<ChartMetric, { label: string; color: string }> => ({
+  sessions: { label: lang === 'en' ? 'Sessions' : 'セッション数', color: '#6366f1' },
+  topics: { label: lang === 'en' ? 'Topics added' : 'トピック追加', color: '#a855f7' },
+  questions: { label: lang === 'en' ? 'Q&A added' : 'Q&A追加', color: '#06b6d4' },
+})
 
-const RANGE_LABELS: Record<ChartRange, string> = {
+const getRangeLabels = (lang: 'ja' | 'en'): Record<ChartRange, string> => ({
   '1d': '24h',
-  '7d': '7日',
-  '30d': '30日',
-}
+  '7d': lang === 'en' ? '7d' : '7日',
+  '30d': lang === 'en' ? '30d' : '30日',
+})
 
-const CHART_TYPE_LABELS: Record<ChartType, string> = {
-  line: '折れ線',
-  area: 'エリア',
-  bar: '棒グラフ',
-}
+const getChartTypeLabels = (lang: 'ja' | 'en'): Record<ChartType, string> => ({
+  line: lang === 'en' ? 'Line' : '折れ線',
+  area: lang === 'en' ? 'Area' : 'エリア',
+  bar: lang === 'en' ? 'Bar' : '棒グラフ',
+})
 
-const generateDummyData = (range: ChartRange): Record<ChartMetric, { label: string; sessions: number; topics: number; questions: number }[]> => {
+const generateDummyData = (
+  range: ChartRange,
+  lang: 'ja' | 'en'
+): Record<ChartMetric, { label: string; sessions: number; topics: number; questions: number }[]> => {
   const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
   if (range === '1d') {
     const hours = Array.from({ length: 12 }, (_, i) => `${(i * 2).toString().padStart(2, '0')}:00`)
@@ -62,17 +66,20 @@ const generateDummyData = (range: ChartRange): Record<ChartMetric, { label: stri
     }
   }
   if (range === '7d') {
-    const days = ['月', '火', '水', '木', '金', '土', '日']
+    const days = lang === 'en' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['月', '火', '水', '木', '金', '土', '日']
     const data = days.map(d => ({ label: d, sessions: rand(1, 10), topics: rand(0, 6), questions: rand(1, 15) }))
     return { sessions: data, topics: data, questions: data }
   }
-  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+  const days = Array.from({ length: 30 }, (_, i) =>
+    lang === 'en' ? `${i + 1}` : `${i + 1}日`
+  )
   const data = days.map(d => ({ label: d, sessions: rand(0, 12), topics: rand(0, 8), questions: rand(0, 20) }))
   return { sessions: data, topics: data, questions: data }
 }
 
 export default function Dashboard() {
   const router = useRouter()
+  const { language, t } = useI18n()
   const [situations, setSituations] = useState<Situation[]>([])
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -83,17 +90,21 @@ export default function Dashboard() {
   const [chartMetric, setChartMetric] = useState<ChartMetric>('sessions')
   const [chartRange, setChartRange] = useState<ChartRange>('7d')
   const [chartType, setChartType] = useState<ChartType>('area')
-  const [chartDataCache] = useState(() => generateDummyData('7d'))
+  const [chartDataCache] = useState(() => generateDummyData('7d', language))
   const [chartData, setChartData] = useState(chartDataCache)
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const truncateText = (text: string, maxLength = 10) =>
+  const truncateText = (text: string, maxLength = 15) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    setChartData(generateDummyData(chartRange))
-  }, [chartRange])
+    setChartData(generateDummyData(chartRange, language))
+  }, [chartRange, language])
+
+  const metricConfig = getMetricConfig(language)
+  const rangeLabels = getRangeLabels(language)
+  const chartTypeLabels = getChartTypeLabels(language)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -331,19 +342,25 @@ export default function Dashboard() {
                 </div>
 
                 <h2 className="text-lg font-bold text-ink mt-3 mb-0.5">
-                  {profile?.name || 'ユーザー'}
+                  {profile?.name || t({ ja: 'ユーザー', en: 'User' })}
                 </h2>
-                <p className="text-[11px] text-ink-faint tracking-wide uppercase mb-5">My Profile</p>
+                <p className="text-[11px] text-ink-faint tracking-wide uppercase mb-5">
+                  {t({ ja: 'マイプロフィール', en: 'My Profile' })}
+                </p>
 
                 {/* Stats */}
                 <div className="w-full flex items-center gap-2">
                   <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/10 px-3 py-2.5 text-center">
                     <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.following_count ?? 0}</div>
-                    <div className="text-[10px] text-ink-muted font-medium">フォロー中</div>
+                    <div className="text-[10px] text-ink-muted font-medium">
+                      {t({ ja: 'フォロー中', en: 'Following' })}
+                    </div>
                   </div>
                   <div className="flex-1 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/10 px-3 py-2.5 text-center">
                     <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.follower_count ?? 0}</div>
-                    <div className="text-[10px] text-ink-muted font-medium">フォロワー</div>
+                    <div className="text-[10px] text-ink-muted font-medium">
+                      {t({ ja: 'フォロワー', en: 'Followers' })}
+                    </div>
                   </div>
                 </div>
 
@@ -351,13 +368,16 @@ export default function Dashboard() {
                 <div className="w-full mt-3 flex items-center justify-center gap-4 text-[11px] text-ink-muted">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>オンライン</span>
+                    <span>{t({ ja: 'オンライン', en: 'Online' })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
                     </svg>
-                    <span>{favoriteSituations.length} お気に入り</span>
+                    <span>
+                      {favoriteSituations.length}{' '}
+                      {t({ ja: 'お気に入り', en: 'favorites' })}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -368,10 +388,10 @@ export default function Dashboard() {
               {/* Favorites */}
               <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[10rem]">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-ink">お気に入り</h3>
+                  <h3 className="text-sm font-semibold text-ink">{t({ ja: 'お気に入り', en: 'Favorites' })}</h3>
                   {favoriteSituations.length > 0 && (
                     <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">
-                      {favoriteSituations.length}件
+                      {language === 'en' ? `${favoriteSituations.length} items` : `${favoriteSituations.length}件`}
                     </span>
                   )}
                 </div>
@@ -386,8 +406,12 @@ export default function Dashboard() {
                           </svg>
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-ink-sub mb-1">お気に入りがありません</p>
-                      <p className="text-xs text-ink-muted mb-3">シチュエーションタブで追加</p>
+                      <p className="text-sm font-medium text-ink-sub mb-1">
+                        {t({ ja: 'お気に入りがありません', en: 'No favorites yet' })}
+                      </p>
+                      <p className="text-xs text-ink-muted mb-3">
+                        {t({ ja: 'シチュエーションタブで追加', en: 'Add from Situations' })}
+                      </p>
                       <button
                         onClick={() => router.push('/situations')}
                         className="btn-accent-soft inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-semibold text-xs"
@@ -395,7 +419,7 @@ export default function Dashboard() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        シチュエーションを見る
+                        {t({ ja: 'シチュエーションを見る', en: 'Go to Situations' })}
                       </button>
                     </div>
                   ) : (
@@ -433,9 +457,9 @@ export default function Dashboard() {
                           }`}
                         >
                           <div className="flex items-start gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-layer flex items-center justify-center text-ink-faint shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500 shrink-0">
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 19a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-4l-2-2H6a2 2 0 00-2 2v14z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                               </svg>
                             </div>
                             <div className="min-w-0">
@@ -444,19 +468,27 @@ export default function Dashboard() {
                                   {truncateText(situation.title, 15)}
                                 </h4>
                                 <span className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70">
-                                  {situation.is_public ? '公開' : '非公開'}
+                                  {situation.is_public
+                                    ? t({ ja: '公開', en: 'Public' })
+                                    : t({ ja: '非公開', en: 'Private' })}
                                 </span>
                               </div>
                               {situation.labels && situation.labels.length > 0 ? (
-                                <div className="flex items-center gap-2 text-xs text-ink-muted mt-1">
-                                  <span
-                                    className="w-2.5 h-2.5 rounded-full"
-                                    style={{ backgroundColor: situation.labels[0].color }}
-                                  />
-                                  <span className="truncate">{situation.labels[0].name}</span>
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted mt-1">
+                                  {situation.labels.slice(0, 3).map((label) => (
+                                    <span key={label.id} className="inline-flex items-center gap-1.5 min-w-0">
+                                      <span
+                                        className="w-2.5 h-2.5 rounded-full"
+                                        style={{ backgroundColor: label.color }}
+                                      />
+                                      <span className="truncate max-w-[120px]">{label.name}</span>
+                                    </span>
+                                  ))}
                                 </div>
                               ) : (
-                                <p className="text-xs text-ink-muted mt-1">ラベルなし</p>
+                                <p className="text-xs text-ink-muted mt-1">
+                                  {t({ ja: 'ラベルなし', en: 'No label' })}
+                                </p>
                               )}
                             </div>
                           </div>
@@ -465,7 +497,7 @@ export default function Dashboard() {
                               onClick={(e) => handleToggleFavorite(situation, e)}
                               disabled={togglingFavoriteIds.has(situation.id)}
                               className="text-yellow-500 hover:opacity-80 transition-opacity"
-                              title="お気に入り解除"
+                              title={t({ ja: 'お気に入り解除', en: 'Remove favorite' })}
                             >
                               {togglingFavoriteIds.has(situation.id) ? (
                                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -501,15 +533,19 @@ export default function Dashboard() {
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-ink">アクティビティ</h3>
-                    <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">Coming Soon</span>
+                  <h3 className="text-sm font-semibold text-ink">
+                    {t({ ja: 'アクティビティ', en: 'Activity' })}
+                  </h3>
+                  <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">
+                    {t({ ja: '近日公開', en: 'Coming Soon' })}
+                  </span>
                   </div>
 
                   {/* Controls */}
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* Metric selector */}
                     <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(METRIC_CONFIG) as ChartMetric[]).map((m) => (
+                      {(Object.keys(metricConfig) as ChartMetric[]).map((m) => (
                         <button
                           key={m}
                           onClick={() => setChartMetric(m)}
@@ -519,14 +555,14 @@ export default function Dashboard() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          {METRIC_CONFIG[m].label}
+                          {metricConfig[m].label}
                         </button>
                       ))}
                     </div>
 
                     {/* Chart type */}
                     <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(CHART_TYPE_LABELS) as ChartType[]).map((t) => (
+                      {(Object.keys(chartTypeLabels) as ChartType[]).map((t) => (
                         <button
                           key={t}
                           onClick={() => setChartType(t)}
@@ -536,14 +572,14 @@ export default function Dashboard() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          {CHART_TYPE_LABELS[t]}
+                          {chartTypeLabels[t]}
                         </button>
                       ))}
                     </div>
 
                     {/* Range selector */}
                     <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(RANGE_LABELS) as ChartRange[]).map((r) => (
+                      {(Object.keys(rangeLabels) as ChartRange[]).map((r) => (
                         <button
                           key={r}
                           onClick={() => setChartRange(r)}
@@ -553,7 +589,7 @@ export default function Dashboard() {
                               : 'text-ink-muted hover:bg-subtle'
                           }`}
                         >
-                          {RANGE_LABELS[r]}
+                          {rangeLabels[r]}
                         </button>
                       ))}
                     </div>
@@ -562,7 +598,7 @@ export default function Dashboard() {
 
                 {/* Summary stats */}
                 <div className="flex items-center gap-3 mb-3">
-                  {(Object.keys(METRIC_CONFIG) as ChartMetric[]).map((m) => {
+                  {(Object.keys(metricConfig) as ChartMetric[]).map((m) => {
                     const data = chartData[m]
                     const total = data.reduce((sum, d) => sum + d[m], 0)
                     const avg = data.length > 0 ? (total / data.length).toFixed(1) : '0'
@@ -575,13 +611,18 @@ export default function Dashboard() {
                           chartMetric === m ? 'bg-surface/80 border border-line' : 'opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: METRIC_CONFIG[m].color }} />
-                        <div className="text-left">
-                          <div className="text-[10px] text-ink-muted">{METRIC_CONFIG[m].label}</div>
-                          <div className="text-sm font-bold text-ink leading-none">{total}<span className="text-[10px] font-normal text-ink-faint ml-1">avg {avg} / max {max}</span></div>
-                        </div>
-                      </button>
-                    )
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[m].color }} />
+                          <div className="text-left">
+                            <div className="text-[10px] text-ink-muted">{metricConfig[m].label}</div>
+                            <div className="text-sm font-bold text-ink leading-none">
+                              {total}
+                              <span className="text-[10px] font-normal text-ink-faint ml-1">
+                                {t({ ja: '平均', en: 'avg' })} {avg} / {t({ ja: '最大', en: 'max' })} {max}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      )
                   })}
                 </div>
 
@@ -598,14 +639,14 @@ export default function Dashboard() {
                           labelStyle={{ fontWeight: 600 }}
                         />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Bar dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} fill={METRIC_CONFIG[chartMetric].color} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey={chartMetric} name={metricConfig[chartMetric].label} fill={metricConfig[chartMetric].color} radius={[4, 4, 0, 0]} />
                       </BarChart>
                     ) : chartType === 'area' ? (
                       <AreaChart data={chartData[chartMetric]}>
                         <defs>
                           <linearGradient id={`grad-${chartMetric}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={METRIC_CONFIG[chartMetric].color} stopOpacity={0.3} />
-                            <stop offset="100%" stopColor={METRIC_CONFIG[chartMetric].color} stopOpacity={0.02} />
+                            <stop offset="0%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.3} />
+                            <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.02} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
@@ -616,7 +657,7 @@ export default function Dashboard() {
                           labelStyle={{ fontWeight: 600 }}
                         />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Area type="monotone" dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} stroke={METRIC_CONFIG[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: METRIC_CONFIG[chartMetric].color }} activeDot={{ r: 5 }} />
+                        <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
                       </AreaChart>
                     ) : (
                       <LineChart data={chartData[chartMetric]}>
@@ -628,7 +669,7 @@ export default function Dashboard() {
                           labelStyle={{ fontWeight: 600 }}
                         />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line type="monotone" dataKey={chartMetric} name={METRIC_CONFIG[chartMetric].label} stroke={METRIC_CONFIG[chartMetric].color} strokeWidth={2} dot={{ r: 2, fill: METRIC_CONFIG[chartMetric].color }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
                       </LineChart>
                     )}
                   </ResponsiveContainer>

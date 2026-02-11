@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { PublicSituationDetail, Topic, Question } from '@/types'
+import { useI18n } from '@/contexts/I18nContext'
 
 type TreeNode = {
   id: number
@@ -17,6 +18,7 @@ type TreeNode = {
 export default function DiscoverDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const { t } = useI18n()
   const [situation, setSituation] = useState<PublicSituationDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -183,12 +185,7 @@ export default function DiscoverDetailPage() {
     return (
       <div key={nodeKey} className="animate-fadeUp" style={{ animationDelay: `${depth * 30}ms` }}>
         <div
-          className={`group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer
-            ${isFolder
-              ? 'bg-brand-50/50 dark:bg-brand-900/20 hover:bg-brand-100/70 dark:hover:bg-brand-900/30'
-              : 'bg-surface hover:bg-subtle border border-line'
-            }
-          `}
+          className="group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer glass-card-muted hover:bg-subtle"
           onClick={() => {
             if (hasChildren) {
               toggleNode(nodeKey)
@@ -201,8 +198,8 @@ export default function DiscoverDetailPage() {
           {/* Icon */}
           <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
             isFolder
-              ? 'bg-brand-100 dark:bg-brand-800/50 text-brand-600 dark:text-brand-400'
-              : 'bg-layer text-ink-muted'
+              ? 'bg-brand-100 dark:bg-brand-900/40 text-brand-500'
+              : 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400'
           }`}>
             {isFolder ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,13 +234,11 @@ export default function DiscoverDetailPage() {
                   </svg>
                 </button>
               )}
-              <span className={`font-semibold line-clamp-2 break-words ${
-                isFolder ? 'text-brand-700 dark:text-brand-300' : 'text-ink'
-              }`}>
+              <span className="font-semibold line-clamp-2 break-words text-ink">
                 {node.title}
               </span>
               {isFolder && node.children && node.children.length > 0 && (
-                <span className="badge-brand text-xs flex-shrink-0">{node.children.length}</span>
+                <span className="badge text-xs bg-layer text-ink-sub flex-shrink-0">{node.children.length}</span>
               )}
             </div>
             {!isFolder && node.answer && (
@@ -262,7 +257,7 @@ export default function DiscoverDetailPage() {
                   setSelectedTask(node)
                 }}
                 className="btn-icon-sm"
-                title="詳細"
+                title={t({ ja: '詳細', en: 'Details' })}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -331,13 +326,18 @@ export default function DiscoverDetailPage() {
     return (
       <div className="min-h-screen bg-base flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-ink mb-2">見つかりません</h2>
-          <p className="text-ink-muted mb-4">このシチュエーションは存在しないか、公開されていません。</p>
+          <h2 className="text-xl font-bold text-ink mb-2">{t({ ja: '見つかりません', en: 'Not found' })}</h2>
+          <p className="text-ink-muted mb-4">
+            {t({
+              ja: 'このシチュエーションは存在しないか、公開されていません。',
+              en: 'This situation does not exist or is not public.',
+            })}
+          </p>
           <button
             onClick={() => router.push('/discover')}
             className="btn-primary"
           >
-            Discoverに戻る
+            {t({ ja: 'Discoverに戻る', en: 'Back to Discover' })}
           </button>
         </div>
       </div>
@@ -348,8 +348,10 @@ export default function DiscoverDetailPage() {
     <div className="min-h-screen bg-base transition-colors duration-300">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-32 right-0 w-96 h-96 bg-brand-400/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-400/5 rounded-full blur-3xl" />
+        <div className="absolute top-32 right-0 w-96 h-96 bg-brand-900/3 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-10 w-72 h-72 bg-brand-900/2 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-1/3 w-80 h-80 bg-brand-900/2 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-600/2 rounded-full blur-3xl" />
       </div>
 
       {/* Navigation */}
@@ -359,12 +361,12 @@ export default function DiscoverDetailPage() {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => router.push('/discover')}
-                className="btn-ghost flex items-center gap-2 text-brand-600 dark:text-brand-400 flex-shrink-0"
+                className="btn-ghost flex items-center gap-2 text-brand-500 flex-shrink-0"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="font-medium">Discoverに戻る</span>
+                <span className="font-medium">{t({ ja: 'Discoverに戻る', en: 'Back to Discover' })}</span>
               </button>
               <span className="hidden sm:block text-sm font-semibold text-ink-sub truncate max-w-[200px] lg:max-w-[300px]">
                 {situation.title}
@@ -379,27 +381,27 @@ export default function DiscoverDetailPage() {
         <div className="glass-card-solid rounded-3xl p-6 mb-8 animate-fadeUp">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/50 dark:to-brand-800/50 flex items-center justify-center text-brand-600 dark:text-brand-400">
+              <div className="w-14 h-14 rounded-2xl bg-brand-500/15 flex items-center justify-center text-brand-500">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-ink">{situation.title}</h1>
-                <p className="text-ink-muted mt-1">{situation.description || '説明なし'}</p>
+                <p className="text-ink-muted mt-1">{situation.description || t({ ja: '説明なし', en: 'No description' })}</p>
                 {situation.user && (
                   <div className="flex items-center justify-between mt-3">
                     <button
                       onClick={() => router.push(`/users/${situation.user?.id}`)}
                       className="flex items-center gap-2 text-left"
                     >
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center">
                         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" />
                         </svg>
                       </div>
                       <span className="text-sm text-ink-muted">
-                        {situation.user.name || '匿名ユーザー'}
+                        {situation.user.name || t({ ja: '匿名ユーザー', en: 'Anonymous' })}
                       </span>
                     </button>
                     {!situation.user.is_self && (
@@ -408,11 +410,11 @@ export default function DiscoverDetailPage() {
                         disabled={isTogglingFollow}
                         className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 ${
                           situation.user.is_following
-                            ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                            ? 'border-brand-500 text-brand-500 bg-brand-500/15'
                             : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
                         }`}
                       >
-                        {situation.user.is_following ? 'フォロー中' : 'フォロー'}
+                        {situation.user.is_following ? t({ ja: 'フォロー中', en: 'Following' }) : t({ ja: 'フォロー', en: 'Follow' })}
                       </button>
                     )}
                   </div>
@@ -437,7 +439,7 @@ export default function DiscoverDetailPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                     <span className="font-medium">{situation.topics.length}</span>
-                    <span>フォルダ</span>
+                    <span>{t({ ja: 'フォルダ', en: 'Folders' })}</span>
                   </div>
                   <div className="w-px h-4 bg-line" />
                   <div className="flex items-center gap-1.5 text-sm text-ink-muted">
@@ -445,7 +447,7 @@ export default function DiscoverDetailPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="font-medium">{situation.questions.length}</span>
-                    <span>質問</span>
+                    <span>{t({ ja: '質問', en: 'Questions' })}</span>
                   </div>
                 </div>
               </div>
@@ -457,10 +459,10 @@ export default function DiscoverDetailPage() {
                   disabled={isTogglingStar}
                   className={`btn-icon-sm transition-all duration-300 ${
                     situation.is_starred
-                      ? 'text-yellow-500 hover:text-yellow-600'
+                      ? '!text-yellow-500'
                       : 'text-ink-faint hover:text-yellow-500'
                   }`}
-                  title={situation.is_starred ? 'スター解除' : 'スター'}
+                  title={situation.is_starred ? t({ ja: 'スター解除', en: 'Unstar' }) : t({ ja: 'スター', en: 'Star' })}
                 >
                   {isTogglingStar ? (
                     <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -488,8 +490,8 @@ export default function DiscoverDetailPage() {
                 onClick={handleSave}
                 disabled={isSaving}
                 className="btn-primary w-10 h-10 p-0 flex items-center justify-center"
-                aria-label={isSaving ? '保存中' : 'この準備を保存'}
-                title={isSaving ? '保存中' : 'この準備を保存'}
+                aria-label={isSaving ? t({ ja: '保存中', en: 'Saving' }) : t({ ja: 'この準備を保存', en: 'Save this situation' })}
+                title={isSaving ? t({ ja: '保存中', en: 'Saving' }) : t({ ja: 'この準備を保存', en: 'Save this situation' })}
               >
                 {isSaving ? (
                   <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -520,10 +522,13 @@ export default function DiscoverDetailPage() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-ink mb-2">
-                  コンテンツがありません
+                  {t({ ja: 'コンテンツがありません', en: 'No content' })}
                 </h3>
                 <p className="text-ink-muted">
-                  このシチュエーションにはまだフォルダや質問がありません
+                  {t({
+                    ja: 'このシチュエーションにはまだフォルダや質問がありません',
+                    en: 'This situation has no folders or questions yet.',
+                  })}
                 </p>
               </div>
             )}
@@ -536,7 +541,7 @@ export default function DiscoverDetailPage() {
                 <button
                   onClick={() => setSelectedTask(null)}
                   className="btn-icon-sm absolute top-4 right-4"
-                  aria-label="詳細を閉じる"
+                  aria-label={t({ ja: '詳細を閉じる', en: 'Close details' })}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -544,11 +549,11 @@ export default function DiscoverDetailPage() {
                 </button>
                 <div className="p-6 pt-10 space-y-4 flex-1 overflow-y-auto min-h-0">
                   <div>
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-500 uppercase tracking-wider mb-1">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      質問
+                      {t({ ja: '質問', en: 'Question' })}
                     </div>
                     <div className="font-semibold text-ink">{selectedTask.title}</div>
                   </div>
@@ -558,10 +563,10 @@ export default function DiscoverDetailPage() {
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      回答
+                      {t({ ja: '回答', en: 'Answer' })}
                     </div>
                     <div className="bg-inset rounded-xl p-4 text-ink-sub whitespace-pre-wrap">
-                      {selectedTask.answer || '（未回答）'}
+                      {selectedTask.answer || t({ ja: '（未回答）', en: '(No answer)' })}
                     </div>
                   </div>
                 </div>
@@ -586,7 +591,7 @@ export default function DiscoverDetailPage() {
                 <button
                   onClick={() => setSelectedTask(null)}
                   className="btn-icon-sm absolute top-4 right-4"
-                  aria-label="詳細を閉じる"
+                  aria-label={t({ ja: '詳細を閉じる', en: 'Close details' })}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -594,11 +599,11 @@ export default function DiscoverDetailPage() {
                 </button>
                 <div className="px-6 pt-6 pb-8 space-y-4">
                   <div>
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-500 uppercase tracking-wider mb-1">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      質問
+                      {t({ ja: '質問', en: 'Question' })}
                     </div>
                     <div className="font-semibold text-ink">{selectedTask.title}</div>
                   </div>
@@ -608,10 +613,10 @@ export default function DiscoverDetailPage() {
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      回答
+                      {t({ ja: '回答', en: 'Answer' })}
                     </div>
                     <div className="bg-inset rounded-xl p-4 text-ink-sub whitespace-pre-wrap">
-                      {selectedTask.answer || '（未回答）'}
+                      {selectedTask.answer || t({ ja: '（未回答）', en: '(No answer)' })}
                     </div>
                   </div>
                 </div>
@@ -637,23 +642,23 @@ export default function DiscoverDetailPage() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-ink mb-2">
-              保存しました
+              {t({ ja: '保存しました', en: 'Saved' })}
             </h3>
             <p className="text-ink-muted mb-6">
-              この準備があなたのシチュエーションに追加されました
+              {t({ ja: 'この準備があなたのシチュエーションに追加されました', en: 'This situation was added to your list.' })}
             </p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => router.push('/home')}
                 className="btn-primary w-full"
               >
-                マイシチュエーションを見る
+                {t({ ja: 'マイシチュエーションを見る', en: 'Go to My Situations' })}
               </button>
               <button
                 onClick={() => setShowSuccessModal(false)}
                 className="btn-secondary w-full"
               >
-                このまま閲覧する
+                {t({ ja: 'このまま閲覧する', en: 'Continue browsing' })}
               </button>
             </div>
           </div>

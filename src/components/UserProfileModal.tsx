@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { PaginatedResponse, PublicSituation, UserProfile } from '@/types'
+import { useI18n } from '@/contexts/I18nContext'
 
 type UserProfileModalProps = {
   mode: 'me' | 'user'
@@ -31,6 +32,7 @@ const getAvatarGradient = (id: number): string => {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
 
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
+  const { t, language } = useI18n()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [situations, setSituations] = useState<PublicSituation[]>([])
@@ -158,7 +160,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/40 transition-colors duration-200"
-          aria-label="閉じる"
+          aria-label={t({ ja: '閉じる', en: 'Close' })}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -214,54 +216,24 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-ink-sub mb-2">ユーザーが見つかりません</p>
-              <p className="text-sm text-ink-muted">このユーザーは存在しないか、削除された可能性があります。</p>
+              <p className="text-lg font-semibold text-ink-sub mb-2">
+                {t({ ja: 'ユーザーが見つかりません', en: 'User not found' })}
+              </p>
+              <p className="text-sm text-ink-muted">
+                {t({
+                  ja: 'このユーザーは存在しないか、削除された可能性があります。',
+                  en: 'This user does not exist or may have been deleted.',
+                })}
+              </p>
             </div>
           ) : (
             <>
-              {/* Banner */}
-              <div className="h-28 sm:h-32 rounded-t-3xl relative overflow-hidden">
-                {profile.header_image_url ? (
-                  <img
-                    src={`${API_BASE}${profile.header_image_url}`}
-                    alt="ヘッダー画像"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
-                    <div className="absolute bottom-0 left-1/4 w-24 h-24 bg-white/10 rounded-full translate-y-1/2" />
-                    <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/5 rounded-full" />
-                  </div>
-                )}
-                {profile.is_self && (
-                  <button
-                    onClick={() => headerInputRef.current?.click()}
-                    disabled={uploadingHeader}
-                    className="absolute bottom-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 transition-colors duration-200"
-                    aria-label="ヘッダー画像を変更"
-                  >
-                    {uploadingHeader ? (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
-
               {/* Profile card */}
-              <div className="glass-card-solid rounded-b-3xl px-6 pb-6 mb-8 animate-fadeUp">
+              <div className="glass-card-solid rounded-3xl px-6 pb-6 pt-8 mb-8 animate-fadeUp">
                 <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                   {/* Avatar */}
                   <div
-                    className={`-mt-12 w-24 h-24 rounded-full border-4 border-surface shadow-lg shrink-0 relative group ${profile.is_self ? 'cursor-pointer' : ''} ${profile.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile.id)}`} flex items-center justify-center overflow-hidden`}
+                    className={`w-24 h-24 rounded-full border-4 border-surface shadow-lg shrink-0 relative group ${profile.is_self ? 'cursor-pointer' : ''} ${profile.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile.id)}`} flex items-center justify-center overflow-hidden`}
                     onClick={() => profile.is_self && avatarInputRef.current?.click()}
                   >
                     {profile.avatar_url ? (
@@ -296,10 +268,12 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-1 gap-3 pb-1">
                     <div>
                       <h1 className="text-2xl font-bold text-ink">
-                        {profile.name || 'ユーザー'}
+                        {profile.name || t({ ja: 'ユーザー', en: 'User' })}
                       </h1>
                       {profile.is_self && (
-                        <p className="text-sm text-ink-muted mt-0.5">マイプロフィール</p>
+                        <p className="text-sm text-ink-muted mt-0.5">
+                          {t({ ja: 'マイプロフィール', en: 'My profile' })}
+                        </p>
                       )}
                     </div>
                     {!profile.is_self && (
@@ -312,7 +286,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                             : 'border-brand-500 text-white bg-brand-500 hover:bg-brand-600'
                         }`}
                       >
-                        {profile.is_following ? 'フォロー中' : 'フォロー'}
+                        {profile.is_following ? t({ ja: 'フォロー中', en: 'Following' }) : t({ ja: 'フォロー', en: 'Follow' })}
                       </button>
                     )}
                   </div>
@@ -327,7 +301,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-ink-muted">フォロー中</div>
+                      <div className="text-xs text-ink-muted">{t({ ja: 'フォロー中', en: 'Following' })}</div>
                       <div className="text-2xl font-bold text-ink">
                         {profile.following_count}
                       </div>
@@ -340,7 +314,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-ink-muted">フォロワー</div>
+                      <div className="text-xs text-ink-muted">{t({ ja: 'フォロワー', en: 'Followers' })}</div>
                       <div className="text-2xl font-bold text-ink">
                         {profile.follower_count}
                       </div>
@@ -351,9 +325,11 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
 
               {/* Section header */}
               <div className="flex items-center justify-between mb-4 px-6">
-                <h2 className="text-lg font-semibold text-ink">公開シチュエーション</h2>
+                <h2 className="text-lg font-semibold text-ink">
+                  {t({ ja: '公開シチュエーション', en: 'Public situations' })}
+                </h2>
                 <span className="badge-brand text-xs font-semibold">
-                  {situations.length}件
+                  {language === 'en' ? `${situations.length} items` : `${situations.length}件`}
                 </span>
               </div>
 
@@ -369,13 +345,13 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                     </div>
                     <p className="text-ink-body font-medium mb-1">
                       {profile.is_self
-                        ? 'まだシチュエーションを公開していません'
-                        : '公開シチュエーションがありません'}
+                        ? t({ ja: 'まだシチュエーションを公開していません', en: 'No public situations yet' })
+                        : t({ ja: '公開シチュエーションがありません', en: 'No public situations' })}
                     </p>
                     <p className="text-sm text-ink-muted">
                       {profile.is_self
-                        ? 'シチュエーションを作成して公開してみましょう'
-                        : 'このユーザーはまだシチュエーションを公開していません'}
+                        ? t({ ja: 'シチュエーションを作成して公開してみましょう', en: 'Create a situation and make it public.' })
+                        : t({ ja: 'このユーザーはまだシチュエーションを公開していません', en: 'This user has no public situations yet.' })}
                     </p>
                   </div>
                 ) : (
@@ -384,7 +360,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                       <div
                         key={situation.id}
                         onClick={() => router.push(`/discover/${situation.id}`)}
-                        className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border-2 border-transparent hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col stagger-${Math.min(index + 1, 6)}`}
+                        className={`group glass-card-solid rounded-2xl p-6 cursor-pointer card-hover border border-line hover:border-brand-200 dark:hover:border-brand-500/30 animate-fadeUp flex flex-col stagger-${Math.min(index + 1, 6)}`}
                       >
                         <h3 className="text-xl font-bold text-ink mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-300">
                           {truncateText(situation.title || '')}
@@ -417,7 +393,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                             </span>
                           </div>
                           <span className="group-hover:underline flex items-center gap-1">
-                            詳細を見る
+                            {t({ ja: '詳細を見る', en: 'View details' })}
                             <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>

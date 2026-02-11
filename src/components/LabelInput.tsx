@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import api from '@/lib/api'
 import type { Label } from '@/types'
+import { useI18n } from '@/contexts/I18nContext'
 
 type LabelInputProps = {
   value: Label[]
@@ -21,6 +22,7 @@ const getContrastColor = (hexColor: string) => {
 }
 
 export default function LabelInput({ value, onChange, placeholder }: LabelInputProps) {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [options, setOptions] = useState<Label[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -104,7 +106,7 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
               onClick={() => removeLabel(label.id)}
               className="badge text-xs"
               style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
-              title="削除"
+              title={t({ ja: '削除', en: 'Delete' })}
             >
               {label.name} <span className="ml-1">×</span>
             </button>
@@ -114,7 +116,9 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
       {isOpen && (
         <div className="absolute z-20 mt-2 w-full rounded-2xl bg-surface border border-line shadow-lg max-h-40 overflow-auto custom-scrollbar">
           {isLoading ? (
-            <div className="px-4 py-3 text-sm text-ink-muted">読み込み中...</div>
+            <div className="px-4 py-3 text-sm text-ink-muted">
+              {t({ ja: '読み込み中...', en: 'Loading...' })}
+            </div>
           ) : (
             <>
               {options
@@ -139,11 +143,13 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
                   onClick={createLabel}
                   className="w-full px-4 py-2 text-left text-sm text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20"
                 >
-                  「{trimmedQuery}」を作成
+                  {t({ ja: `「${trimmedQuery}」を作成`, en: `Create "${trimmedQuery}"` })}
                 </button>
               )}
               {!trimmedQuery && options.length === 0 && (
-                <div className="px-4 py-3 text-sm text-ink-muted">ラベルがありません</div>
+                <div className="px-4 py-3 text-sm text-ink-muted">
+                  {t({ ja: 'ラベルがありません', en: 'No labels' })}
+                </div>
               )}
             </>
           )}
