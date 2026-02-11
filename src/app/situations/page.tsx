@@ -343,30 +343,10 @@ export default function SituationsPage() {
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
       <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 overflow-hidden">
-        {/* Stats */}
-        {!isLoading && situations.length > 0 && (
-          <div className="flex items-center gap-4 sm:gap-6 mb-3 animate-fadeUp">
-            <div className="text-center">
-              <div className="text-lg font-bold text-ink">{situations.length}</div>
-              <div className="text-xs text-ink-muted">合計</div>
-            </div>
-            <div className="w-px h-8 bg-line" />
-            <div className="text-center">
-              <div className="text-lg font-bold text-yellow-500">{favoriteCount}</div>
-              <div className="text-xs text-ink-muted">お気に入り</div>
-            </div>
-            <div className="w-px h-8 bg-line" />
-            <div className="text-center">
-              <div className="text-lg font-bold text-green-500">{publicCount}</div>
-              <div className="text-xs text-ink-muted">公開中</div>
-            </div>
-          </div>
-        )}
-
-        {/* Filter + Create */}
+        {/* Filter + Create + Stats */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3 animate-fadeUp relative z-40">
           {!isLoading && situations.length > 0 && (
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 sm:max-w-xs flex-shrink">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl glass-card-muted px-3 py-2 transition-all duration-300 focus-within:shadow-xl focus-within:shadow-brand-500/10 focus-within:border-brand-400/50 dark:focus-within:border-brand-500/50">
                 <div className="flex items-center gap-2 flex-1">
                   <svg className="w-4 h-4 text-ink-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -545,7 +525,7 @@ export default function SituationsPage() {
           {situations.length > 0 && (
             <button
               onClick={() => setShowModal(true)}
-              className="btn-accent-soft text-sm flex items-center gap-2 w-full sm:w-auto justify-center px-4 py-2.5 rounded-2xl font-semibold"
+              className="btn-accent-soft text-sm flex items-center gap-2 w-full sm:w-auto justify-center px-4 py-2.5 rounded-2xl font-semibold shrink-0"
               aria-label={t({ ja: '新規作成', en: 'Create new' })}
               title={t({ ja: '新規作成', en: 'Create new' })}
             >
@@ -554,6 +534,24 @@ export default function SituationsPage() {
               </svg>
               <span className="sm:inline">{t({ ja: '新規作成', en: 'Create' })}</span>
             </button>
+          )}
+          {!isLoading && situations.length > 0 && (
+            <div className="hidden sm:flex items-center gap-3 ml-auto text-sm shrink-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-ink">{situations.length}</span>
+                <span className="text-ink-muted text-xs">合計</span>
+              </div>
+              <div className="w-px h-4 bg-line" />
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-yellow-500">{favoriteCount}</span>
+                <span className="text-ink-muted text-xs">お気に入り</span>
+              </div>
+              <div className="w-px h-4 bg-line" />
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-green-500">{publicCount}</span>
+                <span className="text-ink-muted text-xs">公開中</span>
+              </div>
+            </div>
           )}
         </div>
 
