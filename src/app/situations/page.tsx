@@ -346,7 +346,7 @@ export default function SituationsPage() {
         {/* Filter + Create + Stats */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3 animate-fadeUp relative z-40">
           {!isLoading && situations.length > 0 && (
-            <div className="min-w-0 sm:max-w-xs flex-shrink">
+            <div className="min-w-0 flex-1">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-2xl glass-card-muted px-3 py-2 transition-all duration-300 focus-within:shadow-xl focus-within:shadow-brand-500/10 focus-within:border-brand-400/50 dark:focus-within:border-brand-500/50">
                 <div className="flex items-center gap-2 flex-1">
                   <svg className="w-4 h-4 text-ink-faint shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
