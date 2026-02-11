@@ -330,7 +330,7 @@ export default function SituationsPage() {
   const publicCount = situations.filter((s) => s.is_public).length
 
   return (
-    <div className="min-h-screen flex flex-col bg-base transition-colors duration-300">
+    <div className="h-screen overflow-hidden flex flex-col bg-base transition-colors duration-300">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-32 right-0 w-96 h-96 bg-brand-900/3 rounded-full blur-3xl" />
@@ -342,7 +342,27 @@ export default function SituationsPage() {
       <Header />
       <TabNavigation activeTab={activeTab} onTabChange={() => {}} />
 
-      <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
+      <main className="relative flex-1 min-h-0 flex flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 overflow-hidden">
+        {/* Stats */}
+        {!isLoading && situations.length > 0 && (
+          <div className="flex items-center gap-4 sm:gap-6 mb-3 animate-fadeUp">
+            <div className="text-center">
+              <div className="text-lg font-bold text-ink">{situations.length}</div>
+              <div className="text-xs text-ink-muted">合計</div>
+            </div>
+            <div className="w-px h-8 bg-line" />
+            <div className="text-center">
+              <div className="text-lg font-bold text-yellow-500">{favoriteCount}</div>
+              <div className="text-xs text-ink-muted">お気に入り</div>
+            </div>
+            <div className="w-px h-8 bg-line" />
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-500">{publicCount}</div>
+              <div className="text-xs text-ink-muted">公開中</div>
+            </div>
+          </div>
+        )}
+
         {/* Filter + Create */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3 animate-fadeUp relative z-40">
           {!isLoading && situations.length > 0 && (
@@ -538,7 +558,7 @@ export default function SituationsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 relative z-0">
+        <div className="flex-1 min-h-0 overflow-y-auto relative z-0 pb-4">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-2">
             {[...Array(6)].map((_, i) => (
