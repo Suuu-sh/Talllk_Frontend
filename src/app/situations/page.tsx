@@ -326,8 +326,6 @@ export default function SituationsPage() {
     }
   }
 
-  const favoriteCount = situations.filter((s) => s.is_favorite).length
-  const publicCount = situations.filter((s) => s.is_public).length
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-base transition-colors duration-300">
@@ -534,24 +532,6 @@ export default function SituationsPage() {
               </svg>
               <span className="sm:inline">{t({ ja: '新規作成', en: 'Create' })}</span>
             </button>
-          )}
-          {!isLoading && situations.length > 0 && (
-            <div className="hidden sm:flex items-center gap-3 ml-auto text-sm shrink-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-ink">{situations.length}</span>
-                <span className="text-ink-muted text-xs">合計</span>
-              </div>
-              <div className="w-px h-4 bg-line" />
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-yellow-500">{favoriteCount}</span>
-                <span className="text-ink-muted text-xs">お気に入り</span>
-              </div>
-              <div className="w-px h-4 bg-line" />
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-green-500">{publicCount}</span>
-                <span className="text-ink-muted text-xs">公開中</span>
-              </div>
-            </div>
           )}
         </div>
 
