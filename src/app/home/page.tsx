@@ -8,7 +8,7 @@ import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
 
@@ -82,9 +82,7 @@ export default function Dashboard() {
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
   const [chartMetric, setChartMetric] = useState<ChartMetric>('sessions')
   const [chartRange, setChartRange] = useState<ChartRange>('7d')
-  const [metricDropdownOpen, setMetricDropdownOpen] = useState(false)
   const [rangeDropdownOpen, setRangeDropdownOpen] = useState(false)
-  const metricDropdownRef = useRef<HTMLDivElement>(null)
   const rangeDropdownRef = useRef<HTMLDivElement>(null)
   const [chartDataCache] = useState(() => generateDummyData('7d', language))
   const [chartData, setChartData] = useState(chartDataCache)
@@ -104,7 +102,6 @@ export default function Dashboard() {
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (metricDropdownRef.current && !metricDropdownRef.current.contains(e.target as Node)) setMetricDropdownOpen(false)
       if (rangeDropdownRef.current && !rangeDropdownRef.current.contains(e.target as Node)) setRangeDropdownOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
@@ -316,7 +313,7 @@ export default function Dashboard() {
               <div className="flex flex-col items-center px-4 pt-4 pb-4">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
-                  className={`w-[13.5rem] h-[13.5rem] rounded-full border-[3px] border-surface shadow-lg shrink-0 cursor-pointer ${
+                  className={`w-24 h-24 rounded-full border-2 border-line/60 shadow-glass shrink-0 cursor-pointer hover:scale-105 transition-transform ${
                     profile?.avatar_url ? '' : `bg-gradient-to-br ${getAvatarGradient(profile?.id ?? 0)}`
                   } flex items-center justify-center overflow-hidden ring-2 ring-white/10 relative group`}
                 >
@@ -327,7 +324,7 @@ export default function Dashboard() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-5xl font-bold text-white drop-shadow-sm">
+                    <span className="text-3xl font-bold text-white drop-shadow-sm">
                       {getInitial(profile?.name || '')}
                     </span>
                   )}
@@ -346,43 +343,28 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <h2 className="text-lg font-bold text-ink mt-3 mb-0.5">
+                <h2 className="text-base font-semibold tracking-tight text-ink mt-3 mb-0.5">
                   {profile?.name || t({ ja: 'ユーザー', en: 'User' })}
                 </h2>
-                <p className="text-[11px] text-ink-faint tracking-wide uppercase mb-5">
+                <p className="text-[11px] text-ink-faint tracking-widest uppercase mb-6">
                   {t({ ja: 'マイプロフィール', en: 'My Profile' })}
                 </p>
 
+                <div className="divider w-full mb-6" />
+
                 {/* Stats */}
-                <div className="w-full flex items-center gap-2">
-                  <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/10 px-3 py-2.5 text-center">
-                    <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.following_count ?? 0}</div>
-                    <div className="text-[10px] text-ink-muted font-medium">
+                <div className="w-full flex items-center gap-3 px-2">
+                  <div className="flex-1 rounded-xl bg-layer border border-line px-3 py-2.5 text-center">
+                    <div className="text-2xl font-bold text-ink leading-none mb-1">{profile?.following_count ?? 0}</div>
+                    <div className="text-[10px] text-ink-faint tracking-wide">
                       {t({ ja: 'フォロー中', en: 'Following' })}
                     </div>
                   </div>
-                  <div className="flex-1 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/10 px-3 py-2.5 text-center">
-                    <div className="text-xl font-bold text-ink leading-none mb-1">{profile?.follower_count ?? 0}</div>
-                    <div className="text-[10px] text-ink-muted font-medium">
+                  <div className="flex-1 rounded-xl bg-layer border border-line px-3 py-2.5 text-center">
+                    <div className="text-2xl font-bold text-ink leading-none mb-1">{profile?.follower_count ?? 0}</div>
+                    <div className="text-[10px] text-ink-faint tracking-wide">
                       {t({ ja: 'フォロワー', en: 'Followers' })}
                     </div>
-                  </div>
-                </div>
-
-                {/* Quick stats row */}
-                <div className="w-full mt-3 flex items-center justify-center gap-4 text-[11px] text-ink-muted">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>{t({ ja: 'オンライン', en: 'Online' })}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
-                    </svg>
-                    <span>
-                      {favoriteSituations.length}{' '}
-                      {t({ ja: 'お気に入り', en: 'favorites' })}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -496,7 +478,7 @@ export default function Dashboard() {
               )}
 
               {/* Activity Chart — CloudWatch style */}
-              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[20rem]">
+              <section className="glass-card-muted rounded-2xl p-5 flex flex-col min-h-[20rem]">
                 {/* Header row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
@@ -508,47 +490,37 @@ export default function Dashboard() {
                   </span>
                   </div>
 
-                  {/* Controls — Dropdowns */}
+                  {/* Controls */}
                   <div className="flex items-center gap-2">
-                    {/* Metric dropdown */}
-                    <div className="relative" ref={metricDropdownRef}>
-                      <button
-                        onClick={() => { setMetricDropdownOpen((v) => !v); setRangeDropdownOpen(false) }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-[11px] font-medium text-ink-sub hover:bg-subtle transition-colors"
-                      >
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[chartMetric].color }} />
-                        {metricConfig[chartMetric].label}
-                        <svg className="w-3 h-3 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                      {metricDropdownOpen && (
-                        <div className="absolute right-0 top-full mt-1 w-40 rounded-xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
-                          {(Object.keys(metricConfig) as ChartMetric[]).map((m) => (
-                            <button
-                              key={m}
-                              onClick={() => { setChartMetric(m); setMetricDropdownOpen(false) }}
-                              className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${
-                                chartMetric === m ? 'bg-brand-500/10 text-brand-500 font-semibold' : 'text-ink-sub hover:bg-subtle'
-                              }`}
-                            >
-                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[m].color }} />
-                              {metricConfig[m].label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                    {/* Metric inline tabs */}
+                    <div className="flex bg-layer rounded-lg p-0.5">
+                      {(Object.keys(metricConfig) as ChartMetric[]).map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setChartMetric(m)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                            chartMetric === m
+                              ? 'bg-surface shadow-sm text-ink'
+                              : 'text-ink-faint hover:text-ink-muted'
+                          }`}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[m].color }} />
+                          {metricConfig[m].label}
+                        </button>
+                      ))}
                     </div>
 
                     {/* Range dropdown */}
                     <div className="relative" ref={rangeDropdownRef}>
                       <button
-                        onClick={() => { setRangeDropdownOpen((v) => !v); setMetricDropdownOpen(false) }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-[11px] font-medium text-ink-sub hover:bg-subtle transition-colors"
+                        onClick={() => setRangeDropdownOpen((v) => !v)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-layer border border-line text-[11px] font-medium text-ink-muted hover:bg-subtle transition-colors"
                       >
                         {rangeLabels[chartRange]}
                         <svg className="w-3 h-3 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {rangeDropdownOpen && (
-                        <div className="absolute right-0 top-full mt-1 w-28 rounded-xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
+                        <div className="absolute right-0 top-full mt-1 w-24 rounded-lg bg-surface border border-line shadow-glass z-50 overflow-hidden">
                           {(Object.keys(rangeLabels) as ChartRange[]).map((r) => (
                             <button
                               key={r}
@@ -566,26 +538,24 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Summary stats removed */}
-
                 {/* Chart */}
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData[chartMetric]}>
                       <defs>
                         <linearGradient id={`grad-${chartMetric}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.3} />
-                          <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.02} />
+                          <stop offset="0%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.25} />
+                          <stop offset="50%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.05} />
+                          <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
-                      <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--color-ink-faint, #9ca3af)' }} axisLine={false} tickLine={false} interval={chartRange === '30d' ? 4 : 0} />
+                      <YAxis tick={{ fontSize: 10, fill: 'var(--color-ink-faint, #9ca3af)' }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
+                        contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.5rem', fontSize: '11px', boxShadow: 'var(--shadow-glass, 0 4px 12px rgba(0,0,0,0.08))' }}
                         labelStyle={{ fontWeight: 600 }}
                       />
-                      <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
+                      <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={1.5} fill={`url(#grad-${chartMetric})`} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
