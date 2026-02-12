@@ -38,6 +38,7 @@ export default function Header() {
 
   const closeLabelModal = () => {
     setShowLabelModal(false)
+    setShowSettings(true)
     setNewLabelName('')
     setLabelError(null)
   }

@@ -784,7 +784,7 @@ export default function SituationDetailPage() {
     return (
       <div key={nodeKey} className="animate-fadeUp" style={{ animationDelay: `${depth * 30}ms` }}>
         <div
-          className={`group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer glass-card-muted hover:bg-subtle border border-transparent
+          className={`group flex items-start gap-3 p-4 rounded-2xl transition-all duration-200 cursor-pointer glass-card-muted hover:bg-subtle border border-line
             ${isDragOver ? 'ring-2 ring-brand-500 ring-inset border-brand-500 border-l-2' : ''}
           `}
           draggable
@@ -1333,7 +1333,7 @@ export default function SituationDetailPage() {
 
         {/* Detail Panel — Desktop (Right Column) */}
         {selectedTask && (
-          <div className="hidden lg:flex lg:flex-col lg:overflow-y-auto lg:h-full min-w-0">
+          <div className="hidden lg:flex lg:flex-col lg:overflow-y-auto lg:h-full min-w-0 lg:mt-3">
             <div className="glass-card-solid rounded-3xl overflow-hidden animate-scaleIn relative flex-1 flex flex-col min-h-0">
               <button
                 onClick={() => setSelectedTask(null)}

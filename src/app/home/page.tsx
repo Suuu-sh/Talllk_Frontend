@@ -8,7 +8,7 @@ import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
-import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
 
@@ -32,7 +32,6 @@ const getAvatarGradient = (id: number): string => {
 
 type ChartMetric = 'sessions' | 'topics' | 'questions'
 type ChartRange = '1d' | '7d' | '30d'
-type ChartType = 'line' | 'area' | 'bar'
 
 const getMetricConfig = (lang: 'ja' | 'en'): Record<ChartMetric, { label: string; color: string }> => ({
   sessions: { label: lang === 'en' ? 'Sessions' : 'セッション数', color: '#6366f1' },
@@ -44,12 +43,6 @@ const getRangeLabels = (lang: 'ja' | 'en'): Record<ChartRange, string> => ({
   '1d': '24h',
   '7d': lang === 'en' ? '7d' : '7日',
   '30d': lang === 'en' ? '30d' : '30日',
-})
-
-const getChartTypeLabels = (lang: 'ja' | 'en'): Record<ChartType, string> => ({
-  line: lang === 'en' ? 'Line' : '折れ線',
-  area: lang === 'en' ? 'Area' : 'エリア',
-  bar: lang === 'en' ? 'Bar' : '棒グラフ',
 })
 
 const generateDummyData = (
@@ -89,7 +82,10 @@ export default function Dashboard() {
   const [dragOverSituationId, setDragOverSituationId] = useState<number | null>(null)
   const [chartMetric, setChartMetric] = useState<ChartMetric>('sessions')
   const [chartRange, setChartRange] = useState<ChartRange>('7d')
-  const [chartType, setChartType] = useState<ChartType>('area')
+  const [metricDropdownOpen, setMetricDropdownOpen] = useState(false)
+  const [rangeDropdownOpen, setRangeDropdownOpen] = useState(false)
+  const metricDropdownRef = useRef<HTMLDivElement>(null)
+  const rangeDropdownRef = useRef<HTMLDivElement>(null)
   const [chartDataCache] = useState(() => generateDummyData('7d', language))
   const [chartData, setChartData] = useState(chartDataCache)
   const readingBackfillIdsRef = useRef<Set<number>>(new Set())
@@ -104,7 +100,16 @@ export default function Dashboard() {
 
   const metricConfig = getMetricConfig(language)
   const rangeLabels = getRangeLabels(language)
-  const chartTypeLabels = getChartTypeLabels(language)
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (metricDropdownRef.current && !metricDropdownRef.current.contains(e.target as Node)) setMetricDropdownOpen(false)
+      if (rangeDropdownRef.current && !rangeDropdownRef.current.contains(e.target as Node)) setRangeDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -386,147 +391,109 @@ export default function Dashboard() {
             {/* Right Column */}
             <div className="flex flex-col gap-4">
               {/* Favorites */}
-              <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[10rem]">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-ink">{t({ ja: 'お気に入り', en: 'Favorites' })}</h3>
-                  {favoriteSituations.length > 0 && (
-                    <span className="text-[10px] text-ink-faint bg-layer px-2 py-0.5 rounded-full">
-                      {language === 'en' ? `${favoriteSituations.length} items` : `${favoriteSituations.length}件`}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                  {favoriteSituations.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <div className="relative inline-block mb-4">
-                        <div className="absolute inset-0 bg-yellow-500/20 blur-xl rounded-full" />
-                        <div className="relative p-4 bg-yellow-500/15 rounded-2xl">
-                          <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              {favoriteSituations.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {favoriteSituations.slice(0, 4).map((situation) => (
+                    <div
+                      key={situation.id}
+                      onClick={() => router.push(`/situations/${situation.id}`)}
+                      draggable
+                      onDragStart={() => {
+                        setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
+                      }}
+                      onDragEnd={() => {
+                        setDragSituation(null)
+                        setDragOverSituationId(null)
+                      }}
+                      onDragOver={(event) => {
+                        if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                        event.preventDefault()
+                        setDragOverSituationId(situation.id)
+                      }}
+                      onDragLeave={() => setDragOverSituationId(null)}
+                      onDrop={async (event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
+                        if (dragSituation.id === situation.id) return
+                        setDragOverSituationId(null)
+                        await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
+                      }}
+                      className={`group flex items-start justify-between gap-3 rounded-2xl p-4 cursor-pointer border border-line bg-surface/40 hover:bg-surface/60 transition-all duration-200 ${
+                        dragOverSituationId === situation.id
+                          ? 'ring-2 ring-brand-500 ring-offset-1 dark:ring-offset-surface'
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500 shrink-0">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-semibold text-ink group-hover:text-brand-400 transition-colors truncate">
+                              {truncateText(situation.title, 15)}
+                            </h4>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70">
+                              {situation.is_public
+                                ? t({ ja: '公開', en: 'Public' })
+                                : t({ ja: '非公開', en: 'Private' })}
+                            </span>
+                          </div>
+                          {situation.labels && situation.labels.length > 0 ? (
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted mt-1">
+                              {situation.labels.slice(0, 3).map((label) => (
+                                <span key={label.id} className="inline-flex items-center gap-1.5 min-w-0">
+                                  <span
+                                    className="w-2.5 h-2.5 rounded-full"
+                                    style={{ backgroundColor: label.color }}
+                                  />
+                                  <span className="truncate max-w-[120px]">{label.name}</span>
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-ink-muted mt-1">
+                              {t({ ja: 'ラベルなし', en: 'No label' })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={(e) => handleToggleFavorite(situation, e)}
+                          disabled={togglingFavoriteIds.has(situation.id)}
+                          className="text-yellow-500 hover:opacity-80 transition-opacity"
+                          title={t({ ja: 'お気に入り解除', en: 'Remove favorite' })}
+                        >
+                          {togglingFavoriteIds.has(situation.id) ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                          )}
+                        </button>
+                        <div className="text-ink-faint">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="8" cy="7" r="1.5" />
+                            <circle cx="8" cy="12" r="1.5" />
+                            <circle cx="8" cy="17" r="1.5" />
+                            <circle cx="13" cy="7" r="1.5" />
+                            <circle cx="13" cy="12" r="1.5" />
+                            <circle cx="13" cy="17" r="1.5" />
                           </svg>
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-ink-sub mb-1">
-                        {t({ ja: 'お気に入りがありません', en: 'No favorites yet' })}
-                      </p>
-                      <p className="text-xs text-ink-muted mb-3">
-                        {t({ ja: 'シチュエーションタブで追加', en: 'Add from Situations' })}
-                      </p>
-                      <button
-                        onClick={() => router.push('/situations')}
-                        className="btn-accent-soft inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-semibold text-xs"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        {t({ ja: 'シチュエーションを見る', en: 'Go to Situations' })}
-                      </button>
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {favoriteSituations.slice(0, 4).map((situation) => (
-                        <div
-                          key={situation.id}
-                          onClick={() => router.push(`/situations/${situation.id}`)}
-                          draggable
-                          onDragStart={() => {
-                            setDragSituation({ id: situation.id, isFavorite: situation.is_favorite })
-                          }}
-                          onDragEnd={() => {
-                            setDragSituation(null)
-                            setDragOverSituationId(null)
-                          }}
-                          onDragOver={(event) => {
-                            if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
-                            event.preventDefault()
-                            setDragOverSituationId(situation.id)
-                          }}
-                          onDragLeave={() => setDragOverSituationId(null)}
-                          onDrop={async (event) => {
-                            event.preventDefault()
-                            event.stopPropagation()
-                            if (!dragSituation || dragSituation.isFavorite !== situation.is_favorite) return
-                            if (dragSituation.id === situation.id) return
-                            setDragOverSituationId(null)
-                            await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
-                          }}
-                          className={`group flex items-start justify-between gap-3 rounded-2xl p-4 cursor-pointer border border-line bg-surface/40 hover:bg-surface/60 transition-all duration-200 ${
-                            dragOverSituationId === situation.id
-                              ? 'ring-2 ring-brand-500 ring-offset-1 dark:ring-offset-surface'
-                              : ''
-                          }`}
-                        >
-                          <div className="flex items-start gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-500 shrink-0">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                              </svg>
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className="text-sm font-semibold text-brand-400 truncate">
-                                  {truncateText(situation.title, 15)}
-                                </h4>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full border border-line text-ink-muted bg-surface/70">
-                                  {situation.is_public
-                                    ? t({ ja: '公開', en: 'Public' })
-                                    : t({ ja: '非公開', en: 'Private' })}
-                                </span>
-                              </div>
-                              {situation.labels && situation.labels.length > 0 ? (
-                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-muted mt-1">
-                                  {situation.labels.slice(0, 3).map((label) => (
-                                    <span key={label.id} className="inline-flex items-center gap-1.5 min-w-0">
-                                      <span
-                                        className="w-2.5 h-2.5 rounded-full"
-                                        style={{ backgroundColor: label.color }}
-                                      />
-                                      <span className="truncate max-w-[120px]">{label.name}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-ink-muted mt-1">
-                                  {t({ ja: 'ラベルなし', en: 'No label' })}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              onClick={(e) => handleToggleFavorite(situation, e)}
-                              disabled={togglingFavoriteIds.has(situation.id)}
-                              className="text-yellow-500 hover:opacity-80 transition-opacity"
-                              title={t({ ja: 'お気に入り解除', en: 'Remove favorite' })}
-                            >
-                              {togglingFavoriteIds.has(situation.id) ? (
-                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                </svg>
-                              )}
-                            </button>
-                            <div className="text-ink-faint">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <circle cx="8" cy="7" r="1.5" />
-                                <circle cx="8" cy="12" r="1.5" />
-                                <circle cx="8" cy="17" r="1.5" />
-                                <circle cx="13" cy="7" r="1.5" />
-                                <circle cx="13" cy="12" r="1.5" />
-                                <circle cx="13" cy="17" r="1.5" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  ))}
                 </div>
-              </section>
+              )}
 
               {/* Activity Chart — CloudWatch style */}
               <section className="glass-card-muted rounded-2xl p-4 flex flex-col min-h-[20rem]">
@@ -541,137 +508,85 @@ export default function Dashboard() {
                   </span>
                   </div>
 
-                  {/* Controls */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Metric selector */}
-                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(metricConfig) as ChartMetric[]).map((m) => (
-                        <button
-                          key={m}
-                          onClick={() => setChartMetric(m)}
-                          className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                            chartMetric === m
-                              ? 'bg-brand-500 text-white'
-                              : 'text-ink-muted hover:bg-subtle'
-                          }`}
-                        >
-                          {metricConfig[m].label}
-                        </button>
-                      ))}
+                  {/* Controls — Dropdowns */}
+                  <div className="flex items-center gap-2">
+                    {/* Metric dropdown */}
+                    <div className="relative" ref={metricDropdownRef}>
+                      <button
+                        onClick={() => { setMetricDropdownOpen((v) => !v); setRangeDropdownOpen(false) }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-[11px] font-medium text-ink-sub hover:bg-subtle transition-colors"
+                      >
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[chartMetric].color }} />
+                        {metricConfig[chartMetric].label}
+                        <svg className="w-3 h-3 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      {metricDropdownOpen && (
+                        <div className="absolute right-0 top-full mt-1 w-40 rounded-xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
+                          {(Object.keys(metricConfig) as ChartMetric[]).map((m) => (
+                            <button
+                              key={m}
+                              onClick={() => { setChartMetric(m); setMetricDropdownOpen(false) }}
+                              className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${
+                                chartMetric === m ? 'bg-brand-500/10 text-brand-500 font-semibold' : 'text-ink-sub hover:bg-subtle'
+                              }`}
+                            >
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[m].color }} />
+                              {metricConfig[m].label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Chart type */}
-                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(chartTypeLabels) as ChartType[]).map((t) => (
-                        <button
-                          key={t}
-                          onClick={() => setChartType(t)}
-                          className={`px-2 py-1 text-[11px] font-medium transition-colors ${
-                            chartType === t
-                              ? 'bg-brand-500 text-white'
-                              : 'text-ink-muted hover:bg-subtle'
-                          }`}
-                        >
-                          {chartTypeLabels[t]}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Range selector */}
-                    <div className="flex items-center rounded-lg border border-line overflow-hidden">
-                      {(Object.keys(rangeLabels) as ChartRange[]).map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => setChartRange(r)}
-                          className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                            chartRange === r
-                              ? 'bg-brand-500 text-white'
-                              : 'text-ink-muted hover:bg-subtle'
-                          }`}
-                        >
-                          {rangeLabels[r]}
-                        </button>
-                      ))}
+                    {/* Range dropdown */}
+                    <div className="relative" ref={rangeDropdownRef}>
+                      <button
+                        onClick={() => { setRangeDropdownOpen((v) => !v); setMetricDropdownOpen(false) }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-[11px] font-medium text-ink-sub hover:bg-subtle transition-colors"
+                      >
+                        {rangeLabels[chartRange]}
+                        <svg className="w-3 h-3 text-ink-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      {rangeDropdownOpen && (
+                        <div className="absolute right-0 top-full mt-1 w-28 rounded-xl bg-surface border border-line shadow-xl z-50 overflow-hidden">
+                          {(Object.keys(rangeLabels) as ChartRange[]).map((r) => (
+                            <button
+                              key={r}
+                              onClick={() => { setChartRange(r); setRangeDropdownOpen(false) }}
+                              className={`w-full px-3 py-2 text-xs text-left transition-colors ${
+                                chartRange === r ? 'bg-brand-500/10 text-brand-500 font-semibold' : 'text-ink-sub hover:bg-subtle'
+                              }`}
+                            >
+                              {rangeLabels[r]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Summary stats */}
-                <div className="flex items-center gap-3 mb-3">
-                  {(Object.keys(metricConfig) as ChartMetric[]).map((m) => {
-                    const data = chartData[m]
-                    const total = data.reduce((sum, d) => sum + d[m], 0)
-                    const avg = data.length > 0 ? (total / data.length).toFixed(1) : '0'
-                    const max = data.length > 0 ? Math.max(...data.map(d => d[m])) : 0
-                    return (
-                      <button
-                        key={m}
-                        onClick={() => setChartMetric(m)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
-                          chartMetric === m ? 'bg-surface/80 border border-line' : 'opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metricConfig[m].color }} />
-                          <div className="text-left">
-                            <div className="text-[10px] text-ink-muted">{metricConfig[m].label}</div>
-                            <div className="text-sm font-bold text-ink leading-none">
-                              {total}
-                              <span className="text-[10px] font-normal text-ink-faint ml-1">
-                                {t({ ja: '平均', en: 'avg' })} {avg} / {t({ ja: '最大', en: 'max' })} {max}
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      )
-                  })}
-                </div>
+                {/* Summary stats removed */}
 
                 {/* Chart */}
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    {chartType === 'bar' ? (
-                      <BarChart data={chartData[chartMetric]}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
-                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
-                          labelStyle={{ fontWeight: 600 }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Bar dataKey={chartMetric} name={metricConfig[chartMetric].label} fill={metricConfig[chartMetric].color} radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    ) : chartType === 'area' ? (
-                      <AreaChart data={chartData[chartMetric]}>
-                        <defs>
-                          <linearGradient id={`grad-${chartMetric}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.3} />
-                            <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.02} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
-                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
-                          labelStyle={{ fontWeight: 600 }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
-                      </AreaChart>
-                    ) : (
-                      <LineChart data={chartData[chartMetric]}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
-                        <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
-                        <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
-                          labelStyle={{ fontWeight: 600 }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
-                      </LineChart>
-                    )}
+                    <AreaChart data={chartData[chartMetric]}>
+                      <defs>
+                        <linearGradient id={`grad-${chartMetric}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.3} />
+                          <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line, #e5e7eb)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" interval={chartRange === '30d' ? 4 : 0} />
+                      <YAxis tick={{ fontSize: 10 }} stroke="var(--color-ink-muted, #9ca3af)" />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.75rem', fontSize: '12px' }}
+                        labelStyle={{ fontWeight: 600 }}
+                      />
+                      <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={2} fill={`url(#grad-${chartMetric})`} dot={{ r: 2, fill: metricConfig[chartMetric].color }} activeDot={{ r: 5 }} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </section>
