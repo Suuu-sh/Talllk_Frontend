@@ -401,7 +401,7 @@ export default function Dashboard() {
                         setDragOverSituationId(null)
                         await reorderSituationGroup(situation.is_favorite, dragSituation.id, situation.id)
                       }}
-                      className={`group flex items-start justify-between gap-3 rounded-2xl p-4 cursor-pointer border border-line bg-surface/40 hover:bg-surface/60 transition-all duration-200 ${
+                      className={`group flex items-start justify-between gap-3 rounded-2xl p-4 cursor-pointer border border-line glass-card-muted hover:bg-subtle transition-all duration-200 ${
                         dragOverSituationId === situation.id
                           ? 'ring-2 ring-brand-500 ring-offset-1 dark:ring-offset-surface'
                           : ''
