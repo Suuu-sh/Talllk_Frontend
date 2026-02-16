@@ -22,7 +22,7 @@
     "wanakana": "^5.3.1"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.0.0",
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
