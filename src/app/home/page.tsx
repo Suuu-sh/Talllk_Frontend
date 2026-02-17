@@ -10,7 +10,7 @@ import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
 
 const getInitial = (name: string): string => {
   const trimmed = name.trim()
