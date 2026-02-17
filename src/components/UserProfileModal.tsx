@@ -29,7 +29,7 @@ const getAvatarGradient = (id: number): string => {
   return gradients[id % gradients.length]
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8080'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
 
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
   const { t, language } = useI18n()
