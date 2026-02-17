@@ -221,6 +221,12 @@ brand-50  ~ brand-900  /* オレンジグラデーション */
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
+本番（Cloudflare Pages）では以下を設定:
+
+```env
+NEXT_PUBLIC_API_URL=https://api.talllk.net/api
+```
+
 ---
 
 ## Build & Run
@@ -235,6 +241,13 @@ npm run dev
 npm run build
 npm run start
 ```
+
+### Cloudflare Pages
+```bash
+npm run pages:build
+```
+
+出力: `.vercel/output/static`
 
 ### Docker
 ```bash
