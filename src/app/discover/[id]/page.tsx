@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import { PublicSituationDetail, Topic, Question } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
 
@@ -425,7 +426,7 @@ export default function DiscoverDetailPage() {
                       <span
                         key={label.id}
                         className="badge text-xs"
-                        style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                        style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
                       >
                         {label.name}
                       </span>

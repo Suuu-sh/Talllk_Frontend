@@ -1,16 +1,41 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Script from 'next/script'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
+
+type GoogleCredentialResponse = {
+  credential?: string
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (options: {
+            client_id: string
+            callback: (response: GoogleCredentialResponse) => void
+          }) => void
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void
+        }
+      }
+    }
+  }
+}
 
 export default function Login() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const googleButtonRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -21,11 +46,85 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
   })
   const [error, setError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isGoogleReady, setIsGoogleReady] = useState(false)
+  const hasSupabaseAuth = Boolean(supabaseURL && supabaseAnonKey)
+  const hasSocialLogin = Boolean(googleClientId && hasSupabaseAuth)
+
+  useEffect(() => {
+    if (!googleClientId) { return }
+    if (window.google?.accounts?.id) {
+      setIsGoogleScriptLoaded(true)
+    }
+  }, [googleClientId])
+
+  const getSupabaseErrorMessage = (payload: any): string => {
+    if (!payload || typeof payload !== 'object') {
+      return t({ ja: '認証に失敗しました。', en: 'Authentication failed.' })
+    }
+    return payload.error_description || payload.message || payload.msg || payload.error || t({ ja: '認証に失敗しました。', en: 'Authentication failed.' })
+  }
+
+  const callSupabaseAuth = useCallback(async (path: string, payload: Record<string, unknown>) => {
+    if (!supabaseURL || !supabaseAnonKey) {
+      throw new Error(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
+    }
+
+    const response = await fetch(`${supabaseURL}/auth/v1/${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(getSupabaseErrorMessage(data))
+    }
+
+    return data as { access_token?: string }
+  }, [supabaseAnonKey, supabaseURL, t])
+
+  const resolvePostAuthRedirect = useCallback(async (token: string) => {
+    localStorage.setItem('token', token)
+    const profileRes = await api.get<{ profile_completed?: boolean }>('/users/me')
+    if (profileRes.data.profile_completed === false) {
+      router.push('/profile-setup')
+    } else {
+      router.push('/home')
+    }
+  }, [router])
+
+  const signUpWithSupabase = useCallback(async (email: string, password: string): Promise<string> => {
+    const signUpRes = await callSupabaseAuth('signup', { email, password })
+    const directToken = signUpRes.access_token?.trim()
+    if (directToken) {
+      return directToken
+    }
+
+    try {
+      const loginRes = await callSupabaseAuth('token?grant_type=password', { email, password })
+      const fallbackToken = loginRes.access_token?.trim()
+      if (!fallbackToken) {
+        throw new Error(t({ ja: 'サインアップ後にトークン取得できませんでした。', en: 'Could not get token after sign up.' }))
+      }
+      return fallbackToken
+    } catch (err: any) {
+      const message = String(err?.message || '').toLowerCase()
+      if (message.includes('email not confirmed')) {
+        return ''
+      }
+      throw err
+    }
+  }, [callSupabaseAuth, t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,28 +132,113 @@ export default function Login() {
     setIsSuccess(false)
     setIsLoading(true)
 
-    try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register'
-      const response = await api.post(endpoint, formData)
+    if (!hasSupabaseAuth) {
+      setIsLoading(false)
+      setError(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
+      return
+    }
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token)
-        router.push('/home')
-      } else if (!isLogin) {
-        setIsLogin(true)
-        setIsSuccess(true)
-        setError(t({ ja: '登録完了。ログインしてください。', en: 'Registration complete. Please log in.' }))
+    try {
+      const email = formData.email.trim()
+      const password = formData.password
+
+      let token = ''
+      if (isLogin) {
+        const loginRes = await callSupabaseAuth('token?grant_type=password', { email, password })
+        token = loginRes.access_token?.trim() ?? ''
+      } else {
+        token = await signUpWithSupabase(email, password)
+        if (!token) {
+          setIsSuccess(true)
+          setIsLogin(true)
+          setError(
+            t({
+              ja: `確認メールを ${email} に送信しました。メール内リンクを開いてからログインしてください。`,
+              en: `We sent a confirmation email to ${email}. Open the link and then log in.`,
+            }),
+          )
+          return
+        }
       }
+
+      if (!token) {
+        throw new Error(t({ ja: 'トークン取得に失敗しました。', en: 'Failed to retrieve token.' }))
+      }
+
+      await resolvePostAuthRedirect(token)
     } catch (err: any) {
       setIsSuccess(false)
-      setError(err.response?.data?.error || t({ ja: 'エラーが発生しました', en: 'An error occurred.' }))
+      setError(err.message || err.response?.data?.error || t({ ja: 'エラーが発生しました', en: 'An error occurred.' }))
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleGoogleCredential = useCallback(async (credentialResponse: GoogleCredentialResponse) => {
+    const idToken = credentialResponse.credential
+    if (!idToken) {
+      setError(t({ ja: 'Google認証に失敗しました。', en: 'Google authentication failed.' }))
+      return
+    }
+
+    setError('')
+    setIsSuccess(false)
+    setIsGoogleLoading(true)
+
+    try {
+      if (!hasSupabaseAuth) {
+        throw new Error(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
+      }
+
+      const authRes = await callSupabaseAuth('token?grant_type=id_token', {
+        provider: 'google',
+        id_token: idToken,
+      })
+      const token = authRes.access_token?.trim() ?? ''
+      if (!token) {
+        throw new Error(t({ ja: 'Googleログインに失敗しました。', en: 'Google login failed.' }))
+      }
+
+      await resolvePostAuthRedirect(token)
+    } catch (err: any) {
+      setError(err.message || t({ ja: 'Googleログインに失敗しました。', en: 'Google login failed.' }))
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }, [callSupabaseAuth, hasSupabaseAuth, resolvePostAuthRedirect, t])
+
+  useEffect(() => {
+    if (!googleClientId || !isGoogleScriptLoaded) { return }
+    if (!googleButtonRef.current || !window.google?.accounts?.id) { return }
+
+    setIsGoogleReady(false)
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleGoogleCredential,
+    })
+
+    googleButtonRef.current.innerHTML = ''
+    window.google.accounts.id.renderButton(googleButtonRef.current, {
+      theme: theme === 'dark' ? 'filled_black' : 'outline',
+      size: 'large',
+      shape: 'pill',
+      text: 'continue_with',
+      width: 300,
+    })
+    setIsGoogleReady(true)
+  }, [googleClientId, handleGoogleCredential, isGoogleScriptLoaded, theme])
+
   return (
-    <div className="min-h-screen flex bg-base overflow-y-auto">
+    <>
+      {googleClientId && (
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+          onLoad={() => setIsGoogleScriptLoaded(true)}
+          onError={() => setError(t({ ja: 'Google SDKの読み込みに失敗しました。', en: 'Failed to load Google SDK.' }))}
+        />
+      )}
+      <div className="min-h-screen flex bg-base overflow-y-auto">
       {/* Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-72 h-72 bg-brand-400/15 rounded-full blur-3xl animate-pulse-soft" />
@@ -202,7 +386,11 @@ export default function Login() {
             {/* Tab Switcher */}
             <div className="flex gap-1 p-1 mb-8 bg-layer rounded-2xl">
               <button
-                onClick={() => setIsLogin(true)}
+                onClick={() => {
+                  setIsLogin(true)
+                  setError('')
+                  setIsSuccess(false)
+                }}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   isLogin
                     ? 'bg-surface text-ink shadow-md'
@@ -212,7 +400,11 @@ export default function Login() {
                 {t({ ja: 'ログイン', en: 'Log in' })}
               </button>
               <button
-                onClick={() => setIsLogin(false)}
+                onClick={() => {
+                  setIsLogin(false)
+                  setError('')
+                  setIsSuccess(false)
+                }}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   !isLogin
                     ? 'bg-surface text-ink shadow-md'
@@ -222,6 +414,37 @@ export default function Login() {
                 {t({ ja: '新規登録', en: 'Sign up' })}
               </button>
             </div>
+
+            {hasSocialLogin && (
+              <>
+                <div className="mb-6">
+                  {googleClientId && (
+                    <div className="flex justify-center">
+                      <div ref={googleButtonRef} className="min-h-[44px]" />
+                    </div>
+                  )}
+
+                  {isGoogleLoading && (
+                    <p className="mt-3 text-center text-xs text-ink-muted">
+                      {t({ ja: 'Googleでログイン中...', en: 'Signing in with Google...' })}
+                    </p>
+                  )}
+                  {!isGoogleReady && isGoogleScriptLoaded && !isGoogleLoading && (
+                    <p className="mt-3 text-center text-xs text-ink-muted">
+                      {t({ ja: 'Googleログインを準備中...', en: 'Preparing Google sign-in...' })}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-px flex-1 bg-line" />
+                  <span className="text-xs uppercase tracking-wide text-ink-faint">
+                    {t({ ja: 'または', en: 'OR' })}
+                  </span>
+                  <div className="h-px flex-1 bg-line" />
+                </div>
+              </>
+            )}
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               {/* Error Message */}
@@ -247,23 +470,6 @@ export default function Login() {
                   <p className={`text-sm font-medium ${isSuccess ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
                     {error}
                   </p>
-                </div>
-              )}
-
-              {/* Name Field (Register only) */}
-              {!isLogin && (
-                <div className="animate-fadeUp">
-                  <label className="block text-sm font-semibold text-ink-sub mb-2">
-                    {t({ ja: 'お名前', en: 'Name' })}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className="input-field"
-                    placeholder={t({ ja: '山田太郎', en: 'John Doe' })}
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
                 </div>
               )}
 
@@ -341,6 +547,7 @@ export default function Login() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

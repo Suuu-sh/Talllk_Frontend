@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { Label, Situation, Topic, Question } from '@/types'
 import LabelInput from '@/components/LabelInput'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
 
@@ -1177,7 +1178,7 @@ export default function SituationDetailPage() {
                         <span
                           key={label.id}
                           className="badge text-xs"
-                          style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                          style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
                         >
                           {label.name}
                         </span>

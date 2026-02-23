@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint:colors": "node scripts/check-color-tokens.mjs",
+    "lint": "npm run lint:colors && npm run typecheck",
     "pages:build": "npx @cloudflare/next-on-pages@1",
     "pages:deploy:noop": "echo \"Skip deploy: Cloudflare Pages Git integration handles production deployment.\"",
     "postinstall": "node scripts/copy-kuromoji-dict.mjs"

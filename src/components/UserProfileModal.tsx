@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import { PaginatedResponse, PublicSituation, UserProfile } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
 
@@ -23,8 +24,8 @@ const getAvatarGradient = (id: number): string => {
     'from-purple-400 to-purple-600',
     'from-blue-400 to-blue-600',
     'from-green-400 to-green-600',
-    'from-pink-400 to-pink-600',
-    'from-teal-400 to-teal-600',
+    'from-yellow-400 to-yellow-600',
+    'from-red-400 to-red-600',
   ]
   return gradients[id % gradients.length]
 }
@@ -371,7 +372,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                               <span
                                 key={label.id}
                                 className="badge text-xs"
-                                style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                                style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
                               >
                                 {label.name}
                               </span>

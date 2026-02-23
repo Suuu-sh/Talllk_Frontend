@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import api from '@/lib/api'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import type { Label } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
 
@@ -9,16 +10,6 @@ type LabelInputProps = {
   value: Label[]
   onChange: (labels: Label[]) => void
   placeholder?: string
-}
-
-const getContrastColor = (hexColor: string) => {
-  const hex = hexColor.replace('#', '')
-  if (hex.length !== 6) return '#111827'
-  const r = parseInt(hex.slice(0, 2), 16)
-  const g = parseInt(hex.slice(2, 4), 16)
-  const b = parseInt(hex.slice(4, 6), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.6 ? '#111827' : '#FFFFFF'
 }
 
 export default function LabelInput({ value, onChange, placeholder }: LabelInputProps) {
@@ -105,7 +96,7 @@ export default function LabelInput({ value, onChange, placeholder }: LabelInputP
               type="button"
               onClick={() => removeLabel(label.id)}
               className="badge text-xs"
-              style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
+              style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
               title={t({ ja: '削除', en: 'Delete' })}
             >
               {label.name} <span className="ml-1">×</span>

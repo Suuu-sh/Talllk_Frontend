@@ -13,37 +13,49 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  --base: 249 250 251;
+  --base: 250 250 250;
   --surface: 255 255 255;
-  --layer: 243 244 246;
-  --inset: 249 250 251;
-  --subtle: 243 244 246;
-  --line: 235 237 242;
+  --layer: 242 242 242;
+  --inset: 242 242 242;
+  --subtle: 245 245 245;
+  --line: 229 231 235;
   --edge: 209 213 219;
   --ink: 17 24 39;
-  --ink-sub: 55 65 81;
-  --ink-body: 75 85 99;
+  --ink-sub: 31 41 55;
+  --ink-body: 107 114 128;
   --ink-muted: 107 114 128;
   --ink-faint: 156 163 175;
-  --scroll-thumb: #d1d5db;
-  --scroll-hover: #9ca3af;
+  --brand-primary: 17 24 39;
+  --brand-secondary: 55 65 81;
+  --scroll-thumb: rgb(209 213 219);
+  --scroll-hover: rgb(156 163 175);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.15);
+  --glass-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.22);
+  --shimmer-mid: rgba(55, 65, 81, 0.8);
+  --pulse-glow-color: rgba(17, 24, 39, 0.45);
 }
 
 .dark {
-  --base: 24 24 24;
-  --surface: 10 10 10;
-  --layer: 22 22 22;
-  --inset: 5 5 5;
-  --subtle: 26 26 26;
-  --line: 60 60 60;
-  --edge: 42 42 42;
-  --ink: 255 255 255;
-  --ink-sub: 224 224 224;
-  --ink-body: 176 176 176;
-  --ink-muted: 128 128 128;
-  --ink-faint: 80 80 80;
-  --scroll-thumb: #2a2a2a;
-  --scroll-hover: #3a3a3a;
+  --base: 26 26 26;
+  --surface: 32 32 32;
+  --layer: 35 35 35;
+  --inset: 32 32 32;
+  --subtle: 44 44 44;
+  --line: 58 58 58;
+  --edge: 72 72 72;
+  --ink: 249 250 251;
+  --ink-sub: 176 184 196;
+  --ink-body: 176 184 196;
+  --ink-muted: 176 184 196;
+  --ink-faint: 145 156 172;
+  --scroll-thumb: rgb(58 58 58);
+  --scroll-hover: rgb(80 80 80);
+  --glass-bg: rgba(26, 26, 26, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.4);
+  --shimmer-mid: rgba(176, 184, 196, 0.85);
+  --pulse-glow-color: rgba(55, 65, 81, 0.65);
 }
 
 * {
@@ -70,14 +82,17 @@ body {
 
 /* Selection style */
 ::selection {
-  background-color: rgba(249, 115, 22, 0.2);
+  background-color: rgb(var(--brand-secondary) / 0.2);
   color: inherit;
 }
 
 @layer components {
   /* Glass morphism card */
   .glass-card {
-    @apply bg-surface/80 backdrop-blur-xl border border-line/50;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
   }
 
   .glass-card-solid {
@@ -105,7 +120,7 @@ body {
 
   .card-hover:hover {
     @apply -translate-y-1;
-    box-shadow: 0 12px 24px -12px rgba(31, 38, 135, 0.25);
+    box-shadow: var(--glass-shadow);
   }
 
   /* Primary button */
@@ -391,7 +406,7 @@ body {
   background: linear-gradient(
     90deg,
     currentColor 0%,
-    var(--color-brand-400, #818cf8) 50%,
+    var(--shimmer-mid) 50%,
     currentColor 100%
   );
   background-size: 200% auto;
@@ -413,8 +428,8 @@ body {
 
 /* Pulse glow */
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 var(--color-brand-500, #6366f1); opacity: 1; }
-  50% { box-shadow: 0 0 20px 8px var(--color-brand-500, #6366f1); opacity: 0.7; }
+  0%, 100% { box-shadow: 0 0 0 0 var(--pulse-glow-color); opacity: 1; }
+  50% { box-shadow: 0 0 20px 8px var(--pulse-glow-color); opacity: 0.7; }
 }
 
 .animate-pulse-glow {
