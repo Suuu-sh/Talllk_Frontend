@@ -59,7 +59,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
                   whitespace-nowrap transition-all duration-200
                   border-b-2 -mb-px
                   ${activeTab === tab.id
-                    ? 'text-brand-600 dark:text-brand-400 border-brand-500'
+                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
                     : 'text-ink-muted border-transparent hover:text-ink-sub hover:border-edge'
                   }
                 `}
