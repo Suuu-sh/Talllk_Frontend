@@ -9,6 +9,7 @@ import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { chartMetricColors } from '@/lib/colorTokens'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
@@ -110,8 +111,7 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }

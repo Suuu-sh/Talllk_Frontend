@@ -6,15 +6,16 @@ import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { useI18n } from '@/contexts/I18nContext'
 import { UserProfile } from '@/types'
+import { clearAuthToken, hasAuthToken } from '@/lib/authStorage'
 
-const USER_ID_PATTERN = /^[a-z0-9_]{3,30}$/
+const HANDLE_PATTERN = /^[a-z0-9_]{3,30}$/
 
 export default function ProfileSetupPage() {
   const router = useRouter()
   const { t } = useI18n()
 
   const [name, setName] = useState('')
-  const [userID, setUserID] = useState('')
+  const [handle, setHandle] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
@@ -23,8 +24,7 @@ export default function ProfileSetupPage() {
     let isActive = true
 
     const loadProfile = async () => {
-      const token = localStorage.getItem('token')
-      if (!token) {
+      if (!hasAuthToken()) {
         router.replace('/login')
         return
       }
@@ -39,11 +39,11 @@ export default function ProfileSetupPage() {
         }
 
         setName(res.data.name || '')
-        setUserID(res.data.user_id || '')
+        setHandle(res.data.handle || '')
       } catch (err: any) {
         if (!isActive) return
         if (err?.response?.status === 401) {
-          localStorage.removeItem('token')
+          clearAuthToken()
           router.replace('/login')
           return
         }
@@ -65,17 +65,17 @@ export default function ProfileSetupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmedName = name.trim()
-    const normalizedUserID = userID.trim().toLowerCase()
+    const normalizedHandle = handle.trim().toLowerCase()
 
     if (!trimmedName) {
       setError(t({ ja: 'Usernameを入力してください。', en: 'Please enter your username.' }))
       return
     }
-    if (!USER_ID_PATTERN.test(normalizedUserID)) {
+    if (!HANDLE_PATTERN.test(normalizedHandle)) {
       setError(
         t({
-          ja: 'userIDは3〜30文字の英小文字・数字・_で入力してください。',
-          en: 'userID must be 3-30 chars using lowercase letters, numbers, and _.',
+          ja: 'handleは3〜30文字の英小文字・数字・_で入力してください。',
+          en: 'handle must be 3-30 chars using lowercase letters, numbers, and _.',
         })
       )
       return
@@ -86,7 +86,7 @@ export default function ProfileSetupPage() {
     try {
       await api.patch('/users/me/profile', {
         name: trimmedName,
-        user_id: normalizedUserID,
+        handle: normalizedHandle,
       })
       router.replace('/home')
     } catch (err: any) {
@@ -112,8 +112,8 @@ export default function ProfileSetupPage() {
         </h1>
         <p className="text-sm text-ink-muted mb-6">
           {t({
-            ja: '続行するにはUsernameと@userIDの設定が必要です。',
-            en: 'Set your Username and @userID to continue.',
+            ja: '続行するにはUsernameと@handleの設定が必要です。',
+            en: 'Set your Username and @handle to continue.',
           })}
         </p>
 
@@ -141,7 +141,7 @@ export default function ProfileSetupPage() {
 
           <div>
             <label className="block text-sm font-semibold text-ink-sub mb-2">
-              {t({ ja: 'userID', en: 'userID' })}
+              {t({ ja: 'handle', en: 'handle' })}
             </label>
             <div className="flex items-center rounded-xl border border-line bg-layer px-3">
               <span className="text-ink-muted pr-1">@</span>
@@ -149,8 +149,8 @@ export default function ProfileSetupPage() {
                 type="text"
                 className="w-full bg-transparent py-3 text-ink placeholder:text-ink-faint focus:outline-none"
                 maxLength={30}
-                value={userID}
-                onChange={(e) => setUserID(e.target.value)}
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
                 placeholder={t({ ja: '英小文字・数字・_', en: 'lowercase, numbers, _' })}
                 autoCapitalize="none"
                 autoCorrect="off"

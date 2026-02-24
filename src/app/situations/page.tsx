@@ -10,6 +10,7 @@ import TabNavigation, { Tab } from '@/components/TabNavigation'
 import LabelInput from '@/components/LabelInput'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 export default function SituationsPage() {
   const FILTER_STORAGE_KEY = 'talllk:situationsFilters'
@@ -40,8 +41,7 @@ export default function SituationsPage() {
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }

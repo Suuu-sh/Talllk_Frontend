@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 export default function Home() {
   const router = useRouter()
@@ -13,8 +14,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    setIsLoggedIn(!!token)
+    setIsLoggedIn(hasAuthToken())
   }, [])
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import { getContrastTextColor } from '@/lib/colorTokens'
 import { PaginatedResponse, PublicSituation, UserProfile } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 type UserProfileModalProps = {
   mode: 'me' | 'user'
@@ -47,8 +48,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }

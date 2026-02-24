@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
+import { clearAuthToken } from '@/lib/authStorage'
 import type { Label } from '@/types'
 
 export default function Header() {
@@ -23,7 +24,7 @@ export default function Header() {
   const [labelError, setLabelError] = useState<string | null>(null)
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
+    clearAuthToken()
     router.push('/login')
   }
 

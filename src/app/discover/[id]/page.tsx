@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import { getContrastTextColor } from '@/lib/colorTokens'
 import { PublicSituationDetail, Topic, Question } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 type TreeNode = {
   id: number
@@ -30,8 +31,7 @@ export default function DiscoverDetailPage() {
   const [selectedTask, setSelectedTask] = useState<TreeNode | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }

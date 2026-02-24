@@ -7,6 +7,7 @@ import { PaginatedResponse, PublicSituation } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 export default function FollowingPage() {
   const [activeTab] = useState<Tab>('following')
@@ -25,8 +26,7 @@ export default function FollowingPage() {
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }
