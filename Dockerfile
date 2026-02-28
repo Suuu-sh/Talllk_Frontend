@@ -33,6 +33,10 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ARG SENTRY_DSN=
+ENV SENTRY_DSN=$SENTRY_DSN
+ARG SENTRY_TRACES_SAMPLE_RATE=0.1
+ENV SENTRY_TRACES_SAMPLE_RATE=$SENTRY_TRACES_SAMPLE_RATE
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
