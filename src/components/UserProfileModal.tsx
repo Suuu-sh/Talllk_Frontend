@@ -33,6 +33,13 @@ const getAvatarGradient = (id: number): string => {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
 
+const resolveProfileImageSrc = (raw?: string): string => {
+  const value = raw?.trim()
+  if (!value) return ''
+  if (value.startsWith('http://') || value.startsWith('https://')) return value
+  return `${API_BASE}${value}`
+}
+
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
   const { t, language } = useI18n()
   const router = useRouter()
@@ -41,9 +48,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
   const [isLoading, setIsLoading] = useState(true)
   const [isTogglingFollow, setIsTogglingFollow] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const [uploadingHeader, setUploadingHeader] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
-  const headerInputRef = useRef<HTMLInputElement>(null)
   const truncateText = (text: string, maxLength = 10) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
@@ -117,25 +122,6 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
     }
   }
 
-  const handleUploadHeader = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !profile) return
-    setUploadingHeader(true)
-    try {
-      const formData = new FormData()
-      formData.append('image', file)
-      const res = await api.put<{ url: string }>('/users/me/header', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      setProfile({ ...profile, header_image_url: res.data.url })
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setUploadingHeader(false)
-      if (headerInputRef.current) headerInputRef.current.value = ''
-    }
-  }
-
   const handleClose = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
@@ -170,7 +156,6 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
 
         {/* Hidden file inputs */}
         <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUploadAvatar} />
-        <input ref={headerInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUploadHeader} />
 
         <div className="relative">
           {isLoading ? (
@@ -239,7 +224,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                   >
                     {profile.avatar_url ? (
                       <img
-                        src={`${API_BASE}${profile.avatar_url}`}
+                        src={resolveProfileImageSrc(profile.avatar_url)}
                         alt={profile.name}
                         className="w-full h-full object-cover"
                       />

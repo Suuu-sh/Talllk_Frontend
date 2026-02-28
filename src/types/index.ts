@@ -83,7 +83,6 @@ export interface UserProfile {
   handle?: string
   profile_completed: boolean
   avatar_url: string
-  header_image_url: string
   follower_count: number
   following_count: number
   is_following: boolean

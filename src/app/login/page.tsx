@@ -34,6 +34,10 @@ export default function Login() {
     ja: 'メールアドレスが認証されていません。認証リンクまたはコードで認証してください。',
     en: 'Your email address is not verified. Please verify it using the confirmation link or code.',
   })
+  const confirmationSendErrorMessage = t({
+    ja: '確認メールの送信に失敗しました。時間をおいて再試行してください。解決しない場合はサポートへ連絡してください。',
+    en: 'We could not send the confirmation email. Please try again shortly. If it continues, contact support.',
+  })
 
   const getSupabaseErrorMessage = (payload: any): string => {
     if (!payload || typeof payload !== 'object') {
@@ -70,10 +74,20 @@ export default function Login() {
     return normalized.includes('email not confirmed') || normalized.includes('email not verified')
   }
 
+  const isConfirmationSendError = (message: string): boolean => {
+    const normalized = message.trim().toLowerCase()
+    return normalized.includes('error sending confirmation email') ||
+      normalized.includes('error sending confirmation mail') ||
+      (normalized.includes('error sending email') && normalized.includes('confirmation'))
+  }
+
   const resolveAuthErrorMessage = (err: any, fallback: string): string => {
     const raw = String(err?.message || err?.response?.data?.error || '').trim()
     if (raw && isUnverifiedEmailError(raw)) {
       return unverifiedEmailMessage
+    }
+    if (raw && isConfirmationSendError(raw)) {
+      return confirmationSendErrorMessage
     }
     return raw || fallback
   }

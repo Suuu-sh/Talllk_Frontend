@@ -14,6 +14,13 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'rec
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
 
+const resolveProfileImageSrc = (raw?: string): string => {
+  const value = raw?.trim()
+  if (!value) return ''
+  if (value.startsWith('http://') || value.startsWith('https://')) return value
+  return `${API_BASE}${value}`
+}
+
 const getInitial = (name: string): string => {
   const trimmed = name.trim()
   if (!trimmed) return '?'
@@ -324,7 +331,7 @@ export default function Dashboard() {
                 >
                   {profile?.avatar_url ? (
                     <img
-                      src={`${API_BASE}${profile.avatar_url}`}
+                      src={resolveProfileImageSrc(profile.avatar_url)}
                       alt={profile.name}
                       className="w-full h-full object-cover"
                     />
