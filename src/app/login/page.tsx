@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
+import { setAuthToken } from '@/lib/authStorage'
 
 export default function Login() {
   const router = useRouter()
   const { theme, toggleTheme } = useTheme()
   const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
+  const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -19,13 +22,112 @@ export default function Login() {
     }
   }, [])
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
-    name: '',
   })
   const [error, setError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const hasSupabaseAuth = Boolean(supabaseURL && supabaseAnonKey)
+  const unverifiedEmailMessage = t({
+    ja: 'メールアドレスが認証されていません。認証リンクまたはコードで認証してください。',
+    en: 'Your email address is not verified. Please verify it using the confirmation link or code.',
+  })
+  const confirmationSendErrorMessage = t({
+    ja: '確認メールの送信に失敗しました。時間をおいて再試行してください。解決しない場合はサポートへ連絡してください。',
+    en: 'We could not send the confirmation email. Please try again shortly. If it continues, contact support.',
+  })
+
+  const getSupabaseErrorMessage = (payload: any): string => {
+    if (!payload || typeof payload !== 'object') {
+      return t({ ja: '認証に失敗しました。', en: 'Authentication failed.' })
+    }
+    return payload.error_description || payload.message || payload.msg || payload.error || t({ ja: '認証に失敗しました。', en: 'Authentication failed.' })
+  }
+
+  const callSupabaseAuth = useCallback(async (path: string, payload: Record<string, unknown>) => {
+    if (!supabaseURL || !supabaseAnonKey) {
+      throw new Error(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
+    }
+
+    const response = await fetch(`${supabaseURL}/auth/v1/${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(getSupabaseErrorMessage(data))
+    }
+
+    return data as { access_token?: string }
+  }, [supabaseAnonKey, supabaseURL, t])
+
+  const isUnverifiedEmailError = (message: string): boolean => {
+    const normalized = message.trim().toLowerCase()
+    return normalized.includes('email not confirmed') || normalized.includes('email not verified')
+  }
+
+  const isConfirmationSendError = (message: string): boolean => {
+    const normalized = message.trim().toLowerCase()
+    return normalized.includes('error sending confirmation email') ||
+      normalized.includes('error sending confirmation mail') ||
+      (normalized.includes('error sending email') && normalized.includes('confirmation'))
+  }
+
+  const resolveAuthErrorMessage = (err: any, fallback: string): string => {
+    const raw = String(err?.message || err?.response?.data?.error || '').trim()
+    if (raw && isUnverifiedEmailError(raw)) {
+      return unverifiedEmailMessage
+    }
+    if (raw && isConfirmationSendError(raw)) {
+      return confirmationSendErrorMessage
+    }
+    return raw || fallback
+  }
+
+  const resolvePostAuthRedirect = useCallback(async (token: string) => {
+    setAuthToken(token)
+    const profileRes = await api.get<{ profile_completed?: boolean }>('/users/me')
+    if (profileRes.data.profile_completed === false) {
+      router.push('/profile-setup')
+    } else {
+      router.push('/home')
+    }
+  }, [router])
+
+  const signUpWithSupabase = useCallback(async (username: string, email: string, password: string): Promise<string> => {
+    const signUpRes = await callSupabaseAuth('signup', {
+      email,
+      password,
+      data: { name: username },
+    })
+    const directToken = signUpRes.access_token?.trim()
+    if (directToken) {
+      return directToken
+    }
+
+    try {
+      const loginRes = await callSupabaseAuth('token?grant_type=password', { email, password })
+      const fallbackToken = loginRes.access_token?.trim()
+      if (!fallbackToken) {
+        throw new Error(t({ ja: 'サインアップ後にトークン取得できませんでした。', en: 'Could not get token after sign up.' }))
+      }
+      return fallbackToken
+    } catch (err: any) {
+      const message = String(err?.message || '')
+      if (isUnverifiedEmailError(message)) {
+        return ''
+      }
+      throw err
+    }
+  }, [callSupabaseAuth, isUnverifiedEmailError, t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,21 +135,47 @@ export default function Login() {
     setIsSuccess(false)
     setIsLoading(true)
 
-    try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register'
-      const response = await api.post(endpoint, formData)
+    if (!hasSupabaseAuth) {
+      setIsLoading(false)
+      setError(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
+      return
+    }
 
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token)
-        router.push('/home')
-      } else if (!isLogin) {
-        setIsLogin(true)
-        setIsSuccess(true)
-        setError(t({ ja: '登録完了。ログインしてください。', en: 'Registration complete. Please log in.' }))
+    try {
+      const username = formData.username.trim()
+      const email = formData.email.trim().toLowerCase()
+      const password = formData.password
+
+      let token = ''
+      if (isLogin) {
+        const loginRes = await callSupabaseAuth('token?grant_type=password', { email, password })
+        token = loginRes.access_token?.trim() ?? ''
+      } else {
+        if (!username) {
+          throw new Error(t({ ja: 'Usernameを入力してください。', en: 'Please enter your username.' }))
+        }
+        token = await signUpWithSupabase(username, email, password)
+        if (!token) {
+          setIsSuccess(true)
+          setIsLogin(true)
+          setError(
+            t({
+              ja: `確認メールを ${email} に送信しました。メール内の認証リンクまたはコードで認証してからログインしてください。`,
+              en: `We sent a confirmation email to ${email}. Verify your email using the link or code in the email, then log in.`,
+            }),
+          )
+          return
+        }
       }
+
+      if (!token) {
+        throw new Error(t({ ja: 'トークン取得に失敗しました。', en: 'Failed to retrieve token.' }))
+      }
+
+      await resolvePostAuthRedirect(token)
     } catch (err: any) {
       setIsSuccess(false)
-      setError(err.response?.data?.error || t({ ja: 'エラーが発生しました', en: 'An error occurred.' }))
+      setError(resolveAuthErrorMessage(err, t({ ja: 'エラーが発生しました', en: 'An error occurred.' })))
     } finally {
       setIsLoading(false)
     }
@@ -202,7 +330,11 @@ export default function Login() {
             {/* Tab Switcher */}
             <div className="flex gap-1 p-1 mb-8 bg-layer rounded-2xl">
               <button
-                onClick={() => setIsLogin(true)}
+                onClick={() => {
+                  setIsLogin(true)
+                  setError('')
+                  setIsSuccess(false)
+                }}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   isLogin
                     ? 'bg-surface text-ink shadow-md'
@@ -212,7 +344,11 @@ export default function Login() {
                 {t({ ja: 'ログイン', en: 'Log in' })}
               </button>
               <button
-                onClick={() => setIsLogin(false)}
+                onClick={() => {
+                  setIsLogin(false)
+                  setError('')
+                  setIsSuccess(false)
+                }}
                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   !isLogin
                     ? 'bg-surface text-ink shadow-md'
@@ -250,19 +386,19 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Name Field (Register only) */}
+              {/* Username Field (Register only) */}
               {!isLogin && (
-                <div className="animate-fadeUp">
+                <div>
                   <label className="block text-sm font-semibold text-ink-sub mb-2">
-                    {t({ ja: 'お名前', en: 'Name' })}
+                    {t({ ja: 'Username', en: 'Username' })}
                   </label>
                   <input
                     type="text"
                     required
                     className="input-field"
-                    placeholder={t({ ja: '山田太郎', en: 'John Doe' })}
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder={t({ ja: '表示名を入力', en: 'Display name' })}
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   />
                 </div>
               )}

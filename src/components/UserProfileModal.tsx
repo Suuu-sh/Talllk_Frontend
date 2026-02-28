@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import { PaginatedResponse, PublicSituation, UserProfile } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 type UserProfileModalProps = {
   mode: 'me' | 'user'
@@ -23,13 +25,20 @@ const getAvatarGradient = (id: number): string => {
     'from-purple-400 to-purple-600',
     'from-blue-400 to-blue-600',
     'from-green-400 to-green-600',
-    'from-pink-400 to-pink-600',
-    'from-teal-400 to-teal-600',
+    'from-yellow-400 to-yellow-600',
+    'from-red-400 to-red-600',
   ]
   return gradients[id % gradients.length]
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
+
+const resolveProfileImageSrc = (raw?: string): string => {
+  const value = raw?.trim()
+  if (!value) return ''
+  if (value.startsWith('http://') || value.startsWith('https://')) return value
+  return `${API_BASE}${value}`
+}
 
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
   const { t, language } = useI18n()
@@ -39,15 +48,12 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
   const [isLoading, setIsLoading] = useState(true)
   const [isTogglingFollow, setIsTogglingFollow] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
-  const [uploadingHeader, setUploadingHeader] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
-  const headerInputRef = useRef<HTMLInputElement>(null)
   const truncateText = (text: string, maxLength = 10) =>
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }
@@ -116,25 +122,6 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
     }
   }
 
-  const handleUploadHeader = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !profile) return
-    setUploadingHeader(true)
-    try {
-      const formData = new FormData()
-      formData.append('image', file)
-      const res = await api.put<{ url: string }>('/users/me/header', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      setProfile({ ...profile, header_image_url: res.data.url })
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setUploadingHeader(false)
-      if (headerInputRef.current) headerInputRef.current.value = ''
-    }
-  }
-
   const handleClose = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
@@ -169,7 +156,6 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
 
         {/* Hidden file inputs */}
         <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUploadAvatar} />
-        <input ref={headerInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUploadHeader} />
 
         <div className="relative">
           {isLoading ? (
@@ -238,7 +224,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                   >
                     {profile.avatar_url ? (
                       <img
-                        src={`${API_BASE}${profile.avatar_url}`}
+                        src={resolveProfileImageSrc(profile.avatar_url)}
                         alt={profile.name}
                         className="w-full h-full object-cover"
                       />
@@ -371,7 +357,7 @@ export default function UserProfileModal({ mode, userId }: UserProfileModalProps
                               <span
                                 key={label.id}
                                 className="badge text-xs"
-                                style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                                style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
                               >
                                 {label.name}
                               </span>

@@ -6,11 +6,20 @@ import api from '@/lib/api'
 import { Situation, UserProfile } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
+import { chartMetricColors } from '@/lib/colorTokens'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
+
+const resolveProfileImageSrc = (raw?: string): string => {
+  const value = raw?.trim()
+  if (!value) return ''
+  if (value.startsWith('http://') || value.startsWith('https://')) return value
+  return `${API_BASE}${value}`
+}
 
 const getInitial = (name: string): string => {
   const trimmed = name.trim()
@@ -24,8 +33,8 @@ const getAvatarGradient = (id: number): string => {
     'from-purple-400 to-purple-600',
     'from-blue-400 to-blue-600',
     'from-green-400 to-green-600',
-    'from-pink-400 to-pink-600',
-    'from-teal-400 to-teal-600',
+    'from-yellow-400 to-yellow-600',
+    'from-red-400 to-red-600',
   ]
   return gradients[id % gradients.length]
 }
@@ -34,9 +43,9 @@ type ChartMetric = 'sessions' | 'topics' | 'questions'
 type ChartRange = '1d' | '7d' | '30d'
 
 const getMetricConfig = (lang: 'ja' | 'en'): Record<ChartMetric, { label: string; color: string }> => ({
-  sessions: { label: lang === 'en' ? 'Sessions' : 'セッション数', color: '#6366f1' },
-  topics: { label: lang === 'en' ? 'Topics added' : 'トピック追加', color: '#a855f7' },
-  questions: { label: lang === 'en' ? 'Q&A added' : 'Q&A追加', color: '#06b6d4' },
+  sessions: { label: lang === 'en' ? 'Sessions' : 'セッション数', color: chartMetricColors.sessions },
+  topics: { label: lang === 'en' ? 'Topics added' : 'トピック追加', color: chartMetricColors.topics },
+  questions: { label: lang === 'en' ? 'Q&A added' : 'Q&A追加', color: chartMetricColors.questions },
 })
 
 const getRangeLabels = (lang: 'ja' | 'en'): Record<ChartRange, string> => ({
@@ -109,8 +118,7 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }
@@ -172,6 +180,10 @@ export default function Dashboard() {
         api.get('/situations'),
         api.get<UserProfile>('/users/me'),
       ])
+      if (profileRes.data.profile_completed === false) {
+        router.replace('/profile-setup')
+        return
+      }
       setSituations(situationsRes.data.data || [])
       setProfile(profileRes.data)
     } catch (err) {
@@ -319,7 +331,7 @@ export default function Dashboard() {
                 >
                   {profile?.avatar_url ? (
                     <img
-                      src={`${API_BASE}${profile.avatar_url}`}
+                      src={resolveProfileImageSrc(profile.avatar_url)}
                       alt={profile.name}
                       className="w-full h-full object-cover"
                     />
@@ -526,7 +538,7 @@ export default function Dashboard() {
                               key={r}
                               onClick={() => { setChartRange(r); setRangeDropdownOpen(false) }}
                               className={`w-full px-3 py-2 text-xs text-left transition-colors ${
-                                chartRange === r ? 'bg-brand-500/10 text-brand-500 font-semibold' : 'text-ink-sub hover:bg-subtle'
+                                chartRange === r ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold' : 'text-ink-sub hover:bg-subtle'
                               }`}
                             >
                               {rangeLabels[r]}
@@ -549,10 +561,10 @@ export default function Dashboard() {
                           <stop offset="100%" stopColor={metricConfig[chartMetric].color} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--color-ink-faint, #9ca3af)' }} axisLine={false} tickLine={false} interval={chartRange === '30d' ? 4 : 0} />
-                      <YAxis tick={{ fontSize: 10, fill: 'var(--color-ink-faint, #9ca3af)' }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'rgb(var(--ink-faint))' }} axisLine={false} tickLine={false} interval={chartRange === '30d' ? 4 : 0} />
+                      <YAxis tick={{ fontSize: 10, fill: 'rgb(var(--ink-faint))' }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'var(--color-surface, #fff)', border: '1px solid var(--color-line, #e5e7eb)', borderRadius: '0.5rem', fontSize: '11px', boxShadow: 'var(--shadow-glass, 0 4px 12px rgba(0,0,0,0.08))' }}
+                        contentStyle={{ backgroundColor: 'rgb(var(--surface))', border: '1px solid rgb(var(--line))', borderRadius: '0.5rem', fontSize: '11px', boxShadow: 'var(--glass-shadow)' }}
                         labelStyle={{ fontWeight: 600 }}
                       />
                       <Area type="monotone" dataKey={chartMetric} name={metricConfig[chartMetric].label} stroke={metricConfig[chartMetric].color} strokeWidth={1.5} fill={`url(#grad-${chartMetric})`} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />

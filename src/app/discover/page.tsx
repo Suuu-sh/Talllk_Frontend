@@ -7,6 +7,7 @@ import { PublicSituation, PaginatedResponse } from '@/types'
 import Header from '@/components/Header'
 import TabNavigation, { Tab } from '@/components/TabNavigation'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 export default function DiscoverPage() {
   const [activeTab] = useState<Tab>('discover')
@@ -25,8 +26,7 @@ export default function DiscoverPage() {
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }

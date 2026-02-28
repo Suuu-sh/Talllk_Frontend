@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import api from '@/lib/api'
+import { getContrastTextColor } from '@/lib/colorTokens'
 import { PublicSituationDetail, Topic, Question } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
+import { hasAuthToken } from '@/lib/authStorage'
 
 type TreeNode = {
   id: number
@@ -29,8 +31,7 @@ export default function DiscoverDetailPage() {
   const [selectedTask, setSelectedTask] = useState<TreeNode | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!hasAuthToken()) {
       router.push('/login')
       return
     }
@@ -425,7 +426,7 @@ export default function DiscoverDetailPage() {
                       <span
                         key={label.id}
                         className="badge text-xs"
-                        style={{ backgroundColor: label.color, color: '#FFFFFF' }}
+                        style={{ backgroundColor: label.color, color: getContrastTextColor(label.color) }}
                       >
                         {label.name}
                       </span>

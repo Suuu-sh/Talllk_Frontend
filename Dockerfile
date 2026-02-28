@@ -1,14 +1,32 @@
-FROM node:18-alpine AS deps
+# syntax=docker/dockerfile:1
+FROM node:20-alpine AS deps
 
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-COPY scripts ./scripts
-RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi
+RUN --mount=type=cache,target=/root/.npm \
+    if [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund; \
+    else \
+      npm install --legacy-peer-deps --ignore-scripts --no-audit --no-fund; \
+    fi
 
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+ARG NEXT_PUBLIC_SUPABASE_URL=
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SENTRY_DSN=
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.1
+ENV NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=$NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
+ARG SENTRY_DSN=
+ENV SENTRY_DSN=$SENTRY_DSN
+ARG SENTRY_TRACES_SAMPLE_RATE=0.1
+ENV SENTRY_TRACES_SAMPLE_RATE=$SENTRY_TRACES_SAMPLE_RATE
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -20,7 +38,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN node scripts/copy-kuromoji-dict.mjs
 RUN npm run build
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 

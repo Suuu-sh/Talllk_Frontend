@@ -2,6 +2,7 @@ export interface User {
   id: number
   email: string
   name: string
+  handle?: string
   created_at: string
   updated_at: string
 }
@@ -65,6 +66,7 @@ export interface PublicSituation {
   user?: {
     id: number
     name: string
+    handle?: string
     is_following?: boolean
     is_self?: boolean
   }
@@ -78,8 +80,9 @@ export interface PublicSituationDetail extends PublicSituation {
 export interface UserProfile {
   id: number
   name: string
+  handle?: string
+  profile_completed: boolean
   avatar_url: string
-  header_image_url: string
   follower_count: number
   following_count: number
   is_following: boolean
