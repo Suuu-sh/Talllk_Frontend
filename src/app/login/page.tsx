@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useI18n } from '@/contexts/I18nContext'
 import api from '@/lib/api'
+import { trackEvent, trackLoginCompleted, trackSignUpCompleted } from '@/lib/analytics'
 
 export default function Login() {
   const router = useRouter()
@@ -38,14 +39,22 @@ export default function Login() {
       const response = await api.post(endpoint, formData)
 
       if (response.data.token) {
+        if (isLogin) {
+          trackLoginCompleted('email')
+        } else {
+          trackSignUpCompleted('email')
+          trackLoginCompleted('email')
+        }
         localStorage.setItem('token', response.data.token)
         router.push('/home')
       } else if (!isLogin) {
+        trackSignUpCompleted('email')
         setIsLogin(true)
         setIsSuccess(true)
         setError(t({ ja: '登録完了。ログインしてください。', en: 'Registration complete. Please log in.' }))
       }
     } catch (err: any) {
+      trackEvent(isLogin ? 'login_failed' : 'sign_up_failed')
       setIsSuccess(false)
       setError(err.response?.data?.error || t({ ja: 'エラーが発生しました', en: 'An error occurred.' }))
     } finally {

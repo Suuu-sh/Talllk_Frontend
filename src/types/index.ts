@@ -57,8 +57,8 @@ export interface PublicSituation {
   title: string
   description: string
   is_public: boolean
-  is_starred: boolean
-  star_count: number
+  is_liked: boolean
+  like_count: number
   created_at: string
   updated_at: string
   labels?: Label[]

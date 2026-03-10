@@ -22,7 +22,7 @@ export default function DiscoverDetailPage() {
   const [situation, setSituation] = useState<PublicSituationDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [isTogglingStar, setIsTogglingStar] = useState(false)
+  const [isTogglingLike, setIsTogglingLike] = useState(false)
   const [isTogglingFollow, setIsTogglingFollow] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
@@ -64,24 +64,24 @@ export default function DiscoverDetailPage() {
     }
   }
 
-  const handleToggleStar = async () => {
-    if (!situation || isTogglingStar) return
-    const newValue = !situation.is_starred
-    const originalCount = situation.star_count ?? 0
+  const handleToggleLike = async () => {
+    if (!situation || isTogglingLike) return
+    const newValue = !situation.is_liked
+    const originalCount = situation.like_count ?? 0
     const nextCount = Math.max(0, originalCount + (newValue ? 1 : -1))
-    setSituation({ ...situation, is_starred: newValue, star_count: nextCount })
-    setIsTogglingStar(true)
+    setSituation({ ...situation, is_liked: newValue, like_count: nextCount })
+    setIsTogglingLike(true)
     try {
       if (newValue) {
-        await api.post(`/discover/situations/${params.id}/star`)
+        await api.post(`/discover/situations/${params.id}/like`)
       } else {
-        await api.delete(`/discover/situations/${params.id}/star`)
+        await api.delete(`/discover/situations/${params.id}/like`)
       }
     } catch (err) {
       console.error(err)
-      setSituation({ ...situation, is_starred: !newValue, star_count: originalCount })
+      setSituation({ ...situation, is_liked: !newValue, like_count: originalCount })
     } finally {
-      setIsTogglingStar(false)
+      setIsTogglingLike(false)
     }
   }
 
@@ -455,34 +455,34 @@ export default function DiscoverDetailPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
               <div className="flex items-center gap-1">
                 <button
-                  onClick={handleToggleStar}
-                  disabled={isTogglingStar}
+                  onClick={handleToggleLike}
+                  disabled={isTogglingLike}
                   className={`btn-icon-sm transition-all duration-300 ${
-                    situation.is_starred
+                    situation.is_liked
                       ? '!text-yellow-500'
                       : 'text-ink-faint hover:text-yellow-500'
                   }`}
-                  title={situation.is_starred ? t({ ja: 'スター解除', en: 'Unstar' }) : t({ ja: 'スター', en: 'Star' })}
+                  title={situation.is_liked ? t({ ja: 'いいね解除', en: 'Unlike' }) : t({ ja: 'いいね', en: 'Like' })}
                 >
-                  {isTogglingStar ? (
+                  {isTogglingLike ? (
                     <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill={situation.is_starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill={situation.is_liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
                     </svg>
                   )}
                 </button>
                 <span
                   className={`text-xs font-semibold ${
-                    situation.is_starred
+                    situation.is_liked
                       ? 'text-yellow-600'
                       : 'text-ink-muted'
                   }`}
                 >
-                  {situation.star_count ?? 0}
+                  {situation.like_count ?? 0}
                 </span>
               </div>
 

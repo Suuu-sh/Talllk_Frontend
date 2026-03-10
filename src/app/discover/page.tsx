@@ -18,7 +18,7 @@ export default function DiscoverPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [savingId, setSavingId] = useState<number | null>(null)
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set())
-  const [togglingStarIds, setTogglingStarIds] = useState<Set<number>>(new Set())
+  const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set())
   const [togglingFollowIds, setTogglingFollowIds] = useState<Set<number>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const truncateText = (text: string, maxLength = 15) =>
@@ -99,25 +99,25 @@ export default function DiscoverPage() {
     )
   }
 
-  const handleToggleStar = async (situation: PublicSituation, e: React.MouseEvent) => {
+  const handleToggleLike = async (situation: PublicSituation, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (togglingStarIds.has(situation.id)) return
-    const newValue = !situation.is_starred
-    const originalCount = situation.star_count ?? 0
+    if (togglingLikeIds.has(situation.id)) return
+    const newValue = !situation.is_liked
+    const originalCount = situation.like_count ?? 0
     const nextCount = Math.max(0, originalCount + (newValue ? 1 : -1))
-    updateSituation(situation.id, { is_starred: newValue, star_count: nextCount })
-    setTogglingStarIds((prev) => new Set(prev).add(situation.id))
+    updateSituation(situation.id, { is_liked: newValue, like_count: nextCount })
+    setTogglingLikeIds((prev) => new Set(prev).add(situation.id))
     try {
       if (newValue) {
-        await api.post(`/discover/situations/${situation.id}/star`)
+        await api.post(`/discover/situations/${situation.id}/like`)
       } else {
-        await api.delete(`/discover/situations/${situation.id}/star`)
+        await api.delete(`/discover/situations/${situation.id}/like`)
       }
     } catch (err) {
       console.error(err)
-      updateSituation(situation.id, { is_starred: !newValue, star_count: originalCount })
+      updateSituation(situation.id, { is_liked: !newValue, like_count: originalCount })
     } finally {
-      setTogglingStarIds((prev) => {
+      setTogglingLikeIds((prev) => {
         const next = new Set(prev)
         next.delete(situation.id)
         return next
@@ -300,28 +300,28 @@ export default function DiscoverPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={(e) => handleToggleStar(situation, e)}
-                      disabled={togglingStarIds.has(situation.id)}
+                      onClick={(e) => handleToggleLike(situation, e)}
+                      disabled={togglingLikeIds.has(situation.id)}
                       className={`btn-icon-sm transition-all duration-300 ${
-                        situation.is_starred
+                        situation.is_liked
                           ? '!text-yellow-500'
                           : 'hover:bg-brand-500/15 hover:text-brand-500'
                       }`}
-                      title={situation.is_starred ? t({ ja: 'スター解除', en: 'Unstar' }) : t({ ja: 'スター', en: 'Star' })}
+                      title={situation.is_liked ? t({ ja: 'いいね解除', en: 'Unlike' }) : t({ ja: 'いいね', en: 'Like' })}
                     >
-                      {togglingStarIds.has(situation.id) ? (
+                      {togglingLikeIds.has(situation.id) ? (
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
                       ) : (
-                        <svg className="w-4 h-4" fill={situation.is_starred ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill={situation.is_liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.914c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.364 1.118l1.52 4.674c.3.921-.755 1.688-1.54 1.118l-3.977-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.785.57-1.84-.197-1.54-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z" />
                         </svg>
                       )}
                     </button>
-                    <span className={`text-xs font-semibold ${situation.is_starred ? 'text-yellow-600' : 'text-ink-faint'}`}>
-                      {situation.star_count ?? 0}
+                    <span className={`text-xs font-semibold ${situation.is_liked ? 'text-yellow-600' : 'text-ink-faint'}`}>
+                      {situation.like_count ?? 0}
                     </span>
                     <button
                       onClick={(e) => handleSave(situation.id, e)}
