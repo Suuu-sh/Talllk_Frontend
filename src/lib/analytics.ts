@@ -42,7 +42,13 @@ function safeReadStorage(key: string): StoredAttribution {
     return {}
   }
 
-  const raw = window.localStorage.getItem(key)
+  let raw: string | null = null
+  try {
+    raw = window.localStorage.getItem(key)
+  } catch {
+    return {}
+  }
+
   if (!raw) {
     return {}
   }
@@ -59,7 +65,11 @@ function safeWriteStorage(key: string, value: StoredAttribution) {
     return
   }
 
-  window.localStorage.setItem(key, JSON.stringify(value))
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // Ignore storage write errors (private mode / storage restrictions).
+  }
 }
 
 function extractUtm(searchParams: SearchParamsLike): StoredAttribution {

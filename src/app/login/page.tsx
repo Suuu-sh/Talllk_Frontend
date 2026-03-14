@@ -48,7 +48,6 @@ export default function Login() {
         localStorage.setItem('token', response.data.token)
         router.push('/home')
       } else if (!isLogin) {
-        trackSignUpCompleted('email')
         setIsLogin(true)
         setIsSuccess(true)
         setError(t({ ja: '登録完了。ログインしてください。', en: 'Registration complete. Please log in.' }))
