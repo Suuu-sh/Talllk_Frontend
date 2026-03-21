@@ -13,7 +13,7 @@ export default function Login() {
   const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
   const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseApiKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -29,10 +29,14 @@ export default function Login() {
   const [error, setError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const hasSupabaseAuth = Boolean(supabaseURL && supabaseAnonKey)
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState('')
+  const [confirmationCode, setConfirmationCode] = useState('')
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
+  const hasSupabaseAuth = Boolean(supabaseURL && supabaseApiKey)
+  const confirmationCodeLength = 8
   const unverifiedEmailMessage = t({
-    ja: 'メールアドレスが認証されていません。認証リンクまたはコードで認証してください。',
-    en: 'Your email address is not verified. Please verify it using the confirmation link or code.',
+    ja: 'メールアドレスが認証されていません。メールに届いた8桁の認証コードで認証してください。',
+    en: 'Your email address is not verified. Please verify it using the 8-digit confirmation code from the email.',
   })
   const confirmationSendErrorMessage = t({
     ja: '確認メールの送信に失敗しました。時間をおいて再試行してください。解決しない場合はサポートへ連絡してください。',
@@ -47,7 +51,7 @@ export default function Login() {
   }
 
   const callSupabaseAuth = useCallback(async (path: string, payload: Record<string, unknown>) => {
-    if (!supabaseURL || !supabaseAnonKey) {
+    if (!supabaseURL || !supabaseApiKey) {
       throw new Error(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
     }
 
@@ -55,8 +59,8 @@ export default function Login() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
+        apikey: supabaseApiKey,
+        Authorization: `Bearer ${supabaseApiKey}`,
       },
       body: JSON.stringify(payload),
     })
@@ -67,7 +71,7 @@ export default function Login() {
     }
 
     return data as { access_token?: string }
-  }, [supabaseAnonKey, supabaseURL, t])
+  }, [supabaseApiKey, supabaseURL, t])
 
   const isUnverifiedEmailError = (message: string): boolean => {
     const normalized = message.trim().toLowerCase()
@@ -101,6 +105,19 @@ export default function Login() {
       router.push('/home')
     }
   }, [router])
+
+  const verifyEmailWithCode = useCallback(async (email: string, code: string): Promise<string> => {
+    const verifyRes = await callSupabaseAuth('verify', {
+      type: 'signup',
+      email,
+      token: code,
+    })
+    const token = verifyRes.access_token?.trim()
+    if (!token) {
+      throw new Error(t({ ja: '認証は完了しましたが、ログイン用トークンを取得できませんでした。', en: 'Verification succeeded, but no login token was returned.' }))
+    }
+    return token
+  }, [callSupabaseAuth, t])
 
   const signUpWithSupabase = useCallback(async (username: string, email: string, password: string): Promise<string> => {
     const signUpRes = await callSupabaseAuth('signup', {
@@ -150,22 +167,28 @@ export default function Login() {
       if (isLogin) {
         const loginRes = await callSupabaseAuth('token?grant_type=password', { email, password })
         token = loginRes.access_token?.trim() ?? ''
+        setPendingConfirmationEmail('')
+        setConfirmationCode('')
       } else {
         if (!username) {
           throw new Error(t({ ja: 'Usernameを入力してください。', en: 'Please enter your username.' }))
         }
         token = await signUpWithSupabase(username, email, password)
         if (!token) {
+          setPendingConfirmationEmail(email)
+          setConfirmationCode('')
           setIsSuccess(true)
           setIsLogin(true)
           setError(
             t({
-              ja: `確認メールを ${email} に送信しました。メール内の認証リンクまたはコードで認証してからログインしてください。`,
-              en: `We sent a confirmation email to ${email}. Verify your email using the link or code in the email, then log in.`,
+              ja: `確認メールを ${email} に送信したのだ。メールに届いた${confirmationCodeLength}桁の認証コードを下に入力すると、そのままログインできるのだ。`,
+              en: `We sent a confirmation email to ${email}. Enter the ${confirmationCodeLength}-digit confirmation code below to finish signing up.`,
             }),
           )
           return
         }
+        setPendingConfirmationEmail('')
+        setConfirmationCode('')
       }
 
       if (!token) {
@@ -174,10 +197,47 @@ export default function Login() {
 
       await resolvePostAuthRedirect(token)
     } catch (err: any) {
+      const normalizedEmail = formData.email.trim().toLowerCase()
+      if (normalizedEmail && isUnverifiedEmailError(String(err?.message || ''))) {
+        setPendingConfirmationEmail(normalizedEmail)
+      }
       setIsSuccess(false)
       setError(resolveAuthErrorMessage(err, t({ ja: 'エラーが発生しました', en: 'An error occurred.' })))
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleVerifyConfirmationCode = async () => {
+    const email = pendingConfirmationEmail.trim().toLowerCase()
+    const code = confirmationCode.trim()
+
+    if (!email) {
+      setIsSuccess(false)
+      setError(t({ ja: '認証対象のメールアドレスが見つかりません。もう一度登録し直してください。', en: 'No email address is available for verification. Please sign up again.' }))
+      return
+    }
+
+    if (code.length !== confirmationCodeLength) {
+      setIsSuccess(false)
+      setError(t({ ja: '8桁の認証コードを入力してください。', en: 'Please enter the 8-digit confirmation code.' }))
+      return
+    }
+
+    setIsVerifyingCode(true)
+    setIsSuccess(false)
+    setError('')
+
+    try {
+      const token = await verifyEmailWithCode(email, code)
+      setPendingConfirmationEmail('')
+      setConfirmationCode('')
+      await resolvePostAuthRedirect(token)
+    } catch (err: any) {
+      setIsSuccess(false)
+      setError(resolveAuthErrorMessage(err, t({ ja: '認証コードの確認に失敗しました。', en: 'Failed to verify the confirmation code.' })))
+    } finally {
+      setIsVerifyingCode(false)
     }
   }
 
@@ -460,6 +520,56 @@ export default function Login() {
                   </>
                 )}
               </button>
+
+              {pendingConfirmationEmail && (
+                <div className="rounded-2xl border border-brand-200/70 bg-brand-50/70 dark:bg-brand-900/10 dark:border-brand-800/60 p-4 space-y-3 animate-scaleIn">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">
+                      {t({ ja: '認証コードを入力', en: 'Enter confirmation code' })}
+                    </p>
+                    <p className="text-xs text-ink-muted mt-1">
+                      {t({
+                        ja: `${pendingConfirmationEmail} に届いた${confirmationCodeLength}桁コードを入力するのだ。`,
+                        en: `Enter the ${confirmationCodeLength}-digit code sent to ${pendingConfirmationEmail}.`,
+                      })}
+                    </p>
+                  </div>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={confirmationCodeLength}
+                    className="input-field tracking-[0.35em] text-center text-lg font-semibold"
+                    placeholder="12345678"
+                    value={confirmationCode}
+                    onChange={(e) => setConfirmationCode(e.target.value.replace(/\D/g, '').slice(0, confirmationCodeLength))}
+                  />
+
+                  <button
+                    type="button"
+                    disabled={isVerifyingCode}
+                    onClick={handleVerifyConfirmationCode}
+                    className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
+                  >
+                    {isVerifyingCode ? (
+                      <span className="inline-flex items-center gap-2">
+                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        {t({ ja: '確認中...', en: 'Verifying...' })}
+                      </span>
+                    ) : (
+                      <>
+                        {t({ ja: '認証コードを確認', en: 'Verify code' })}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </form>
 
             {!isLogin && (
