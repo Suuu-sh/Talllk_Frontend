@@ -13,7 +13,7 @@ export default function Login() {
   const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
   const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -29,7 +29,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const hasSupabaseAuth = Boolean(supabaseURL && supabaseAnonKey)
+  const hasSupabaseAuth = Boolean(supabaseURL && supabasePublishableKey)
   const unverifiedEmailMessage = t({
     ja: 'メールアドレスが認証されていません。認証リンクまたはコードで認証してください。',
     en: 'Your email address is not verified. Please verify it using the confirmation link or code.',
@@ -47,7 +47,7 @@ export default function Login() {
   }
 
   const callSupabaseAuth = useCallback(async (path: string, payload: Record<string, unknown>) => {
-    if (!supabaseURL || !supabaseAnonKey) {
+    if (!supabaseURL || !supabasePublishableKey) {
       throw new Error(t({ ja: 'Supabase設定が不足しています。', en: 'Supabase configuration is missing.' }))
     }
 
@@ -55,8 +55,8 @@ export default function Login() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
+        apikey: supabasePublishableKey,
+        Authorization: `Bearer ${supabasePublishableKey}`,
       },
       body: JSON.stringify(payload),
     })
@@ -67,7 +67,7 @@ export default function Login() {
     }
 
     return data as { access_token?: string }
-  }, [supabaseAnonKey, supabaseURL, t])
+  }, [supabasePublishableKey, supabaseURL, t])
 
   const isUnverifiedEmailError = (message: string): boolean => {
     const normalized = message.trim().toLowerCase()
