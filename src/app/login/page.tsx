@@ -13,9 +13,7 @@ export default function Login() {
   const { t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
   const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabasePublishableKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
