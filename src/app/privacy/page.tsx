@@ -31,12 +31,12 @@ const sections: Section[] = [
     body: {
       ja: [
         'アカウント管理、同期、データ保存、公開設定、購入状態の確認、サポート対応、セキュリティ保護、障害調査、サービス改善のために利用します。',
-        '対応端末では、ユーザーが入力した質問と回答をApple Intelligenceのシステム機能で整えることがあります。この整形処理はTalllkのバックエンドへ送信せず、端末上またはAppleが提供するシステム機能内で行われます。',
+        'Talllk Proユーザーは、対応端末で、入力した質問と回答をApple Intelligenceのシステム機能で整えることができます。この整形処理はTalllkのバックエンドへ送信せず、端末上またはAppleが提供するシステム機能内で行われます。',
         '取得した情報を第三者広告のために販売したり、他社データと結び付けてトラッキングしたりすることはありません。',
       ],
       en: [
         'We use information to provide account management, sync, data storage, publishing controls, subscription status checks, support, security, troubleshooting, and service improvement.',
-        'On supported devices, we may use Apple Intelligence system features to polish user-entered questions and answers. This polish request is not sent to the Talllk backend and is processed on device or within Apple-provided system functionality.',
+        'Talllk Pro users can use Apple Intelligence system features on supported devices to polish user-entered questions and answers. This polish request is not sent to the Talllk backend and is processed on device or within Apple-provided system functionality.',
         'We do not sell your information for third-party advertising or combine it with third-party data to track you.',
       ],
     },
