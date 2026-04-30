@@ -3,16 +3,16 @@
 }
 
 .page {
-  --lp-bg: #ececef;
-  --lp-bg-soft: #f7f7f8;
-  --lp-surface: #ffffff;
-  --lp-surface-alt: #f1f1f3;
-  --lp-ink: #121216;
-  --lp-ink-soft: #575a65;
-  --lp-line: #d2d4dc;
-  --lp-line-strong: #9ca0ae;
-  --lp-solid: #121216;
-  --lp-inverse: #ffffff;
+  --lp-bg: rgb(236 236 239);
+  --lp-bg-soft: rgb(247 247 248);
+  --lp-surface: rgb(255 255 255);
+  --lp-surface-alt: rgb(241 241 243);
+  --lp-ink: rgb(18 18 22);
+  --lp-ink-soft: rgb(87 90 101);
+  --lp-line: rgb(210 212 220);
+  --lp-line-strong: rgb(156 160 174);
+  --lp-solid: rgb(18 18 22);
+  --lp-inverse: rgb(255 255 255);
   --lp-shadow: 0 18px 40px -28px rgba(12, 12, 15, 0.45);
   --lp-shadow-strong: 0 34px 86px -46px rgba(12, 12, 15, 0.6);
 
@@ -27,16 +27,16 @@
 }
 
 :global(.dark) .page {
-  --lp-bg: #0f1013;
-  --lp-bg-soft: #17191d;
-  --lp-surface: #1c1f25;
-  --lp-surface-alt: #22252d;
-  --lp-ink: #f3f4f6;
-  --lp-ink-soft: #a8aebb;
-  --lp-line: #333843;
-  --lp-line-strong: #505767;
-  --lp-solid: #f3f4f6;
-  --lp-inverse: #111319;
+  --lp-bg: rgb(15 16 19);
+  --lp-bg-soft: rgb(23 25 29);
+  --lp-surface: rgb(28 31 37);
+  --lp-surface-alt: rgb(34 37 45);
+  --lp-ink: rgb(243 244 246);
+  --lp-ink-soft: rgb(168 174 187);
+  --lp-line: rgb(51 56 67);
+  --lp-line-strong: rgb(80 87 103);
+  --lp-solid: rgb(243 244 246);
+  --lp-inverse: rgb(17 19 25);
   --lp-shadow: 0 22px 50px -30px rgba(0, 0, 0, 0.8);
   --lp-shadow-strong: 0 38px 98px -46px rgba(0, 0, 0, 0.94);
 
@@ -660,7 +660,7 @@
 .dashboardBar {
   border-radius: 10px 10px 4px 4px;
   border: 2px solid var(--lp-line);
-  background: linear-gradient(180deg, #16171b 0%, #2a2d36 100%);
+  background: linear-gradient(180deg, rgb(22 23 27) 0%, rgb(42 45 54) 100%);
 }
 
 .dashboardBar:nth-child(1) {
@@ -688,7 +688,7 @@
 }
 
 :global(.dark) .dashboardBar {
-  background: linear-gradient(180deg, #ecedf1 0%, #c7cad3 100%);
+  background: linear-gradient(180deg, rgb(236 237 241) 0%, rgb(199 202 211) 100%);
 }
 
 .dashboardTableCard {
@@ -760,17 +760,17 @@
   bottom: 16px;
   width: min(236px, 44vw);
   border-radius: 14px;
-  border: 2px solid #353a46;
-  background: #13151c;
-  color: #f2f3f7;
+  border: 2px solid rgb(53 58 70);
+  background: rgb(19 21 28);
+  color: rgb(242 243 247);
   padding: 12px;
   box-shadow: 0 20px 42px -24px rgba(0, 0, 0, 0.9);
 }
 
 :global(.dark) .dashboardFloatingCard {
-  border-color: #555c6e;
-  background: #f0f1f5;
-  color: #12141b;
+  border-color: rgb(85 92 110);
+  background: rgb(240 241 245);
+  color: rgb(18 20 27);
 }
 
 .floatingCardTitle {
