@@ -1,5 +1,14 @@
 const TOKEN_KEY = 'token'
 
+declare global {
+  interface Window {
+    Clerk?: {
+      session?: unknown
+      user?: unknown
+    }
+  }
+}
+
 const hasWindow = (): boolean => typeof window !== 'undefined'
 
 export const getAuthToken = (): string | null => {
@@ -18,4 +27,8 @@ export const clearAuthToken = (): void => {
   window.localStorage.removeItem(TOKEN_KEY)
 }
 
-export const hasAuthToken = (): boolean => Boolean(getAuthToken())
+export const hasAuthToken = (): boolean => {
+  if (Boolean(getAuthToken())) return true
+  if (!hasWindow()) return false
+  return Boolean(window.Clerk?.session || window.Clerk?.user)
+}
