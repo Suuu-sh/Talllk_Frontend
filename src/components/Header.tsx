@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useClerk } from '@clerk/nextjs'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -11,6 +12,7 @@ import type { Label } from '@/types'
 
 export default function Header() {
   const router = useRouter()
+  const { signOut } = useClerk()
   const { theme, toggleTheme } = useTheme()
   const { language, setLanguage, t } = useI18n()
   const [showSettings, setShowSettings] = useState(false)
@@ -23,9 +25,9 @@ export default function Header() {
   const [newLabelName, setNewLabelName] = useState('')
   const [labelError, setLabelError] = useState<string | null>(null)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearAuthToken()
-    router.push('/login')
+    await signOut({ redirectUrl: '/login' })
   }
 
   const sortLabels = (items: Label[]) =>
