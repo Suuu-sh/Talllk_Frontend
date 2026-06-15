@@ -67,6 +67,13 @@ const getBlockRange = (content, selector) => {
 const isLineInRanges = (lineNumber, ranges) =>
   ranges.some((range) => lineNumber >= range.start && lineNumber <= range.end)
 
+const isCssCustomPropertyDeclaration = (content, index) => {
+  const lineStart = content.lastIndexOf('\n', index) + 1
+  const lineEnd = content.indexOf('\n', index)
+  const line = content.slice(lineStart, lineEnd === -1 ? content.length : lineEnd)
+  return /^\s*--[a-z0-9-]+\s*:/i.test(line)
+}
+
 const walkFiles = async (directory) => {
   const entries = await fs.readdir(directory, { withFileTypes: true })
   const filePaths = []
@@ -112,6 +119,7 @@ const checkHexLiterals = (filePath, content) => {
   for (const match of content.matchAll(hexPattern)) {
     const line = getLineNumber(content, match.index ?? 0)
     if (filePath === globalsCssPath && isLineInRanges(line, allowedRanges)) continue
+    if (path.extname(filePath) === '.css' && isCssCustomPropertyDeclaration(content, match.index ?? 0)) continue
     errors.push(
       `${relativePath(filePath)}:${line} hex literal "${match[0]}" is not allowed outside token files.`
     )

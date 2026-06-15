@@ -10,16 +10,9 @@ import { chartMetricColors } from '@/lib/colorTokens'
 import { toTitleReading } from '@/lib/reading'
 import { useI18n } from '@/contexts/I18nContext'
 import { hasAuthToken } from '@/lib/authStorage'
+import { resolveProfileImageSrc } from '@/lib/url'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
-
-const resolveProfileImageSrc = (raw?: string): string => {
-  const value = raw?.trim()
-  if (!value) return ''
-  if (value.startsWith('http://') || value.startsWith('https://')) return value
-  return `${API_BASE}${value}`
-}
 
 const getInitial = (name: string): string => {
   const trimmed = name.trim()

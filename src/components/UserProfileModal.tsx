@@ -7,6 +7,7 @@ import { getContrastTextColor } from '@/lib/colorTokens'
 import { PaginatedResponse, PublicSituation, UserProfile } from '@/types'
 import { useI18n } from '@/contexts/I18nContext'
 import { hasAuthToken } from '@/lib/authStorage'
+import { resolveProfileImageSrc } from '@/lib/url'
 
 type UserProfileModalProps = {
   mode: 'me' | 'user'
@@ -31,14 +32,6 @@ const getAvatarGradient = (id: number): string => {
   return gradients[id % gradients.length]
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.talllk.net'
-
-const resolveProfileImageSrc = (raw?: string): string => {
-  const value = raw?.trim()
-  if (!value) return ''
-  if (value.startsWith('http://') || value.startsWith('https://')) return value
-  return `${API_BASE}${value}`
-}
 
 export default function UserProfileModal({ mode, userId }: UserProfileModalProps) {
   const { t, language } = useI18n()
