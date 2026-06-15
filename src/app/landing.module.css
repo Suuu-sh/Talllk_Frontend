@@ -15,6 +15,11 @@
   --lp-inverse: #ffffff;
   --lp-shadow: 0 18px 40px -28px rgba(12, 12, 15, 0.45);
   --lp-shadow-strong: 0 34px 86px -46px rgba(12, 12, 15, 0.6);
+  --lp-dashboard-bar-start: #16171b;
+  --lp-dashboard-bar-end: #2a2d36;
+  --lp-dashboard-floating-border: #353a46;
+  --lp-dashboard-floating-bg: #13151c;
+  --lp-dashboard-floating-ink: #f2f3f7;
 
   min-height: 100vh;
   color: var(--lp-ink);
@@ -39,6 +44,11 @@
   --lp-inverse: #111319;
   --lp-shadow: 0 22px 50px -30px rgba(0, 0, 0, 0.8);
   --lp-shadow-strong: 0 38px 98px -46px rgba(0, 0, 0, 0.94);
+  --lp-dashboard-bar-start: #ecedf1;
+  --lp-dashboard-bar-end: #c7cad3;
+  --lp-dashboard-floating-border: #555c6e;
+  --lp-dashboard-floating-bg: #f0f1f5;
+  --lp-dashboard-floating-ink: #12141b;
 
   background:
     radial-gradient(circle at 90% 5%, rgba(255, 255, 255, 0.07), transparent 34%),
@@ -660,7 +670,7 @@
 .dashboardBar {
   border-radius: 10px 10px 4px 4px;
   border: 2px solid var(--lp-line);
-  background: linear-gradient(180deg, #16171b 0%, #2a2d36 100%);
+  background: linear-gradient(180deg, var(--lp-dashboard-bar-start) 0%, var(--lp-dashboard-bar-end) 100%);
 }
 
 .dashboardBar:nth-child(1) {
@@ -687,9 +697,6 @@
   height: 70%;
 }
 
-:global(.dark) .dashboardBar {
-  background: linear-gradient(180deg, #ecedf1 0%, #c7cad3 100%);
-}
 
 .dashboardTableCard {
   display: grid;
@@ -760,17 +767,11 @@
   bottom: 16px;
   width: min(236px, 44vw);
   border-radius: 14px;
-  border: 2px solid #353a46;
-  background: #13151c;
-  color: #f2f3f7;
+  border: 2px solid var(--lp-dashboard-floating-border);
+  background: var(--lp-dashboard-floating-bg);
+  color: var(--lp-dashboard-floating-ink);
   padding: 12px;
   box-shadow: 0 20px 42px -24px rgba(0, 0, 0, 0.9);
-}
-
-:global(.dark) .dashboardFloatingCard {
-  border-color: #555c6e;
-  background: #f0f1f5;
-  color: #12141b;
 }
 
 .floatingCardTitle {

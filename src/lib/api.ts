@@ -5,11 +5,19 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.talllk.net/api',
 })
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
 const getRuntimeClerkToken = async (): Promise<string | null> => {
   if (typeof window === 'undefined') return null
-  const clerk = (window as any).Clerk
-  const token = await clerk?.session?.getToken?.()
-  return typeof token === 'string' && token.trim() ? token : null
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const token = await window.Clerk?.session?.getToken?.()
+    if (typeof token === 'string' && token.trim()) return token
+    if (window.Clerk) return null
+    await sleep(50)
+  }
+
+  return null
 }
 
 api.interceptors.request.use(async (config) => {
@@ -30,7 +38,7 @@ api.interceptors.response.use(
     if (error?.response?.status === 401) {
       clearAuthToken()
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        await (window as any).Clerk?.signOut?.()
+        await window.Clerk?.signOut?.()
         window.location.replace('/login')
       }
     }
