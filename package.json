@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",
-    "@sentry/nextjs": "^10.40.0",
+    "@sentry/nextjs": "^10.60.0",
     "axios": "^1.6.5",
     "kuroshiro": "^1.2.0",
     "kuroshiro-analyzer-kuromoji": "^1.1.0",
