@@ -1,5 +1,5 @@
 type ClerkSession = {
-  getToken?: () => Promise<string | null>
+  getToken?: (options?: { template?: string }) => Promise<string | null>
 }
 
 type ClerkRuntime = {

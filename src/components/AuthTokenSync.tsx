@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { clearAuthToken, setAuthToken } from '@/lib/authStorage'
+import { clerkTokenOptions } from '@/lib/clerkToken'
 
 export default function AuthTokenSync() {
   const { getToken, isSignedIn, isLoaded } = useAuth()
@@ -18,7 +19,7 @@ export default function AuthTokenSync() {
         return
       }
 
-      const token = await getToken()
+      const token = await getToken(clerkTokenOptions())
       if (!cancelled && token) {
         setAuthToken(token)
       }
