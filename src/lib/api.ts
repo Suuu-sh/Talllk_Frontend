@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { clearAuthToken, getAuthToken, setAuthToken } from '@/lib/authStorage'
+import { clerkTokenOptions } from '@/lib/clerkToken'
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.talllk.net/api',
@@ -11,7 +12,7 @@ const getRuntimeClerkToken = async (): Promise<string | null> => {
   if (typeof window === 'undefined') return null
 
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    const token = await window.Clerk?.session?.getToken?.()
+    const token = await window.Clerk?.session?.getToken?.(clerkTokenOptions())
     if (typeof token === 'string' && token.trim()) return token
     if (window.Clerk) return null
     await sleep(50)
