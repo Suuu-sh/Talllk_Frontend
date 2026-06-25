@@ -1,8 +1,10 @@
 type ClerkSession = {
-  getToken?: (options?: { template?: string }) => Promise<string | null>
+  getToken?: (options?: { template?: string; skipCache?: boolean }) => Promise<string | null>
 }
 
 type ClerkRuntime = {
+  loaded?: boolean
+  status?: 'degraded' | 'error' | 'loading' | 'ready'
   session?: ClerkSession | null
   user?: unknown
   signOut?: () => Promise<void>
@@ -49,5 +51,6 @@ export const hasAuthToken = (): boolean => {
   if (Boolean(getAuthToken())) return true
   if (!hasWindow()) return false
   if (!window.Clerk) return true
+  if (window.Clerk.loaded === false || window.Clerk.status === 'loading') return true
   return Boolean(window.Clerk.session || window.Clerk.user)
 }
