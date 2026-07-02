@@ -224,6 +224,9 @@ export function LandingContent({
             <a className={styles.footerLink} href="/terms">
               Terms
             </a>
+            <a className={styles.footerLink} href="/support">
+              Support
+            </a>
           </div>
         </div>
         <div className={styles.divider} />
